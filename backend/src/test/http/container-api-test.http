@@ -1,0 +1,39 @@
+### 1. 컨테이너 생성
+POST http://localhost:8080/api/containers
+Content-Type: application/json
+memberId: test001
+
+{
+  "containerName": "테스트 프로젝트",
+  "containerContent": "이것은 테스트 컨테이너입니다",
+  "visibility": "PRIVATE",
+  "invitedMemberIds": ["test002", "test003"]
+}
+
+### 2. 내 컨테이너 목록 조회
+GET http://localhost:8080/api/containers/my
+memberId: test001
+
+### 3. 컨테이너 수정 (ID: 12)
+PUT http://localhost:8080/api/containers/14
+Content-Type: application/json
+memberId: test001
+
+{
+  "containerName": "수정된 프로젝트",
+  "visibility": "PUBLIC"
+}
+
+### 4. 멤버 초대 (ID: 12)
+POST http://localhost:8080/api/containers/14/members
+Content-Type: application/json
+memberId: test001
+
+{
+  "memberId": "test003",
+  "authority": "USER"
+}
+
+### 5. 컨테이너 삭제 (ID: 12)
+DELETE http://localhost:8080/api/containers/14
+memberId: test001
