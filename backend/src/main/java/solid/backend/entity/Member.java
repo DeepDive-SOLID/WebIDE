@@ -18,7 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "회원")
+@Table(name = "member")
 public class Member {
 
     @Id
@@ -52,7 +52,7 @@ public class Member {
 
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
     @Builder.Default
-    private List<GroupMember> groupMembers = new ArrayList<>();
+    private List<TeamUser> teamUsers = new ArrayList<>();
 
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
     @Builder.Default

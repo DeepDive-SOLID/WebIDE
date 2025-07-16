@@ -135,6 +135,38 @@ public class ContainerExceptionHandler {
     }
     
     /**
+     * 멤버를 찾을 수 없을 때
+     */
+    @ExceptionHandler(MemberNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleMemberNotFoundException(MemberNotFoundException e) {
+        log.error("Member not found: {}", e.getMessage());
+        
+        Map<String, Object> errorResponse = new LinkedHashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.NOT_FOUND.value());
+        errorResponse.put("error", "Not Found");
+        errorResponse.put("message", e.getMessage());
+        
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+    
+    /**
+     * 유효하지 않은 멤버 ID가 제공될 때
+     */
+    @ExceptionHandler(InvalidMemberException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidMemberException(InvalidMemberException e) {
+        log.error("Invalid member: {}", e.getMessage());
+        
+        Map<String, Object> errorResponse = new LinkedHashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
+        errorResponse.put("error", "Bad Request");
+        errorResponse.put("message", e.getMessage());
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+    
+    /**
      * 일반 예외 처리
      */
     @ExceptionHandler(Exception.class)

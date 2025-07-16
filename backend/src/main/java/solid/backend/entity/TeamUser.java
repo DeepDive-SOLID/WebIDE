@@ -2,6 +2,7 @@ package solid.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -24,5 +25,11 @@ public class TeamUser {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
+    
+    @Column(name = "joined_date", nullable = false)
+    private LocalDateTime joinedDate = LocalDateTime.now();
+    
+    @Column(name = "last_activity_date")
+    private LocalDateTime lastActivityDate;
 
 }

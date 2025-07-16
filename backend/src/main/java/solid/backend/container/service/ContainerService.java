@@ -71,7 +71,7 @@ public interface ContainerService {
     void deleteContainer(Long containerId, String memberId);
     
     /**
-     * 컨테이너에 멤버 초대 (ROOT 권한만 가능)
+     * 컨테이너에 멤버 초대 (ROOT 또는 INVITE 권한 이상 필요)
      * @param containerId 컨테이너 ID
      * @param requesterId 초대하는 사용자 ID
      * @param inviteDto 초대 정보
@@ -88,7 +88,7 @@ public interface ContainerService {
     List<GroupMemberResponseDto> getContainerMembers(Long containerId, String memberId);
     
     /**
-     * 멤버 권한 변경 (ROOT 권한만 가능)
+     * 멤버 권한 변경 (ROOT 또는 ADMIN 권한만 가능)
      * @param containerId 컨테이너 ID
      * @param requesterId 요청하는 사용자 ID
      * @param targetMemberId 대상 멤버 ID
@@ -97,7 +97,7 @@ public interface ContainerService {
     void updateMemberAuthority(Long containerId, String requesterId, String targetMemberId, Authority newAuthority);
     
     /**
-     * 멤버 제거 (ROOT 권한만 가능)
+     * 멤버 제거 (ROOT 또는 INVITE 권한 이상 필요)
      * @param containerId 컨테이너 ID
      * @param requesterId 요청하는 사용자 ID
      * @param targetMemberId 제거할 멤버 ID

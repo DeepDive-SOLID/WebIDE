@@ -37,7 +37,7 @@ public interface ContainerRepository extends JpaRepository<Container, Long> {
      * @param member 사용자
      * @return 참여한 컨테이너 목록
      */
-    @Query("SELECT c FROM Container c JOIN c.group.groupMembers gm WHERE gm.member = :member")
+    @Query("SELECT c FROM Container c JOIN c.team.teamUsers tu WHERE tu.member = :member AND c.owner != :member")
     List<Container> findSharedContainers(@Param("member") Member member);
     
     /**
@@ -45,7 +45,7 @@ public interface ContainerRepository extends JpaRepository<Container, Long> {
      * @param member 사용자
      * @return 접근 가능한 모든 컨테이너 목록
      */
-    @Query("SELECT c FROM Container c WHERE c.owner = :member OR EXISTS (SELECT gm FROM GroupMember gm WHERE gm.group = c.group AND gm.member = :member)")
+    @Query("SELECT c FROM Container c WHERE c.owner = :member OR EXISTS (SELECT tu FROM TeamUser tu WHERE tu.team = c.team AND tu.member = :member)")
     List<Container> findAllAccessibleContainers(@Param("member") Member member);
     
     /**

@@ -16,22 +16,22 @@ DROP TABLE IF EXISTS `채팅`;
 DROP TABLE IF EXISTS `문제`;
 DROP TABLE IF EXISTS `코드 텍스트`;
 DROP TABLE IF EXISTS `디렉토리`;
-DROP TABLE IF EXISTS `그룹 회원`;
-DROP TABLE IF EXISTS `컨테이너`;
-DROP TABLE IF EXISTS `그룹`;
-DROP TABLE IF EXISTS `회원`;
-DROP TABLE IF EXISTS `그룹 권한`;
+DROP TABLE IF EXISTS team_user;
+DROP TABLE IF EXISTS container;
+DROP TABLE IF EXISTS team;
+DROP TABLE IF EXISTS `member`;
+DROP TABLE IF EXISTS auth;
 SET FOREIGN_KEY_CHECKS = 1;
 
--- 1. 그룹 권한 테이블
-CREATE TABLE `그룹 권한` (
-    `AUTH_ID` VARCHAR(10) NOT NULL COMMENT '권한 코드',
-    `AUTH_NAME` VARCHAR(20) NOT NULL COMMENT '권한 이름',
-    PRIMARY KEY (`AUTH_ID`)
+-- 1. 권한 테이블
+CREATE TABLE auth (
+    auth_id VARCHAR(10) NOT NULL COMMENT '권한 코드',
+    auth_name VARCHAR(20) NOT NULL COMMENT '권한 이름',
+    PRIMARY KEY (auth_id)
 );
 
 -- 2. 회원 테이블
-CREATE TABLE `회원` (
+CREATE TABLE `member` (
     `MEMBER_ID` VARCHAR(20) NOT NULL COMMENT '회원 ID',
     `MEMBER_NAME` VARCHAR(10) NOT NULL COMMENT '회원명',
     `MEMBER_PW` VARCHAR(100) NOT NULL COMMENT '회원 비밀번호',
@@ -42,70 +42,70 @@ CREATE TABLE `회원` (
     PRIMARY KEY (`MEMBER_ID`)
 );
 
--- 3. 그룹 테이블
-CREATE TABLE `그룹` (
-    `GROUP_ID` INT NOT NULL AUTO_INCREMENT COMMENT '그룹 ID',
-    `GROUP_NAME` VARCHAR(100) NOT NULL COMMENT '그룹 이름',
-    PRIMARY KEY (`GROUP_ID`)
+-- 3. 팀 테이블
+CREATE TABLE team (
+    team_id INT NOT NULL AUTO_INCREMENT COMMENT '팀 ID',
+    team_name VARCHAR(100) NOT NULL COMMENT '팀 이름',
+    PRIMARY KEY (team_id)
 );
 
--- 4. 컨테이너 테이블 (수정됨 - OWNER_ID 추가)
-CREATE TABLE `컨테이너` (
-    `CONTAINER_ID` INT NOT NULL AUTO_INCREMENT COMMENT '방 번호',
-    `GROUP_ID` INT NOT NULL COMMENT '그룹 ID',
-    `CONTAINER_AUTH` BOOLEAN NOT NULL DEFAULT true COMMENT '컨테이너 공개 여부 (true: public / false: private)',
-    `CONTAINER_DATE` DATE NOT NULL DEFAULT (CURRENT_DATE) COMMENT '생성일',
-    `CONTAINER_NM` VARCHAR(20) NOT NULL COMMENT '컨테이너 이름',
-    `CONTAINER_CONTENT` VARCHAR(200) NULL COMMENT '컨테이너 설명',
-    `OWNER_ID` VARCHAR(20) NOT NULL COMMENT '컨테이너 소유자',
-    PRIMARY KEY (`CONTAINER_ID`),
-    FOREIGN KEY (`GROUP_ID`) REFERENCES `그룹` (`GROUP_ID`),
-    FOREIGN KEY (`OWNER_ID`) REFERENCES `회원` (`MEMBER_ID`)
+-- 4. 컨테이너 테이블
+CREATE TABLE container (
+    container_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '컨테이너 ID',
+    team_id INT NOT NULL COMMENT '팀 ID',
+    container_auth BOOLEAN NOT NULL DEFAULT true COMMENT '컨테이너 공개 여부 (true: public / false: private)',
+    container_date DATE NOT NULL DEFAULT (CURRENT_DATE) COMMENT '생성일',
+    container_nm VARCHAR(20) NOT NULL COMMENT '컨테이너 이름',
+    container_content VARCHAR(200) NULL COMMENT '컨테이너 설명',
+    owner_id VARCHAR(20) NOT NULL COMMENT '컨테이너 소유자',
+    PRIMARY KEY (container_id),
+    FOREIGN KEY (team_id) REFERENCES team (team_id),
+    FOREIGN KEY (owner_id) REFERENCES `member` (MEMBER_ID)
 );
 
--- 5. 그룹 회원 테이블 (수정됨 - 날짜 컬럼 추가)
-CREATE TABLE `그룹 회원` (
-    `GROUP_USER_ID` INT NOT NULL AUTO_INCREMENT COMMENT '그룹 유저 PK',
-    `GROUP_ID` INT NOT NULL COMMENT '그룹 ID',
-    `GROUP_AUTH_ID` VARCHAR(10) NOT NULL COMMENT '권한 코드',
-    `MEMBER_ID` VARCHAR(20) NOT NULL COMMENT '회원 ID',
-    `JOINED_DATE` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
-    `LAST_ACTIVITY_DATE` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '마지막 활동일시',
-    PRIMARY KEY (`GROUP_USER_ID`),
-    FOREIGN KEY (`GROUP_ID`) REFERENCES `그룹` (`GROUP_ID`),
-    FOREIGN KEY (`MEMBER_ID`) REFERENCES `회원` (`MEMBER_ID`),
-    FOREIGN KEY (`GROUP_AUTH_ID`) REFERENCES `그룹 권한` (`AUTH_ID`)
+-- 5. 팀 회원 테이블
+CREATE TABLE team_user (
+    team_user_id INT NOT NULL AUTO_INCREMENT COMMENT '팀 유저 PK',
+    team_id INT NOT NULL COMMENT '팀 ID',
+    team_auth_id VARCHAR(10) NOT NULL COMMENT '권한 코드',
+    member_id VARCHAR(20) NOT NULL COMMENT '회원 ID',
+    joined_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입 날짜',
+    last_activity_date DATETIME NULL COMMENT '마지막 활동 시간',
+    PRIMARY KEY (team_user_id),
+    FOREIGN KEY (team_id) REFERENCES team (team_id),
+    FOREIGN KEY (member_id) REFERENCES `member` (MEMBER_ID),
+    FOREIGN KEY (team_auth_id) REFERENCES auth (auth_id)
 );
 
 -- 6. 디렉토리 테이블
 CREATE TABLE `디렉토리` (
     `DIRECTORY_ID` INT NOT NULL AUTO_INCREMENT COMMENT '디렉토리 ID',
-    `CONTAINER_ID` INT NOT NULL COMMENT '방 번호',
-    `GROUP_ID` INT NOT NULL COMMENT '그룹 ID',
+    `CONTAINER_ID` BIGINT NOT NULL COMMENT '컨테이너 ID',
+    `TEAM_ID` INT NOT NULL COMMENT '팀 ID',
     `DIRECTORY_NAME` VARCHAR(30) NOT NULL COMMENT '디렉토리 이름',
     `DIRECTORY_ROOT` VARCHAR(30) NOT NULL COMMENT '상위 디렉토리',
     PRIMARY KEY (`DIRECTORY_ID`),
-    FOREIGN KEY (`CONTAINER_ID`) REFERENCES `컨테이너` (`CONTAINER_ID`),
-    FOREIGN KEY (`GROUP_ID`) REFERENCES `그룹` (`GROUP_ID`)
+    FOREIGN KEY (`CONTAINER_ID`) REFERENCES container (container_id),
+    FOREIGN KEY (`TEAM_ID`) REFERENCES team (team_id)
 );
 
 -- 7. 채팅 테이블
 CREATE TABLE `채팅` (
     `CHAT_ID` INT NOT NULL AUTO_INCREMENT COMMENT '채팅 ID',
     `MEMBER_ID` VARCHAR(20) NOT NULL COMMENT '회원 ID',
-    `GROUP_ID` INT NOT NULL COMMENT '그룹 ID',
+    `TEAM_ID` INT NOT NULL COMMENT '팀 ID',
     `CHAT_TEXT` VARCHAR(50) NOT NULL COMMENT '채팅 내용',
     `CHAT_DATE` DATE NOT NULL COMMENT '채팅 날짜',
     PRIMARY KEY (`CHAT_ID`),
-    FOREIGN KEY (`MEMBER_ID`) REFERENCES `회원` (`MEMBER_ID`),
-    FOREIGN KEY (`GROUP_ID`) REFERENCES `그룹` (`GROUP_ID`)
+    FOREIGN KEY (`MEMBER_ID`) REFERENCES `member` (`MEMBER_ID`),
+    FOREIGN KEY (`TEAM_ID`) REFERENCES team (team_id)
 );
 
 -- 8. 문제 테이블
 CREATE TABLE `문제` (
     `QUESTION_ID` INT NOT NULL AUTO_INCREMENT COMMENT '문제 ID',
-    `CONTAINER_ID` INT NOT NULL COMMENT '방 번호',
-    `GROUP_ID` INT NOT NULL COMMENT '그룹 ID',
+    `CONTAINER_ID` BIGINT NOT NULL COMMENT '컨테이너 ID',
+    `TEAM_ID` INT NOT NULL COMMENT '팀 ID',
     `QUESTION_TITLE` VARCHAR(30) NOT NULL COMMENT '제목',
     `QUESTION_DESCRIPTION` VARCHAR(300) NOT NULL COMMENT '내용',
     `QUESTION` VARCHAR(300) NOT NULL COMMENT '제한사항',
@@ -114,8 +114,8 @@ CREATE TABLE `문제` (
     `QUESTION_TIME` FLOAT NOT NULL COMMENT '시간 제한',
     `QUESTION_MEM` INT NOT NULL COMMENT '메모리 제한',
     PRIMARY KEY (`QUESTION_ID`),
-    FOREIGN KEY (`CONTAINER_ID`) REFERENCES `컨테이너` (`CONTAINER_ID`),
-    FOREIGN KEY (`GROUP_ID`) REFERENCES `그룹` (`GROUP_ID`)
+    FOREIGN KEY (`CONTAINER_ID`) REFERENCES container (container_id),
+    FOREIGN KEY (`TEAM_ID`) REFERENCES team (team_id)
 );
 
 -- 9. 테스트케이스 테이블
@@ -165,32 +165,37 @@ CREATE TABLE `결과 테이블` (
     `RESULT_LANG` VARCHAR(20) NOT NULL COMMENT '사용 언어',
     PRIMARY KEY (`RESULT_ID`),
     FOREIGN KEY (`CASE_ID`, `QUESTION_ID`) REFERENCES `테스트케이스` (`CASE_ID`, `QUESTION_ID`),
-    FOREIGN KEY (`MEMBER_ID`) REFERENCES `회원` (`MEMBER_ID`)
+    FOREIGN KEY (`MEMBER_ID`) REFERENCES `member` (`MEMBER_ID`)
 );
 
 -- 13. 진행률 테이블
 CREATE TABLE `진행률` (
     `PROGRESS_ID` INT NOT NULL AUTO_INCREMENT COMMENT '진행률ID',
     `DIRECTORY_ID` INT NOT NULL COMMENT '디렉토리 ID',
-    `GROUP_USER_ID` INT NOT NULL COMMENT '그룹 유저 PK',
+    `TEAM_USER_ID` INT NOT NULL COMMENT '팀 유저 PK',
     `PROGRESS_COMPLETE` INT NOT NULL COMMENT '진행률',
     PRIMARY KEY (`PROGRESS_ID`),
     FOREIGN KEY (`DIRECTORY_ID`) REFERENCES `디렉토리` (`DIRECTORY_ID`),
-    FOREIGN KEY (`GROUP_USER_ID`) REFERENCES `그룹 회원` (`GROUP_USER_ID`)
+    FOREIGN KEY (`TEAM_USER_ID`) REFERENCES team_user (team_user_id)
 );
 
 -- 기본 데이터 삽입
-INSERT INTO `그룹 권한` (`AUTH_ID`, `AUTH_NAME`) VALUES 
-('ROOT', '관리자'),
-('USER', '일반 사용자');
+INSERT INTO auth (auth_id, auth_name) VALUES 
+('ROOT', 'Root Administrator'),
+('ADMIN', 'Administrator'),
+('INVITE', 'Invite Permission'),
+('WRITE', 'Write Permission'),
+('USER', 'User'),
+('READ', 'Read Permission');
 
 -- 테스트용 회원 데이터
-INSERT INTO `회원` (`MEMBER_ID`, `MEMBER_NAME`, `MEMBER_PW`, `MEMBER_EMAIL`) VALUES
-('test001', '테스트유저1', 'password123', 'test1@example.com'),
-('test002', '테스트유저2', 'password123', 'test2@example.com'),
-('test003', '테스트유저3', 'password123', 'test3@example.com');
+INSERT INTO `member` (`MEMBER_ID`, `MEMBER_NAME`, `MEMBER_PW`, `MEMBER_EMAIL`) VALUES
+('test001', 'TestUser1', 'password123', 'test1@example.com'),
+('test002', 'TestUser2', 'password123', 'test2@example.com'),
+('test003', 'TestUser3', 'password123', 'test3@example.com');
 
 -- 인덱스 추가 (성능 최적화)
-CREATE INDEX idx_group_member_activity ON `그룹 회원` (`LAST_ACTIVITY_DATE`);
-CREATE INDEX idx_container_owner ON `컨테이너` (`OWNER_ID`);
-CREATE INDEX idx_container_auth ON `컨테이너` (`CONTAINER_AUTH`);
+CREATE INDEX idx_container_owner ON container (owner_id);
+CREATE INDEX idx_container_auth ON container (container_auth);
+CREATE INDEX idx_team_user_member ON team_user (member_id);
+CREATE INDEX idx_team_user_team ON team_user (team_id);

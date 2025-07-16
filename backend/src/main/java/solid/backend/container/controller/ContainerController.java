@@ -127,7 +127,7 @@ public class ContainerController {
     }
     
     /**
-     * 컨테이너에 멤버 초대 (ROOT 권한 필요)
+     * 컨테이너에 멤버 초대 (ROOT 또는 INVITE 권한 이상 필요)
      * @param containerId 컨테이너 ID
      * @param requesterId 초대하는 사용자 ID (헤더)
      * @param inviteDto 초대 정보 (대상 ID, 부여 권한)
@@ -157,7 +157,7 @@ public class ContainerController {
     }
     
     /**
-     * 멤버 권한 변경 (ROOT 권한 필요)
+     * 멤버 권한 변경 (ROOT 또는 ADMIN 권한 필요)
      * @param containerId 컨테이너 ID
      * @param targetMemberId 대상 멤버 ID
      * @param requesterId 요청자 ID (헤더)
@@ -175,7 +175,7 @@ public class ContainerController {
     }
     
     /**
-     * 멤버 제거 (ROOT 권한 필요)
+     * 멤버 제거 (ROOT 또는 INVITE 권한 이상 필요)
      * @param containerId 컨테이너 ID
      * @param targetMemberId 제거할 멤버 ID
      * @param requesterId 요청자 ID (헤더)

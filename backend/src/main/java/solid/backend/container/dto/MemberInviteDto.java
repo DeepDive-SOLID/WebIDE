@@ -13,7 +13,7 @@ import jakarta.validation.constraints.NotNull;
 /**
  * 멤버 초대 요청 DTO
  * 컨테이너에 새로운 멤버를 초대할 때 사용
- * ROOT 권한을 가진 사용자만 멤버 초대 가능
+ * ROOT 또는 INVITE 권한 이상을 가진 사용자만 멤버 초대 가능
  */
 @Getter
 @Setter
@@ -26,5 +26,5 @@ public class MemberInviteDto {
     private String memberId; // 초대할 회원 ID
     
     @NotNull(message = "권한은 필수입니다")
-    private Authority authority; // 부여할 권한 (ROOT/USER)
+    private Authority authority; // 부여할 권한 (ROOT/ADMIN/INVITE/WRITE/USER/READ)
 }
