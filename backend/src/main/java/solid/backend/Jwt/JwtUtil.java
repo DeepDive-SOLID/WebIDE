@@ -57,7 +57,6 @@ public class JwtUtil {
     private String createAccess(AccessToken accessToken, long expireTime) {
         Claims claims = Jwts.claims();
         claims.put("memberId", accessToken.getMemberId());
-        //claims.put("authId", accessToken.getAuthId());
 
         ZonedDateTime now = ZonedDateTime.now();
         ZonedDateTime tokenValidity = now.plusSeconds(expireTime);
@@ -79,7 +78,6 @@ public class JwtUtil {
     public String createRefresh(AccessToken accessToken, long refreshTokenExpTime) {
         Claims claims = Jwts.claims();
         claims.put("memberId", accessToken.getMemberId());
-        //claims.put("authId", accessToken.getAuthId());
         claims.put("type", "refresh");
 
         ZonedDateTime now = ZonedDateTime.now();
@@ -100,15 +98,6 @@ public class JwtUtil {
      */
     public String getMemberId(String accessToken) {
         return parseClaims(accessToken).get("memberId", String.class);
-    }
-
-    /**
-     * 설명: Token에서 AuthId 추출
-     * @param accessToken
-     * @return AuthId
-     */
-    public String getAuthId(String accessToken) {
-        return parseClaims(accessToken).get("authId", String.class);
     }
 
     /**
