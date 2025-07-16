@@ -1,4 +1,10 @@
+import AppNav from "../components/APP/AppNav";
+
 const Home = () => {
-  return <div>홈화면 입니다</div>;
+  return (
+    <div>
+      <AppNav />
+    </div>
+  );
 };
 export default Home;
