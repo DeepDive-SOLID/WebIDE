@@ -10,7 +10,7 @@ const AppNav = () => {
   return (
     <aside className="app-nav">
       <div className="app-nav__top">
-        <button className="nav-btn" onClick={() => navigate("/home")}>
+        <button className="nav-btn" onClick={() => navigate("/")}>
           <IoHomeOutline size={30} />
         </button>
         <button className="nav-btn">
