@@ -1,46 +1,29 @@
 import { useState } from "react";
-import { IoHomeOutline, IoFolderOpenOutline } from "react-icons/io5";
-import { AiOutlineGlobal } from "react-icons/ai";
-import "../../styles/AppNav.scss";
+import { IoHomeOutline } from "react-icons/io5";
+import { PiListMagnifyingGlass } from "react-icons/pi";
 import { profile } from "../../assets";
 import Toggle from "../UI/Toggle";
-import { useNavigate } from "react-router-dom";
 import Button from "../UI/Button";
+import { useNavigate } from "react-router-dom";
 import AppSidebar from "./AppSidebar";
+import "../../styles/AppNav.scss";
 
-const AppNav = () => {
+const ContainerNav = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarType, setSidebarType] = useState<
-    "container" | "algorithm" | null
-  >(null);
 
-  const handleNavClick = (
-    target: "home" | "container" | "global" | "mypage"
-  ) => {
+  const handleNavClick = (target: "home" | "algorithm" | "mypage") => {
     switch (target) {
       case "home":
         navigate("/");
         setSidebarOpen(false);
-        setSidebarType(null);
         break;
-      case "container":
-        if (sidebarOpen && sidebarType === "container") {
-          setSidebarOpen(false);
-          setSidebarType(null);
-        } else {
-          setSidebarOpen(true);
-          setSidebarType("container");
-        }
-        break;
-      case "global":
-        setSidebarOpen(false);
-        setSidebarType(null);
+      case "algorithm":
+        setSidebarOpen((prev) => !prev);
         break;
       case "mypage":
         navigate("/mypage");
         setSidebarOpen(false);
-        setSidebarType(null);
         break;
     }
   };
@@ -55,13 +38,8 @@ const AppNav = () => {
             className="nav-btn"
           />
           <Button
-            icon={<IoFolderOpenOutline size={30} />}
-            onClick={() => handleNavClick("container")}
-            className="nav-btn"
-          />
-          <Button
-            icon={<AiOutlineGlobal size={30} />}
-            onClick={() => handleNavClick("global")}
+            icon={<PiListMagnifyingGlass size={30} />}
+            onClick={() => handleNavClick("algorithm")}
             className="nav-btn"
           />
         </div>
@@ -78,9 +56,9 @@ const AppNav = () => {
         </div>
       </aside>
 
-      <AppSidebar isOpen={sidebarOpen} type={sidebarType} />
+      <AppSidebar isOpen={sidebarOpen} type="algorithm" />
     </>
   );
 };
 
-export default AppNav;
+export default ContainerNav;
