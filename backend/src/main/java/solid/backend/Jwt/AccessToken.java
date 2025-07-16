@@ -7,5 +7,4 @@ import lombok.Data;
 @Builder
 public class AccessToken {
     private String memberId;
-    private String authId;
 }

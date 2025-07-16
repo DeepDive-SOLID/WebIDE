@@ -41,7 +41,6 @@ public class JwtController {
         String newAccessToken = jwtUtil.createAccessToken(
                 AccessToken.builder()
                         .memberId(memberId)
-                        .authId(authId)
                         .build()
         );
 
