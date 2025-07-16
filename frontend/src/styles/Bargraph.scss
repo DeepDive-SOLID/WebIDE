@@ -1,0 +1,56 @@
+.bargraph-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.bargraph-user-info {
+  width: 60px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.bargraph-name {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.bargraph-language {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.2;
+}
+
+.bargraph-bar-wrapper {
+  flex: 1;
+  margin: 0 10px;
+  height: 8px;
+}
+
+.bargraph-bar {
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.bargraph-bar-fill {
+  height: 100%;
+  background-color: $primary;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.bargraph-percent {
+  width: 32px;
+  text-align: right;
+  color: $primary;
+  font-size: 14px;
+  flex-shrink: 0;
+}
