@@ -6,7 +6,7 @@ export interface ButtonProps {
   className: string;
 }
 
-const Button: React.FC<ButtonProps> = ({ onClick, icon, className }) => {
+const Button = ({ onClick, icon, className }: ButtonProps) => {
   return (
     <button className={className} onClick={onClick}>
       {icon}
