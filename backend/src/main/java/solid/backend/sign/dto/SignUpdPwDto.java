@@ -3,7 +3,7 @@ package solid.backend.sign.dto;
 import lombok.Data;
 
 @Data
-public class SignInDto {
+public class SignUpdPwDto {
     private String memberId;
     private String memberPw;
 }
