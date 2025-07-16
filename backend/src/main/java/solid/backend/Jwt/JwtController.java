@@ -36,7 +36,6 @@ public class JwtController {
         }
 
         String memberId = jwtUtil.getMemberId(refreshToken);
-        String authId = jwtUtil.getAuthId(refreshToken);
 
         String newAccessToken = jwtUtil.createAccessToken(
                 AccessToken.builder()
