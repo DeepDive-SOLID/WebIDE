@@ -181,12 +181,8 @@ CREATE TABLE `진행률` (
 
 -- 기본 데이터 삽입
 INSERT INTO auth (auth_id, auth_name) VALUES 
-('ROOT', 'Root Administrator'),
-('ADMIN', 'Administrator'),
-('INVITE', 'Invite Permission'),
-('WRITE', 'Write Permission'),
-('USER', 'User'),
-('READ', 'Read Permission');
+('ROOT', '관리자'),
+('USER', '사용자');
 
 -- 테스트용 회원 데이터
 INSERT INTO `member` (`MEMBER_ID`, `MEMBER_NAME`, `MEMBER_PW`, `MEMBER_EMAIL`) VALUES

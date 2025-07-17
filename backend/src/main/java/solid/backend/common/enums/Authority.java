@@ -4,17 +4,13 @@ import lombok.Getter;
 
 /**
  * 컨테이너 멤버 권한 Enum
- * ROOT/USER: 기존 권한 시스템 (하위 호환성)
- * ADMIN/INVITE/WRITE/READ: 세분화된 권한 시스템
+ * ROOT: 컨테이너 소유자 권한
+ * USER: 일반 사용자 권한
  */
 @Getter
 public enum Authority {
-    ROOT("ROOT", "관리자"),       // 기존 최고 권한 (하위 호환성)
-    ADMIN("ADMIN", "관리자"),     // 모든 권한
-    INVITE("INVITE", "초대권한"), // 초대 + 수정 + 읽기
-    WRITE("WRITE", "수정권한"),   // 수정 + 읽기
-    USER("USER", "사용자"),       // 기존 일반 권한 (하위 호환성)
-    READ("READ", "읽기권한");     // 읽기만
+    ROOT("ROOT", "관리자"),  // 컨테이너 소유자 및 관리자 권한
+    USER("USER", "사용자");  // 일반 사용자 권한
     
     private final String code; // 권한 코드
     private final String displayName; // 화면 표시명
@@ -37,52 +33,34 @@ public enum Authority {
      * 멤버 초대 가능 여부
      */
     public boolean canInvite() {
-        return this == ROOT || this == ADMIN || this == INVITE;
+        return this == ROOT;
     }
     
     /**
      * 컨테이너 수정 가능 여부
      */
     public boolean canWrite() {
-        return this != READ && this != USER;
+        return true;  // ROOT와 USER 모두 수정 가능
     }
     
     /**
      * 컨테이너 설정 변경 가능 여부
      */
     public boolean canManage() {
-        return this == ROOT || this == ADMIN;
+        return this == ROOT;
     }
     
     /**
-     * ROOT 권한인지 확인 (하위 호환성)
+     * ROOT 권한인지 확인
      */
     public boolean isRoot() {
-        return this == ROOT || this == ADMIN;
+        return this == ROOT;
     }
     
     /**
-     * USER 권한인지 확인 (하위 호환성)
+     * USER 권한인지 확인
      */
     public boolean isUser() {
-        return this == USER || this == READ;
-    }
-    
-    /**
-     * 세분화된 권한으로 변환 (기존 ROOT/USER를 새 권한으로 매핑)
-     */
-    public Authority toDetailedAuthority() {
-        if (this == ROOT) return ADMIN;
-        if (this == USER) return WRITE;
-        return this;
-    }
-    
-    /**
-     * 기존 권한으로 변환 (새 권한을 ROOT/USER로 매핑)
-     */
-    public Authority toLegacyAuthority() {
-        if (this == ADMIN || this == INVITE) return ROOT;
-        if (this == WRITE || this == READ) return USER;
-        return this;
+        return this == USER;
     }
 }

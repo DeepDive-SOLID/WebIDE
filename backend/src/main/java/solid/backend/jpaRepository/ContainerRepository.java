@@ -16,7 +16,7 @@ import java.util.Optional;
  * 컨테이너 엔티티에 대한 데이터베이스 접근 계층
  */
 @Repository
-public interface ContainerRepository extends JpaRepository<Container, Long> {
+public interface ContainerRepository extends JpaRepository<Container, Long>, ContainerRepositoryCustom {
     
     /**
      * 특정 사용자가 소유한 컨테이너 목록 조회
@@ -47,12 +47,4 @@ public interface ContainerRepository extends JpaRepository<Container, Long> {
      */
     @Query("SELECT c FROM Container c WHERE c.owner = :member OR EXISTS (SELECT tu FROM TeamUser tu WHERE tu.team = c.team AND tu.member = :member)")
     List<Container> findAllAccessibleContainers(@Param("member") Member member);
-    
-    /**
-     * 특정 컨테이너를 특정 사용자가 소유하고 있는지 확인
-     * @param containerId 컨테이너 ID
-     * @param owner 소유자
-     * @return 컨테이너 정보 (Optional)
-     */
-    Optional<Container> findByContainerIdAndOwner(Long containerId, Member owner);
 }
