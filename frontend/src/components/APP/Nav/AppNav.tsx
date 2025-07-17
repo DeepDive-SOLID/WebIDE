@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { IoHomeOutline, IoFolderOpenOutline } from "react-icons/io5";
 import { AiOutlineGlobal } from "react-icons/ai";
-import "../../styles/AppNav.scss";
-import { profile } from "../../assets";
-import Toggle from "../UI/Toggle";
+import "../../../styles/AppNav.scss";
+import { profile } from "../../../assets";
+import Toggle from "../../UI/Toggle";
 import { useNavigate } from "react-router-dom";
-import Button from "../UI/Button";
-import AppSidebar from "./AppSidebar";
+import Button from "../../UI/Button";
+import AppSidebar from "../Sidebar/AppSidebar";
 
 const AppNav = () => {
   const navigate = useNavigate();

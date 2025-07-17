@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { IoHomeOutline } from "react-icons/io5";
 import { PiListMagnifyingGlass } from "react-icons/pi";
-import { profile } from "../../assets";
-import Toggle from "../UI/Toggle";
-import Button from "../UI/Button";
+import { profile } from "../../../assets";
+import Toggle from "../../UI/Toggle";
+import Button from "../../UI/Button";
 import { useNavigate } from "react-router-dom";
-import AppSidebar from "./AppSidebar";
-import "../../styles/AppNav.scss";
+import AppSidebar from "../Sidebar/AppSidebar";
+import "../../../styles/AppNav.scss";
 
-const ContainerNav = () => {
+const AlgorithmNav = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -61,4 +61,4 @@ const ContainerNav = () => {
   );
 };
 
-export default ContainerNav;
+export default AlgorithmNav;
