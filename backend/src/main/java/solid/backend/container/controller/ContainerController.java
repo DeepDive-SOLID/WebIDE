@@ -9,7 +9,8 @@ import solid.backend.container.dto.*;
 import solid.backend.container.service.ContainerService;
 import solid.backend.common.enums.Authority;
 import solid.backend.common.enums.ContainerVisibility;
-import solid.backend.common.jwt.SecurityUtils;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,17 @@ public class ContainerController {
     private final ContainerService containerService;
     
     /**
+     * 현재 인증된 사용자의 ID를 가져오는 헬퍼 메서드
+     */
+    private String getCurrentMemberId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            return authentication.getName();
+        }
+        return null;
+    }
+    
+    /**
      * 컨테이너 생성
      * @param createDto 컨테이너 생성 정보 - 컨테이너 이름, 내용, 공개여부, 초대할 멤버 목록 포함
      * @return 생성된 컨테이너 정보 - 컨테이너 ID, 이름, 소유자 정보, 권한, 멤버 수 포함
@@ -33,7 +45,7 @@ public class ContainerController {
     @PostMapping
     public ResponseEntity<ContainerResponseDto> createContainer(
             @RequestBody @Valid ContainerCreateDto createDto) {
-        String memberId = SecurityUtils.getCurrentMemberId();
+        String memberId = getCurrentMemberId();
         ContainerResponseDto response = containerService.createContainer(memberId, createDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -46,31 +58,29 @@ public class ContainerController {
     @GetMapping("/{containerId}")
     public ResponseEntity<ContainerResponseDto> getContainer(
             @PathVariable Long containerId) {
-        String memberId = SecurityUtils.getCurrentMemberId();
+        String memberId = getCurrentMemberId();
         ContainerResponseDto response = containerService.getContainer(containerId, memberId);
         return ResponseEntity.ok(response);
     }
     
     /**
      * 내 컨테이너 목록 조회
-     * @param memberId 사용자 ID (헤더) - 컨테이너 소유자의 고유 식별자
      * @return 소유한 컨테이너 목록 - 사용자가 소유자(ROOT)인 모든 컨테이너 목록
      */
     @GetMapping("/my")
-    public ResponseEntity<List<ContainerResponseDto>> getMyContainers(
-            @RequestHeader("memberId") String memberId) {
+    public ResponseEntity<List<ContainerResponseDto>> getMyContainers() {
+        String memberId = getCurrentMemberId();
         List<ContainerResponseDto> response = containerService.getMyContainers(memberId);
         return ResponseEntity.ok(response);
     }
     
     /**
      * 공유된 컨테이너 목록 조회
-     * @param memberId 사용자 ID (헤더) - 조회하는 사용자의 고유 식별자
      * @return 참여중인 컨테이너 목록 (소유 컨테이너 제외) - 멤버로 초대받아 참여중인 컨테이너만 반환
      */
     @GetMapping("/shared")
-    public ResponseEntity<List<ContainerResponseDto>> getSharedContainers(
-            @RequestHeader("memberId") String memberId) {
+    public ResponseEntity<List<ContainerResponseDto>> getSharedContainers() {
+        String memberId = getCurrentMemberId();
         List<ContainerResponseDto> response = containerService.getSharedContainers(memberId);
         return ResponseEntity.ok(response);
     }
@@ -81,19 +91,18 @@ public class ContainerController {
      */
     @GetMapping("/public")
     public ResponseEntity<List<ContainerResponseDto>> getPublicContainers() {
-        String memberId = SecurityUtils.getCurrentMemberId(); // nullable
+        String memberId = getCurrentMemberId(); // nullable
         List<ContainerResponseDto> response = containerService.getPublicContainers(memberId);
         return ResponseEntity.ok(response);
     }
     
     /**
      * 접근 가능한 모든 컨테이너 목록 조회
-     * @param memberId 사용자 ID (헤더) - 조회하는 사용자의 고유 식별자
      * @return 소유 + 참여중인 모든 컨테이너 목록 - 사용자가 접근 가능한 모든 컨테이너와 각각의 권한 정보
      */
     @GetMapping
-    public ResponseEntity<List<ContainerResponseDto>> getAllAccessibleContainers(
-            @RequestHeader("memberId") String memberId) {
+    public ResponseEntity<List<ContainerResponseDto>> getAllAccessibleContainers() {
+        String memberId = getCurrentMemberId();
         List<ContainerResponseDto> response = containerService.getAllAccessibleContainers(memberId);
         return ResponseEntity.ok(response);
     }
@@ -101,15 +110,14 @@ public class ContainerController {
     /**
      * 컨테이너 정보 수정
      * @param containerId 컨테이너 ID - 수정할 컨테이너의 고유 식별자
-     * @param memberId 수정하는 사용자 ID (헤더) - 수정 권한이 있는 사용자의 고유 식별자
      * @param updateDto 수정할 정보 - 컨테이너 이름, 내용, 공개여부 중 수정할 항목만 포함
      * @return 수정된 컨테이너 정보 - 업데이트된 컨테이너 정보와 권한 정보
      */
     @PutMapping("/{containerId}")
     public ResponseEntity<ContainerResponseDto> updateContainer(
             @PathVariable Long containerId,
-            @RequestHeader("memberId") String memberId,
             @RequestBody @Valid ContainerUpdateDto updateDto) {
+        String memberId = getCurrentMemberId();
         ContainerResponseDto response = containerService.updateContainer(containerId, memberId, updateDto);
         return ResponseEntity.ok(response);
     }
@@ -117,13 +125,12 @@ public class ContainerController {
     /**
      * 컨테이너 삭제 (ROOT 권한 필요)
      * @param containerId 컨테이너 ID - 삭제할 컨테이너의 고유 식별자
-     * @param memberId 삭제하는 사용자 ID (헤더) - ROOT 권한을 가진 사용자의 고유 식별자
      * @return 204 No Content - 성공 시 응답 본문 없음
      */
     @DeleteMapping("/{containerId}")
     public ResponseEntity<Void> deleteContainer(
-            @PathVariable Long containerId,
-            @RequestHeader("memberId") String memberId) {
+            @PathVariable Long containerId) {
+        String memberId = getCurrentMemberId();
         containerService.deleteContainer(containerId, memberId);
         return ResponseEntity.noContent().build();
     }
@@ -131,15 +138,14 @@ public class ContainerController {
     /**
      * 컨테이너에 멤버 초대 (ROOT 권한 필요)
      * @param containerId 컨테이너 ID - 멤버를 초대할 컨테이너의 고유 식별자
-     * @param requesterId 초대하는 사용자 ID (헤더) - ROOT 권한을 가진 사용자의 고유 식별자
      * @param inviteDto 초대 정보 - 초대할 멤버 ID와 부여할 권한(ROOT/USER) 포함
      * @return 초대된 멤버 정보 - 멤버 정보와 부여된 권한, 가입 일시 포함
      */
     @PostMapping("/{containerId}/members")
     public ResponseEntity<GroupMemberResponseDto> inviteMember(
             @PathVariable Long containerId,
-            @RequestHeader("memberId") String requesterId,
             @RequestBody @Valid MemberInviteDto inviteDto) {
+        String requesterId = getCurrentMemberId();
         GroupMemberResponseDto response = containerService.inviteMember(containerId, requesterId, inviteDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -147,13 +153,12 @@ public class ContainerController {
     /**
      * 컨테이너 멤버 목록 조회
      * @param containerId 컨테이너 ID - 멤버 목록을 조회할 컨테이너의 고유 식별자
-     * @param memberId 조회하는 사용자 ID (헤더) - 비공개 컨테이너의 경우 접근 권한 확인용
      * @return 컨테이너 멤버 목록 - 각 멤버의 정보, 권한, 가입일, 최근 활동일 포함
      */
     @GetMapping("/{containerId}/members")
     public ResponseEntity<List<GroupMemberResponseDto>> getContainerMembers(
-            @PathVariable Long containerId,
-            @RequestHeader("memberId") String memberId) {
+            @PathVariable Long containerId) {
+        String memberId = getCurrentMemberId();
         List<GroupMemberResponseDto> response = containerService.getContainerMembers(containerId, memberId);
         return ResponseEntity.ok(response);
     }
@@ -162,7 +167,6 @@ public class ContainerController {
      * 멤버 권한 변경 (ROOT 권한 필요)
      * @param containerId 컨테이너 ID - 권한을 변경할 컨테이너의 고유 식별자
      * @param targetMemberId 대상 멤버 ID - 권한을 변경할 멤버의 고유 식별자
-     * @param requesterId 요청자 ID (헤더) - ROOT 권한을 가진 사용자의 고유 식별자
      * @param newAuthority 변경할 권한 - ROOT 또는 USER 중 선택
      * @return 204 No Content - 성공 시 응답 본문 없음
      */
@@ -170,8 +174,8 @@ public class ContainerController {
     public ResponseEntity<Void> updateMemberAuthority(
             @PathVariable Long containerId,
             @PathVariable String targetMemberId,
-            @RequestHeader("memberId") String requesterId,
             @RequestParam Authority newAuthority) {
+        String requesterId = getCurrentMemberId();
         containerService.updateMemberAuthority(containerId, requesterId, targetMemberId, newAuthority);
         return ResponseEntity.noContent().build();
     }
@@ -180,14 +184,13 @@ public class ContainerController {
      * 멤버 제거 (ROOT 권한 필요)
      * @param containerId 컨테이너 ID - 멤버를 제거할 컨테이너의 고유 식별자
      * @param targetMemberId 제거할 멤버 ID - 컨테이너에서 제거할 멤버의 고유 식별자
-     * @param requesterId 요청자 ID (헤더) - ROOT 권한을 가진 사용자의 고유 식별자
      * @return 204 No Content - 성공 시 응답 본문 없음
      */
     @DeleteMapping("/{containerId}/members/{targetMemberId}")
     public ResponseEntity<Void> removeMember(
             @PathVariable Long containerId,
-            @PathVariable String targetMemberId,
-            @RequestHeader("memberId") String requesterId) {
+            @PathVariable String targetMemberId) {
+        String requesterId = getCurrentMemberId();
         containerService.removeMember(containerId, requesterId, targetMemberId);
         return ResponseEntity.noContent().build();
     }
@@ -200,7 +203,7 @@ public class ContainerController {
     @DeleteMapping("/{containerId}/members/me")
     public ResponseEntity<Void> leaveContainer(
             @PathVariable Long containerId) {
-        String memberId = SecurityUtils.getCurrentMemberId();
+        String memberId = getCurrentMemberId();
         containerService.leaveContainer(containerId, memberId);
         return ResponseEntity.noContent().build();
     }
@@ -213,7 +216,7 @@ public class ContainerController {
     @PutMapping("/{containerId}/members/me/activity")
     public ResponseEntity<Void> updateActivity(
             @PathVariable Long containerId) {
-        String memberId = SecurityUtils.getCurrentMemberId();
+        String memberId = getCurrentMemberId();
         containerService.updateMemberActivity(containerId, memberId);
         return ResponseEntity.noContent().build();
     }
@@ -230,7 +233,7 @@ public class ContainerController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) ContainerVisibility visibility,
             @RequestParam(required = false) String ownerId) {
-        String memberId = SecurityUtils.getCurrentMemberId();
+        String memberId = getCurrentMemberId();
         List<ContainerResponseDto> response = containerService.searchContainers(name, visibility, ownerId, memberId);
         return ResponseEntity.ok(response);
     }
@@ -241,7 +244,7 @@ public class ContainerController {
      */
     @GetMapping("/stats/authority")
     public ResponseEntity<Map<Authority, Long>> getContainerStatsByAuthority() {
-        String memberId = SecurityUtils.getCurrentMemberId();
+        String memberId = getCurrentMemberId();
         Map<Authority, Long> response = containerService.getContainerStatsByAuthority(memberId);
         return ResponseEntity.ok(response);
     }
@@ -254,7 +257,7 @@ public class ContainerController {
     @GetMapping("/{containerId}/statistics")
     public ResponseEntity<ContainerStatisticsDto> getContainerStatistics(
             @PathVariable Long containerId) {
-        String memberId = SecurityUtils.getCurrentMemberId();
+        String memberId = getCurrentMemberId();
         // 접근 권한 확인
         containerService.getContainer(containerId, memberId);
         ContainerStatisticsDto response = containerService.getContainerStatistics(containerId);
