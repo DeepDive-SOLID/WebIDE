@@ -5,6 +5,8 @@ import lombok.*;
 import solid.backend.common.enums.ContainerVisibility;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 컨테이너 엔티티
@@ -54,5 +56,14 @@ public class Container {
     
     public void setVisibility(ContainerVisibility visibility) {
         this.containerAuth = visibility == ContainerVisibility.PUBLIC;
+    }
+
+    @OneToMany(mappedBy = "container", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<MemberChatRoom> memberChatRooms = new ArrayList<>();
+
+    public void addMemberChatRoom(MemberChatRoom memberChatRoom) {
+        memberChatRooms.add(memberChatRoom);
+        memberChatRoom.setContainer(this);
     }
 }
