@@ -1,9 +1,9 @@
-import AppNav from "../components/APP/AppNav";
+import AlgorithmNav from "../components/APP/Nav/AlgorithmNav";
 
 const Home = () => {
   return (
     <div>
-      <AppNav />
+      <AlgorithmNav />
     </div>
   );
 };

@@ -6,14 +6,20 @@ import { CiFileOn } from "react-icons/ci";
 import { FaUsers } from "react-icons/fa";
 import React, { useState } from "react";
 
+type BoxItem = {
+  id: string;
+  type: "folder" | "file";
+  title: string;
+};
+
 const AlgorithmSidebar = () => {
   const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null);
-  const [boxList, setBoxList] = useState<
-    { type: "folder" | "file"; title: string }[]
-  >([]);
+  const [boxList, setBoxList] = useState<BoxItem[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const handleCreate = (type: "folder" | "file", title: string) => {
-    setBoxList((prev) => [...prev, { type, title }]);
+    const id = `${type}-${Date.now()}-${Math.random()}`;
+    setBoxList((prev) => [...prev, { id, type, title }]);
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -36,12 +42,26 @@ const AlgorithmSidebar = () => {
               y={menuPos.y}
               onClose={closeMenu}
               onCreate={handleCreate}
+              selectedId={selectedId}
+              onRename={(id) => {
+                const newTitle = prompt("새 이름을 입력하세요");
+                if (newTitle) {
+                  setBoxList((prev) =>
+                    prev.map((box) =>
+                      box.id === id ? { ...box, title: newTitle } : box
+                    )
+                  );
+                }
+              }}
+              onDelete={(id) => {
+                setBoxList((prev) => prev.filter((box) => box.id !== id));
+              }}
             />
           )}
           <div className="box-list">
-            {boxList.map((box, index) => (
+            {boxList.map((box) => (
               <Box
-                key={index}
+                key={box.id}
                 icon={
                   box.type === "folder" ? (
                     <IoListOutline size={20} />
@@ -51,6 +71,11 @@ const AlgorithmSidebar = () => {
                 }
                 title={box.title}
                 onClick={() => {}}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setSelectedId(box.id);
+                  setMenuPos({ x: e.clientX, y: e.clientY });
+                }}
                 className={box.type === "folder" ? "box-primary" : ""}
               />
             ))}

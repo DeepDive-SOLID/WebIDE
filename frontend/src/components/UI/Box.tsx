@@ -7,11 +7,23 @@ export interface BoxProps {
   onClick?: () => void;
   cnt?: number;
   className?: string;
+  onContextMenu?: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
-const Box = ({ icon, title, onClick, cnt, className = "" }: BoxProps) => {
+const Box = ({
+  icon,
+  title,
+  onClick,
+  onContextMenu,
+  cnt,
+  className = "",
+}: BoxProps) => {
   return (
-    <button className={`box ${className}`} onClick={onClick}>
+    <button
+      className={`box ${className}`}
+      onClick={onClick}
+      onContextMenu={onContextMenu}
+    >
       <div className="box-left">
         <div className="box-icon">{icon}</div>
         <span className="box-title">{title}</span>
