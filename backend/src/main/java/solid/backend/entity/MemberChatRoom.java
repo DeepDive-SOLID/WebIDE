@@ -28,10 +28,10 @@ public class MemberChatRoom {
     @JoinColumn(name = "container_id", nullable = false)
     private Container container;
 
-    public static MemberChatRoom memberJoinsChatRoom(Member member, Container chatRoom) {
+    public static MemberChatRoom memberJoinsChatRoom(Member member, Container container) {
         MemberChatRoom memberChatRoom = new MemberChatRoom();
         member.addMemberChatRoom(memberChatRoom);
-        chatRoom.addMemberChatRoom(memberChatRoom);
+        container.addMemberChatRoom(memberChatRoom);
         return memberChatRoom;
     }
 }

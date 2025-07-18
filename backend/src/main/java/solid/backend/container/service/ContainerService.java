@@ -122,4 +122,6 @@ public interface ContainerService {
      * 6개월 이상 미활동 멤버 자동 제거 (스케줄러에서 호출)
      */
     void removeInactiveMembers();
+
+    void leave(String memberId, long containerId);
 }

@@ -5,13 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import solid.backend.chat.message.service.MessageService;
 import solid.backend.container.dto.*;
 import solid.backend.entity.*;
 import solid.backend.common.enums.Authority;
 import solid.backend.common.enums.ContainerVisibility;
-import solid.backend.jpaRepository.ContainerRepository;
-import solid.backend.jpaRepository.MemberRepository;
-import solid.backend.jpaRepository.AuthRepository;
+import solid.backend.jpaRepository.*;
 import solid.backend.container.exception.*;
 
 import java.time.LocalDateTime;
@@ -32,6 +31,9 @@ public class ContainerServiceImpl implements ContainerService {
     private final ContainerRepository containerRepository;
     private final MemberRepository memberRepository;
     private final AuthRepository authRepository;
+    private final MemberChatRoomRepository memberChatRoomRepository;
+    private final MessageService messageService;
+    private final MessageRepository messageRepository;
     
     @Override
     @Transactional
@@ -487,5 +489,27 @@ public class ContainerServiceImpl implements ContainerService {
         });
         
         log.info("Inactive member cleanup completed. Total removed: {}", inactiveUsers.size());
+    }
+
+    @Override
+    @Transactional
+    public void leave(String memberId, long containerId) {
+        Member member = memberRepository.findById(memberId).orElseThrow();
+
+        Container container = containerRepository.findById(containerId).orElseThrow();
+
+        memberChatRoomRepository.deleteByMemberAndChatRoom(member, container);
+        if (deleteChatRoomIfEmpty(container)) return;
+
+        messageService.sendLeftMessage(member, container);
+    }
+
+    private boolean deleteChatRoomIfEmpty(Container container) {
+        if (memberChatRoomRepository.countMemberChatRoomByChatRoom(container) == 0L) {
+            messageRepository.deleteByContainer(container);
+            containerRepository.delete(container);
+            return true;
+        }
+        return false;
     }
 }

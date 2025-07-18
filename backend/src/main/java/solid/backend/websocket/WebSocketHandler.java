@@ -35,7 +35,7 @@ public class WebSocketHandler {
     @EventListener
     public void handleSessionDisconnect(SessionDisconnectEvent event) {
         SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.wrap(event.getMessage());
-        Long memberId = getMemberIdFromHeaderAccessor(accessor);
+        String memberId = String.valueOf(getMemberIdFromHeaderAccessor(accessor));
 
         // 연결이 끊긴 사용자 퇴장 처리
         memberService.leave(memberId);
@@ -48,7 +48,7 @@ public class WebSocketHandler {
     @EventListener
     public void handleSessionUnsubscribe(SessionUnsubscribeEvent event) {
         SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.wrap(event.getMessage());
-        Long memberId = getMemberIdFromHeaderAccessor(accessor);
+        String memberId = String.valueOf(getMemberIdFromHeaderAccessor(accessor));
         Long chatRoomId = getChatRoomIdFromHeaderAccessor(accessor);
 
         // 채팅방에서 퇴장 처리
