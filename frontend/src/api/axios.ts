@@ -54,10 +54,20 @@ api.interceptors.response.use(
 
     if (!isLoggedIn() && !error.config._retry && !isLoginRequest) {
       error.config._retry = true;
-      // 토큰 재발급 로직은 나중에 구현
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-      return;
+
+      // 토큰 재발급 시도
+      try {
+        const refreshResponse = await axios.post("/api/token/refresh");
+        const newToken = refreshResponse.data;
+        localStorage.setItem("token", newToken);
+        error.config.headers["Authorization"] = `Bearer ${newToken}`;
+        return api(error.config);
+      } catch {
+        // 토큰 재발급 실패 시 로그인 페이지로 이동
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+        return;
+      }
     }
     return Promise.reject(error);
   }
