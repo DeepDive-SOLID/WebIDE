@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import solid.backend.common.ApiResponse;
 
 /**
  * 컨테이너 기능 예외 처리기
@@ -25,64 +26,63 @@ import java.util.stream.Collectors;
 public class ContainerExceptionHandler {
     
     /**
+     * 공통 에러 응답 생성 헬퍼 메서드
+     * ApiResponse를 사용하여 일관된 형식의 에러 응답 생성
+     * 
+     * @param status HTTP 상태 코드
+     * @param errorCode 에러 코드
+     * @param message 사용자에게 표시할 메시지
+     * @param path 요청 경로 (optional)
+     * @return ApiResponse 형식의 에러 응답
+     */
+    private ApiResponse<Void> createErrorResponse(String errorCode, String message, String path) {
+        return ApiResponse.error(message, errorCode, path);
+    }
+    
+    private ApiResponse<Void> createErrorResponse(String errorCode, String message) {
+        return ApiResponse.error(message, errorCode);
+    }
+    
+    /**
      * 컨테이너를 찾을 수 없을 때
      */
     @ExceptionHandler(ContainerNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleContainerNotFoundException(ContainerNotFoundException e) {
+    public ResponseEntity<ApiResponse<Void>> handleContainerNotFoundException(
+            ContainerNotFoundException e, HttpServletRequest request) {
         log.error("Container not found: {}", e.getMessage());
-        
-        Map<String, Object> errorResponse = new LinkedHashMap<>();
-        errorResponse.put("timestamp", LocalDateTime.now());
-        errorResponse.put("status", HttpStatus.NOT_FOUND.value());
-        errorResponse.put("error", "Not Found");
-        errorResponse.put("message", e.getMessage());
-        
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(createErrorResponse("CONTAINER_NOT_FOUND", e.getMessage(), request.getRequestURI()));
     }
     
     /**
      * 권한이 없을 때
      */
     @ExceptionHandler(UnauthorizedContainerAccessException.class)
-    public ResponseEntity<Map<String, Object>> handleUnauthorizedAccess(UnauthorizedContainerAccessException e) {
+    public ResponseEntity<ApiResponse<Void>> handleUnauthorizedAccess(
+            UnauthorizedContainerAccessException e, HttpServletRequest request) {
         log.error("Unauthorized access: {}", e.getMessage());
-        
-        Map<String, Object> errorResponse = new LinkedHashMap<>();
-        errorResponse.put("timestamp", LocalDateTime.now());
-        errorResponse.put("status", HttpStatus.FORBIDDEN.value());
-        errorResponse.put("error", "Forbidden");
-        errorResponse.put("message", e.getMessage());
-        
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(createErrorResponse("UNAUTHORIZED_ACCESS", e.getMessage(), request.getRequestURI()));
     }
     
     /**
      * 중복 멤버 초대 시
      */
     @ExceptionHandler(DuplicateMemberException.class)
-    public ResponseEntity<Map<String, Object>> handleDuplicateMember(DuplicateMemberException e) {
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateMember(
+            DuplicateMemberException e, HttpServletRequest request) {
         log.error("Duplicate member: {}", e.getMessage());
-        
-        Map<String, Object> errorResponse = new LinkedHashMap<>();
-        errorResponse.put("timestamp", LocalDateTime.now());
-        errorResponse.put("status", HttpStatus.CONFLICT.value());
-        errorResponse.put("error", "Conflict");
-        errorResponse.put("message", e.getMessage());
-        
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(createErrorResponse("DUPLICATE_MEMBER", e.getMessage(), request.getRequestURI()));
     }
     
     /**
      * Jakarta Validation 에러 처리
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException e) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationException(
+            MethodArgumentNotValidException e, HttpServletRequest request) {
         log.error("Validation error: {}", e.getMessage());
-        
-        Map<String, Object> errorResponse = new LinkedHashMap<>();
-        errorResponse.put("timestamp", LocalDateTime.now());
-        errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
-        errorResponse.put("error", "Validation Failed");
         
         // 필드별 에러 메시지 수집
         Map<String, String> fieldErrors = e.getBindingResult()
@@ -94,92 +94,73 @@ public class ContainerExceptionHandler {
                         (existing, replacement) -> existing
                 ));
         
-        errorResponse.put("errors", fieldErrors);
+        ApiResponse<Map<String, String>> response = ApiResponse.<Map<String, String>>builder()
+                .success(false)
+                .message("입력값 검증에 실패했습니다")
+                .errorCode("VALIDATION_FAILED")
+                .path(request.getRequestURI())
+                .data(fieldErrors)
+                .build();
         
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
     
     /**
      * IllegalArgumentException 처리 (비즈니스 로직 검증 실패 시)
      */
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException e) {
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgumentException(
+            IllegalArgumentException e, HttpServletRequest request) {
         log.error("Business logic error: {}", e.getMessage());
-        
-        Map<String, Object> errorResponse = new LinkedHashMap<>();
-        errorResponse.put("timestamp", LocalDateTime.now());
-        errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
-        errorResponse.put("error", "Bad Request");
-        errorResponse.put("message", e.getMessage());
-        
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(createErrorResponse("INVALID_ARGUMENT", e.getMessage(), request.getRequestURI()));
     }
     
     /**
      * 필수 헤더 누락 시
      */
     @ExceptionHandler(MissingRequestHeaderException.class)
-    public ResponseEntity<Map<String, Object>> handleMissingHeader(
+    public ResponseEntity<ApiResponse<Void>> handleMissingHeader(
             MissingRequestHeaderException e, HttpServletRequest request) {
         log.error("Missing header: {} - Request: {} {}", 
             e.getHeaderName(), request.getMethod(), request.getRequestURI());
         
-        Map<String, Object> errorResponse = new LinkedHashMap<>();
-        errorResponse.put("timestamp", LocalDateTime.now());
-        errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
-        errorResponse.put("error", "Bad Request");
-        errorResponse.put("message", String.format("필수 헤더 '%s'가 누락되었습니다", e.getHeaderName()));
-        errorResponse.put("path", request.getRequestURI());
-        
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        String message = String.format("필수 헤더 '%s'가 누락되었습니다", e.getHeaderName());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(createErrorResponse("MISSING_HEADER", message, request.getRequestURI()));
     }
     
     /**
      * 멤버를 찾을 수 없을 때
      */
     @ExceptionHandler(MemberNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleMemberNotFoundException(MemberNotFoundException e) {
+    public ResponseEntity<ApiResponse<Void>> handleMemberNotFoundException(
+            MemberNotFoundException e, HttpServletRequest request) {
         log.error("Member not found: {}", e.getMessage());
-        
-        Map<String, Object> errorResponse = new LinkedHashMap<>();
-        errorResponse.put("timestamp", LocalDateTime.now());
-        errorResponse.put("status", HttpStatus.NOT_FOUND.value());
-        errorResponse.put("error", "Not Found");
-        errorResponse.put("message", e.getMessage());
-        
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(createErrorResponse("MEMBER_NOT_FOUND", e.getMessage(), request.getRequestURI()));
     }
     
     /**
      * 유효하지 않은 멤버 ID가 제공될 때
      */
     @ExceptionHandler(InvalidMemberException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidMemberException(InvalidMemberException e) {
+    public ResponseEntity<ApiResponse<Void>> handleInvalidMemberException(
+            InvalidMemberException e, HttpServletRequest request) {
         log.error("Invalid member: {}", e.getMessage());
-        
-        Map<String, Object> errorResponse = new LinkedHashMap<>();
-        errorResponse.put("timestamp", LocalDateTime.now());
-        errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
-        errorResponse.put("error", "Bad Request");
-        errorResponse.put("message", e.getMessage());
-        
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(createErrorResponse("INVALID_MEMBER", e.getMessage(), request.getRequestURI()));
     }
     
     /**
      * 일반 예외 처리
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGenericException(Exception e, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleGenericException(
+            Exception e, HttpServletRequest request) {
         log.error("Unexpected error on {} {}: ", request.getMethod(), request.getRequestURI(), e);
-        
-        Map<String, Object> errorResponse = new LinkedHashMap<>();
-        errorResponse.put("timestamp", LocalDateTime.now());
-        errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        errorResponse.put("error", "Internal Server Error");
-        errorResponse.put("message", "서버 오류가 발생했습니다");
-        errorResponse.put("path", request.getRequestURI());
-        
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(createErrorResponse("INTERNAL_SERVER_ERROR", 
+                        "서버 오류가 발생했습니다", request.getRequestURI()));
     }
 }

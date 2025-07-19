@@ -1,27 +1,28 @@
 package solid.backend.container.dto;
 
 import lombok.*;
-import solid.backend.common.enums.ContainerVisibility;
 
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
  * 컨테이너 수정 요청 DTO
- * 컨테이너 정보 수정 시 필요한 정보를 담는 객체
- * 모든 필드는 선택사항이며, 전달된 필드만 수정됨
  */
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ContainerUpdateDto {
     
+    /** 변경할 컨테이너 이름 (선택, 최대 20자) */
     @Size(max = 20, message = "컨테이너 이름은 20자를 초과할 수 없습니다")
-    private String containerName; // 컨테이너 이름 (선택사항)
+    @Pattern(regexp = "^[a-zA-Z0-9가-힣\\s\\-_]+$", message = "컨테이너 이름은 문자, 숫자, 공백, 하이픈, 언더스코어만 사용 가능합니다")
+    private String containerName;
     
+    /** 변경할 컨테이너 설명 (선택, 최대 200자) */
     @Size(max = 200, message = "컨테이너 설명은 200자를 초과할 수 없습니다")
-    private String containerContent; // 컨테이너 설명 (선택사항)
+    private String containerContent;
     
-    private ContainerVisibility visibility; // 공개 범위 (선택사항)
+    /** 변경할 공개 여부 (선택, true: 공개, false: 비공개) */
+    private Boolean isPublic;
 }

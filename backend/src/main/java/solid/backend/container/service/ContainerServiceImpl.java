@@ -7,8 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import solid.backend.container.dto.*;
 import solid.backend.entity.*;
-import solid.backend.common.enums.Authority;
-import solid.backend.common.enums.ContainerVisibility;
 import solid.backend.jpaRepository.ContainerRepository;
 import solid.backend.jpaRepository.MemberRepository;
 import solid.backend.jpaRepository.AuthRepository;
@@ -20,38 +18,41 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
-import solid.backend.jpaRepository.ContainerRepositoryCustom.ContainerAuthorityCount;
-import solid.backend.jpaRepository.ContainerRepositoryCustom.ContainerStatistics;
+import solid.backend.jpaRepository.ContainerRepository.ContainerAuthorityCount;
+import solid.backend.jpaRepository.ContainerRepository.ContainerStatistics;
+import static solid.backend.container.constant.ContainerConstants.*;
 
 /**
  * 컨테이너 서비스 구현체
- * 컨테이너 관련 모든 비즈니스 로직 처리
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class ContainerServiceImpl implements ContainerService {
     
+    /** 컨테이너 데이터 접근 레포지토리 */
     private final ContainerRepository containerRepository;
+    /** 멤버 데이터 접근 레포지토리 */
     private final MemberRepository memberRepository;
+    /** 권한 데이터 접근 레포지토리 */
     private final AuthRepository authRepository;
     
     /**
      * 컨테이너 생성
-     * 
-     * @param memberId 컨테이너를 생성하는 사용자 ID (소유자가 됨)
-     * @param createDto 컨테이너 생성 정보 (containerName, containerContent, visibility, invitedMemberIds)
+     * @param memberId 사용자 ID
+     * @param createDto 컨테이너 생성 정보
      * @return 생성된 컨테이너 정보
-     * @throws MemberNotFoundException 존재하지 않는 회원 ID인 경우
+     * @throws MemberNotFoundException 회원을 찾을 수 없는 경우
      * @throws InvalidMemberException 초대할 회원이 존재하지 않는 경우
      */
     @Override
     @Transactional
     public ContainerResponseDto createContainer(String memberId, ContainerCreateDto createDto) {
+        // null 체크
+        validateMemberId(memberId, ERROR_MEMBER_ID_REQUIRED);
+        
         // 컨테이너 소유자 확인
-        Member owner = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberNotFoundException("회원을 찾을 수 없습니다: " + memberId));
+        Member owner = getMemberOrThrow(memberId);
         
         // 팀 생성
         Team team = new Team();
@@ -61,7 +62,7 @@ public class ContainerServiceImpl implements ContainerService {
         Container container = Container.builder()
                 .containerName(createDto.getContainerName())
                 .containerContent(createDto.getContainerContent())
-                .containerAuth(createDto.getVisibility() == ContainerVisibility.PUBLIC)
+                .containerAuth(createDto.getIsPublic())
                 .owner(owner)
                 .team(team)
                 .build();
@@ -69,21 +70,9 @@ public class ContainerServiceImpl implements ContainerService {
         Container savedContainer = containerRepository.save(container);
         
         // 소유자를 팀에 ROOT 권한으로 추가
-        Auth rootAuth = authRepository.findById("ROOT")
-                .orElseGet(() -> {
-                    Auth newAuth = new Auth();
-                    newAuth.setAuthId("ROOT");
-                    newAuth.setAuthName("관리자");
-                    return authRepository.save(newAuth);
-                });
+        Auth rootAuth = getOrCreateAuth(AUTHORITY_ROOT, "관리자");
         
-        TeamUser ownerMember = new TeamUser();
-        ownerMember.setTeam(team);
-        ownerMember.setMember(owner);
-        ownerMember.setTeamAuth(rootAuth);
-        ownerMember.setJoinedDate(LocalDateTime.now());
-        ownerMember.setLastActivityDate(LocalDateTime.now());
-        
+        TeamUser ownerMember = createTeamUser(team, owner, rootAuth);
         team.getTeamUsers().add(ownerMember);
         
         // 초대 멤버 처리
@@ -101,48 +90,40 @@ public class ContainerServiceImpl implements ContainerService {
             }
             
             // 기본값은 USER 권한으로 설정
-            Auth userAuth = authRepository.findById("USER")
-                    .orElseGet(() -> {
-                        Auth newAuth = new Auth();
-                        newAuth.setAuthId("USER");
-                        newAuth.setAuthName("사용자");
-                        return authRepository.save(newAuth);
-                    });
+            Auth userAuth = getOrCreateAuth(AUTHORITY_USER, "사용자");
             
             for (String invitedMemberId : createDto.getInvitedMemberIds()) {
-                Member invitedMember = memberRepository.findById(invitedMemberId).get();
-                TeamUser teamUser = new TeamUser();
-                teamUser.setTeam(team);
-                teamUser.setMember(invitedMember);
-                teamUser.setTeamAuth(userAuth);
-                teamUser.setJoinedDate(LocalDateTime.now());
-                teamUser.setLastActivityDate(LocalDateTime.now());
+                Member invitedMember = memberRepository.findById(invitedMemberId)
+                        .orElseThrow(() -> new MemberNotFoundException("초대할 회원을 찾을 수 없습니다: " + invitedMemberId));
+                TeamUser teamUser = createTeamUser(team, invitedMember, userAuth);
                 team.getTeamUsers().add(teamUser);
             }
         }
         
-        return ContainerResponseDto.from(savedContainer, "ROOT", savedContainer.getTeam().getTeamUsers().size());
+        return ContainerResponseDto.from(savedContainer, AUTHORITY_ROOT, savedContainer.getTeam().getTeamUsers().size());
     }
     
     /**
      * 컨테이너 상세 조회
-     * 
-     * @param containerId 조회할 컨테이너 ID
-     * @param memberId 조회하는 사용자 ID
-     * @return 컨테이너 상세 정보와 사용자의 권한
-     * @throws ContainerNotFoundException 컨테이너가 존재하지 않는 경우
-     * @throws IllegalArgumentException 비공개 컨테이너에 접근 권한이 없는 경우
+     * @param containerId 컨테이너 ID
+     * @param memberId 사용자 ID
+     * @return 컨테이너 상세 정보
+     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
+     * @throws IllegalArgumentException 접근 권한이 없는 경우
      */
     @Override
+    @Transactional(readOnly = true)
     public ContainerResponseDto getContainer(Long containerId, String memberId) {
         // QueryDSL을 사용하여 연관 데이터를 한번에 조회
         Container container = containerRepository.findContainerWithDetails(containerId)
-                .orElseThrow(() -> new ContainerNotFoundException("컨테이너를 찾을 수 없습니다: " + containerId));
+                .orElseThrow(() -> new ContainerNotFoundException(ERROR_CONTAINER_NOT_FOUND + containerId));
         
-        // 접근 권한 확인
-        if (container.getVisibility() == ContainerVisibility.PRIVATE) {
-            Member member = memberRepository.findById(memberId)
-                    .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+        // 접근 권한 확인 (비공개 컨테이너인 경우)
+        if (!container.getContainerAuth()) { // false = 비공개
+            // memberId가 null인 경우 비공개 컨테이너 접근 불가
+            validateMemberId(memberId, ERROR_PRIVATE_CONTAINER_ACCESS_DENIED);
+            
+            Member member = getMemberOrThrow(memberId);
             
             // 소유자이거나 팀 멤버인 경우만 접근 가능
             boolean hasAccess = container.getOwner().equals(member) ||
@@ -150,45 +131,36 @@ public class ContainerServiceImpl implements ContainerService {
                             .anyMatch(tu -> tu.getMember().equals(member));
             
             if (!hasAccess) {
-                throw new IllegalArgumentException("접근 권한이 없습니다.");
+                throw new IllegalArgumentException(ERROR_NO_ACCESS_PERMISSION);
             }
         }
         
-        // 사용자 권한 조회
-        String userAuthority = getUserAuthority(container, memberId);
-        
-        return ContainerResponseDto.from(container, userAuthority, container.getTeam().getTeamUsers().size());
+        // 사용자 권한 조회 및 응답 생성
+        return createContainerResponse(container, memberId);
     }
     
     /**
      * 컨테이너 정보 업데이트
-     * 
-     * @param containerId 업데이트할 컨테이너 ID
-     * @param memberId 업데이트를 요청하는 사용자 ID
-     * @param updateDto 업데이트할 정보 (containerName, containerContent, visibility)
+     * @param containerId 컨테이너 ID
+     * @param memberId 사용자 ID
+     * @param updateDto 업데이트 정보
      * @return 업데이트된 컨테이너 정보
-     * @throws ContainerNotFoundException 컨테이너가 존재하지 않는 경우
-     * @throws UnauthorizedContainerAccessException 수정 권한이 없거나 설정 변경 권한이 없는 경우
+     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
+     * @throws UnauthorizedContainerAccessException 권한이 없는 경우
      */
     @Override
     @Transactional
     public ContainerResponseDto updateContainer(Long containerId, String memberId, ContainerUpdateDto updateDto) {
-        Container container = containerRepository.findById(containerId)
-                .orElseThrow(() -> new ContainerNotFoundException("컨테이너를 찾을 수 없습니다: " + containerId));
+        Container container = getContainerOrThrow(containerId);
         
         // 수정 권한 확인
-        TeamUser teamUser = container.getTeam().getTeamUsers().stream()
-                .filter(tu -> tu.getMember().getMemberId().equals(memberId))
-                .findFirst()
-                .orElseThrow(() -> new UnauthorizedContainerAccessException("컨테이너 멤버가 아닙니다."));
+        TeamUser teamUser = getTeamUserOrThrow(container, memberId);
         
-        Authority userAuth = Authority.valueOf(teamUser.getTeamAuth().getAuthId());
-        if (!userAuth.canWrite()) {
-            throw new UnauthorizedContainerAccessException("수정 권한이 없습니다.");
-        }
+        String userAuth = teamUser.getTeamAuth().getAuthId();
+        // ROOT와 USER 모두 수정 가능
         
         // 컨테이너 설정 변경은 ROOT만 가능
-        if (updateDto.getVisibility() != null && !userAuth.canManage()) {
+        if (updateDto.getIsPublic() != null && !AUTHORITY_ROOT.equals(userAuth)) {
             throw new UnauthorizedContainerAccessException("컨테이너 설정은 관리자만 변경할 수 있습니다.");
         }
         
@@ -200,142 +172,115 @@ public class ContainerServiceImpl implements ContainerService {
         if (updateDto.getContainerContent() != null) {
             container.setContainerContent(updateDto.getContainerContent());
         }
-        if (updateDto.getVisibility() != null) {
-            container.setVisibility(updateDto.getVisibility());
+        if (updateDto.getIsPublic() != null) {
+            container.setContainerAuth(updateDto.getIsPublic());
         }
         
-        return ContainerResponseDto.from(container, userAuth.getCode(), container.getTeam().getTeamUsers().size());
+        return ContainerResponseDto.from(container, userAuth, container.getTeam().getTeamUsers().size());
     }
     
     /**
      * 컨테이너 삭제
-     * 
-     * @param containerId 삭제할 컨테이너 ID
-     * @param memberId 삭제를 요청하는 사용자 ID
-     * @throws ContainerNotFoundException 컨테이너가 존재하지 않는 경우
-     * @throws UnauthorizedContainerAccessException ROOT 권한이 없는 경우
+     * @param containerId 컨테이너 ID
+     * @param memberId 사용자 ID
+     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
+     * @throws UnauthorizedContainerAccessException 권한이 없는 경우
      */
     @Override
     @Transactional
     public void deleteContainer(Long containerId, String memberId) {
-        Container container = containerRepository.findById(containerId)
-                .orElseThrow(() -> new ContainerNotFoundException("컨테이너를 찾을 수 없습니다: " + containerId));
+        Container container = getContainerOrThrow(containerId);
         
         // ROOT 권한 확인
-        TeamUser teamUser = container.getTeam().getTeamUsers().stream()
-                .filter(tu -> tu.getMember().getMemberId().equals(memberId))
-                .findFirst()
-                .orElseThrow(() -> new UnauthorizedContainerAccessException("컨테이너 멤버가 아닙니다."));
-        
-        Authority userAuth = Authority.valueOf(teamUser.getTeamAuth().getAuthId());
-        if (!userAuth.canManage()) {
-            throw new UnauthorizedContainerAccessException("컨테이너 삭제는 관리자만 가능합니다.");
-        }
+        requireRootAuthority(container, memberId, "컨테이너 삭제는 관리자만 가능합니다.");
         
         containerRepository.delete(container);
     }
     
     /**
-     * 사용자가 소유한 컨테이너 목록 조회
-     * 
-     * @param memberId 조회하는 사용자 ID
-     * @return 사용자가 소유자(owner)인 모든 컨테이너 목록
-     * @throws IllegalArgumentException 회원이 존재하지 않는 경우
+     * ROOT 권한을 요구하고 없으면 예외 발생
+     * @param container 대상 컨테이너
+     * @param memberId 확인할 사용자 ID
+     * @param errorMessage 권한이 없을 때 표시할 메시지
+     * @throws UnauthorizedContainerAccessException 권한이 없는 경우
      */
-    @Override
-    public List<ContainerResponseDto> getMyContainers(String memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
-        
-        return containerRepository.findByOwner(member).stream()
-                .map(container -> ContainerResponseDto.from(container, "ROOT", container.getTeam().getTeamUsers().size()))
-                .collect(Collectors.toList());
+    private void requireRootAuthority(Container container, String memberId, String errorMessage) {
+        if (!hasRootAuthority(container, memberId)) {
+            throw new UnauthorizedContainerAccessException(errorMessage);
+        }
     }
     
     /**
-     * 사용자가 참여중인 컨테이너 목록 조회 (소유 컨테이너 제외)
-     * 
-     * @param memberId 조회하는 사용자 ID
-     * @return 사용자가 멤버로 참여중이지만 소유자가 아닌 컨테이너 목록
-     * @throws IllegalArgumentException 회원이 존재하지 않는 경우
+     * 사용자가 소유한 컨테이너 목록 조회
+     * @param memberId 사용자 ID
+     * @return 소유한 컨테이너 목록
      */
     @Override
-    public List<ContainerResponseDto> getSharedContainers(String memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+    @Transactional(readOnly = true)
+    public List<ContainerResponseDto> getMyContainers(String memberId) {
+        Member member = getMemberOrThrow(memberId);
         
-        return containerRepository.findSharedContainers(member).stream()
-                .map(container -> {
-                    String authority = getUserAuthority(container, memberId);
-                    return ContainerResponseDto.from(container, authority, container.getTeam().getTeamUsers().size());
-                })
-                .collect(Collectors.toList());
+        return convertToResponseDtoList(containerRepository.findByOwner(member), memberId);
+    }
+    
+    /**
+     * 사용자가 참여중인 컨테이너 목록 조회
+     * @param memberId 사용자 ID
+     * @return 참여중인 컨테이너 목록
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<ContainerResponseDto> getSharedContainers(String memberId) {
+        Member member = getMemberOrThrow(memberId);
+        
+        return convertToResponseDtoList(containerRepository.findSharedContainers(member), memberId);
     }
     
     /**
      * 모든 공개 컨테이너 목록 조회
-     * 
-     * @param memberId 사용자 ID (null 가능) - 인증된 사용자의 경우 참여 여부 표시용
-     * @return containerAuth가 true인 모든 컨테이너 목록
+     * @param memberId 사용자 ID
+     * @return 공개 컨테이너 목록
      */
     @Override
+    @Transactional(readOnly = true)
     public List<ContainerResponseDto> getPublicContainers(String memberId) {
-        return containerRepository.findByContainerAuth(true).stream()
-                .map(container -> {
-                    String authority = null;
-                    if (memberId != null) {
-                        authority = getUserAuthority(container, memberId);
-                    }
-                    return ContainerResponseDto.from(container, authority, container.getTeam().getTeamUsers().size());
-                })
-                .collect(Collectors.toList());
+        return convertToResponseDtoList(containerRepository.findByContainerAuth(true), memberId);
     }
     
     /**
      * 사용자가 접근 가능한 모든 컨테이너 목록 조회
-     * 
-     * @param memberId 조회하는 사용자 ID
-     * @return 소유한 컨테이너 + 참여중인 컨테이너 목록
-     * @throws IllegalArgumentException 회원이 존재하지 않는 경우
+     * @param memberId 사용자 ID
+     * @return 접근 가능한 컨테이너 목록
      */
     @Override
+    @Transactional(readOnly = true)
     public List<ContainerResponseDto> getAllAccessibleContainers(String memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+        Member member = getMemberOrThrow(memberId);
         
-        return containerRepository.findAllAccessibleContainers(member).stream()
-                .map(container -> {
-                    String authority = getUserAuthority(container, memberId);
-                    return ContainerResponseDto.from(container, authority, container.getTeam().getTeamUsers().size());
-                })
-                .collect(Collectors.toList());
+        return convertToResponseDtoList(containerRepository.findAllAccessibleContainers(member), memberId);
     }
     
     /**
      * 컨테이너에 멤버 초대
-     * 
-     * @param containerId 멤버를 초대할 컨테이너 ID
-     * @param requesterId 초대를 요청하는 사용자 ID
-     * @param inviteDto 초대할 멤버 정보 (memberId, authority)
+     * @param containerId 컨테이너 ID
+     * @param requesterId 요청자 ID
+     * @param inviteDto 초대할 멤버 정보
      * @return 초대된 멤버 정보
-     * @throws ContainerNotFoundException 컨테이너가 어재하지 않는 경우
-     * @throws UnauthorizedContainerAccessException ROOT 권한이 없는 경우
-     * @throws MemberNotFoundException 초대할 회원이 존재하지 않는 경우
-     * @throws DuplicateMemberException 이미 컨테이너 멤버인 경우
+     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
+     * @throws UnauthorizedContainerAccessException 권한이 없는 경우
+     * @throws MemberNotFoundException 회원을 찾을 수 없는 경우
+     * @throws DuplicateMemberException 이미 멤버인 경우
      */
     @Override
     @Transactional
     public GroupMemberResponseDto inviteMember(Long containerId, String requesterId, MemberInviteDto inviteDto) {
-        Container container = containerRepository.findById(containerId)
-                .orElseThrow(() -> new ContainerNotFoundException("컨테이너를 찾을 수 없습니다: " + containerId));
+        Container container = getContainerOrThrow(containerId);
         
         // ROOT 권한 확인
-        if (!hasRootAuthority(container, requesterId)) {
-            throw new UnauthorizedContainerAccessException("ROOT 권한이 필요합니다.");
-        }
+        requireRootAuthority(container, requesterId, ERROR_ROOT_AUTHORITY_REQUIRED);
         
         Member invitedMember = memberRepository.findById(inviteDto.getMemberId())
-                .orElseThrow(() -> new MemberNotFoundException("초대할 회원을 찾을 수 없습니다: " + inviteDto.getMemberId()));
+                .orElseThrow(() -> new MemberNotFoundException(ERROR_INVITED_MEMBER_NOT_FOUND + inviteDto.getMemberId()));
         
         // 이미 멤버인지 확인
         boolean alreadyMember = container.getTeam().getTeamUsers().stream()
@@ -345,29 +290,17 @@ public class ContainerServiceImpl implements ContainerService {
             throw new DuplicateMemberException("이미 멤버입니다: " + inviteDto.getMemberId());
         }
         
-        // TeamUser 생성
-        Auth auth = authRepository.findById(inviteDto.getAuthority().name())
-                .orElseGet(() -> {
-                    Auth newAuth = new Auth();
-                    newAuth.setAuthId(inviteDto.getAuthority().name());
-                    newAuth.setAuthName(inviteDto.getAuthority().getDisplayName());
-                    return authRepository.save(newAuth);
-                });
+        // TeamUser 생성 - 초대된 멤버는 항상 USER 권한
+        Auth auth = getOrCreateAuth(AUTHORITY_USER, "사용자");
         
-        TeamUser teamUser = new TeamUser();
-        teamUser.setTeam(container.getTeam());
-        teamUser.setMember(invitedMember);
-        teamUser.setTeamAuth(auth);
-        teamUser.setJoinedDate(LocalDateTime.now());
-        teamUser.setLastActivityDate(LocalDateTime.now());
-        
+        TeamUser teamUser = createTeamUser(container.getTeam(), invitedMember, auth);
         container.getTeam().getTeamUsers().add(teamUser);
         
         return GroupMemberResponseDto.builder()
                 .memberId(invitedMember.getMemberId())
                 .memberName(invitedMember.getMemberName())
                 .memberEmail(invitedMember.getMemberEmail())
-                .authority(inviteDto.getAuthority())
+                .authority(AUTHORITY_USER)
                 .joinedDate(LocalDateTime.now())
                 .lastActivityDate(LocalDateTime.now())
                 .build();
@@ -375,30 +308,29 @@ public class ContainerServiceImpl implements ContainerService {
     
     /**
      * 컨테이너 멤버 목록 조회
-     * 
-     * @param containerId 조회할 컨테이너 ID
-     * @param memberId 조회를 요청하는 사용자 ID
-     * @return 컨테이너 멤버 목록
-     * @throws ContainerNotFoundException 컨테이너가 존재하지 않는 경우
-     * @throws IllegalArgumentException 비공개 컨테이너에 접근 권한이 없는 경우
+     * @param containerId 컨테이너 ID
+     * @param memberId 사용자 ID
+     * @return 멤버 목록
+     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
+     * @throws IllegalArgumentException 접근 권한이 없는 경우
      */
     @Override
+    @Transactional(readOnly = true)
     public List<GroupMemberResponseDto> getContainerMembers(Long containerId, String memberId) {
-        Container container = containerRepository.findById(containerId)
-                .orElseThrow(() -> new ContainerNotFoundException("컨테이너를 찾을 수 없습니다: " + containerId));
+        Container container = getContainerOrThrow(containerId);
         
-        // 접근 권한 확인
-        if (container.getVisibility() == ContainerVisibility.PRIVATE && !hasAccess(container, memberId)) {
+        // 접근 권한 확인 (비공개 컨테이너인 경우)
+        if (!container.getContainerAuth() && !hasAccess(container, memberId)) {
             throw new IllegalArgumentException("접근 권한이 없습니다.");
         }
         
         return container.getTeam().getTeamUsers().stream()
                 .map(tu -> GroupMemberResponseDto.builder()
-                        .teamUserId(Long.valueOf(tu.getTeamUserId()))
+                        .teamUserId(tu.getTeamUserId().longValue())
                         .memberId(tu.getMember().getMemberId())
                         .memberName(tu.getMember().getMemberName())
                         .memberEmail(tu.getMember().getMemberEmail())
-                        .authority(Authority.valueOf(tu.getTeamAuth().getAuthId()))
+                        .authority(tu.getTeamAuth().getAuthId())
                         .joinedDate(tu.getJoinedDate())
                         .lastActivityDate(tu.getLastActivityDate())
                         .build())
@@ -406,67 +338,25 @@ public class ContainerServiceImpl implements ContainerService {
     }
     
     /**
-     * 멤버 권한 변경
-     * 
-     * @param containerId 대상 컨테이너 ID
-     * @param requesterId 권한 변경을 요청하는 사용자 ID
-     * @param targetMemberId 권한을 변경할 대상 멤버 ID
-     * @param newAuthority 새로운 권한 (ROOT 또는 USER)
-     * @throws ContainerNotFoundException 컨테이너가 존재하지 않는 경우
-     * @throws UnauthorizedContainerAccessException ROOT 권한이 없는 경우
-     * @throws IllegalArgumentException 소유자 권한 변경 시도 또는 멤버를 찾을 수 없는 경우
-     */
-    @Override
-    @Transactional
-    public void updateMemberAuthority(Long containerId, String requesterId, String targetMemberId, Authority newAuthority) {
-        Container container = containerRepository.findById(containerId)
-                .orElseThrow(() -> new ContainerNotFoundException("컨테이너를 찾을 수 없습니다: " + containerId));
-        
-        // ROOT 권한 확인
-        if (!hasRootAuthority(container, requesterId)) {
-            throw new UnauthorizedContainerAccessException("ROOT 권한이 필요합니다.");
-        }
-        
-        // 소유자 권한은 변경 불가
-        if (container.getOwner().getMemberId().equals(targetMemberId)) {
-            throw new IllegalArgumentException("소유자의 권한은 변경할 수 없습니다.");
-        }
-        
-        TeamUser teamUser = container.getTeam().getTeamUsers().stream()
-                .filter(tu -> tu.getMember().getMemberId().equals(targetMemberId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("멤버를 찾을 수 없습니다."));
-        
-        // Auth 엔티티를 데이터베이스에서 조회
-        Auth newAuth = authRepository.findById(newAuthority.name())
-                .orElseThrow(() -> new IllegalArgumentException("권한을 찾을 수 없습니다: " + newAuthority.name()));
-        teamUser.setTeamAuth(newAuth);
-    }
-    
-    /**
      * 컨테이너에서 멤버 제거
-     * 
-     * @param containerId 대상 컨테이너 ID
-     * @param requesterId 제거를 요청하는 사용자 ID
-     * @param targetMemberId 제거할 대상 멤버 ID
-     * @throws ContainerNotFoundException 컨테이너가 존재하지 않는 경우
-     * @throws UnauthorizedContainerAccessException ROOT 권한이 없는 경우
-     * @throws IllegalArgumentException 소유자를 제거하려고 하는 경우
+     * @param containerId 컨테이너 ID
+     * @param requesterId 요청자 ID
+     * @param targetMemberId 제거할 멤버 ID
+     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
+     * @throws UnauthorizedContainerAccessException 권한이 없는 경우
+     * @throws IllegalArgumentException 소유자를 제거하려는 경우
      */
     @Override
     @Transactional
     public void removeMember(Long containerId, String requesterId, String targetMemberId) {
-        Container container = containerRepository.findById(containerId)
-                .orElseThrow(() -> new ContainerNotFoundException("컨테이너를 찾을 수 없습니다: " + containerId));
+        Container container = getContainerOrThrow(containerId);
         
         // ROOT 권한 확인
-        if (!hasRootAuthority(container, requesterId)) {
-            throw new UnauthorizedContainerAccessException("ROOT 권한이 필요합니다.");
-        }
+        requireRootAuthority(container, requesterId, ERROR_ROOT_AUTHORITY_REQUIRED);
         
         // 소유자는 제거 불가
         if (container.getOwner().getMemberId().equals(targetMemberId)) {
-            throw new IllegalArgumentException("소유자는 제거할 수 없습니다.");
+            throw new IllegalArgumentException(ERROR_OWNER_CANNOT_BE_REMOVED);
         }
         
         container.getTeam().getTeamUsers().removeIf(tu -> 
@@ -475,21 +365,19 @@ public class ContainerServiceImpl implements ContainerService {
     
     /**
      * 컨테이너에서 탈퇴
-     * 
-     * @param containerId 탈퇴할 컨테이너 ID
-     * @param memberId 탈퇴하는 사용자 ID
-     * @throws ContainerNotFoundException 컨테이너가 존재하지 않는 경우
-     * @throws IllegalArgumentException 소유자가 탈퇴하려고 하는 경우
+     * @param containerId 컨테이너 ID
+     * @param memberId 사용자 ID
+     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
+     * @throws IllegalArgumentException 소유자가 탈퇴하려는 경우
      */
     @Override
     @Transactional
     public void leaveContainer(Long containerId, String memberId) {
-        Container container = containerRepository.findById(containerId)
-                .orElseThrow(() -> new ContainerNotFoundException("컨테이너를 찾을 수 없습니다: " + containerId));
+        Container container = getContainerOrThrow(containerId);
         
         // 소유자는 탈퇴 불가
         if (container.getOwner().getMemberId().equals(memberId)) {
-            throw new IllegalArgumentException("소유자는 컨테이너를 탈퇴할 수 없습니다.");
+            throw new IllegalArgumentException(ERROR_OWNER_CANNOT_LEAVE);
         }
         
         container.getTeam().getTeamUsers().removeIf(tu -> 
@@ -498,22 +386,17 @@ public class ContainerServiceImpl implements ContainerService {
     
     /**
      * 멤버의 활동 시간 업데이트
-     * 
-     * @param containerId 대상 컨테이너 ID
-     * @param memberId 활동 시간을 업데이트할 사용자 ID
-     * @throws ContainerNotFoundException 컨테이너가 어재하지 않는 경우
+     * @param containerId 컨테이너 ID
+     * @param memberId 사용자 ID
+     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
      * @throws MemberNotFoundException 멤버를 찾을 수 없는 경우
      */
     @Override
     @Transactional
     public void updateMemberActivity(Long containerId, String memberId) {
-        Container container = containerRepository.findById(containerId)
-                .orElseThrow(() -> new ContainerNotFoundException("컨테이너를 찾을 수 없습니다: " + containerId));
+        Container container = getContainerOrThrow(containerId);
         
-        TeamUser teamUser = container.getTeam().getTeamUsers().stream()
-                .filter(tu -> tu.getMember().getMemberId().equals(memberId))
-                .findFirst()
-                .orElseThrow(() -> new MemberNotFoundException("멤버를 찾을 수 없습니다: " + memberId));
+        TeamUser teamUser = getTeamUserOrThrow(container, memberId);
         
         // 활동 시간 업데이트
         teamUser.setLastActivityDate(LocalDateTime.now());
@@ -523,15 +406,13 @@ public class ContainerServiceImpl implements ContainerService {
     // Helper methods
     
     /**
-     * 컨테이너 접근 권한 확인
-     * 
-     * @param container 확인할 컨테이너
+     * 사용자가 컨테이너에 접근 가능한지 확인
+     * @param container 대상 컨테이너
      * @param memberId 확인할 사용자 ID
-     * @return 소유자이거나 팀 멤버인 경우 true
+     * @return 접근 가능 여부
      */
     private boolean hasAccess(Container container, String memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+        Member member = getMemberOrThrow(memberId);
         
         return container.getOwner().equals(member) ||
                 container.getTeam().getTeamUsers().stream()
@@ -539,11 +420,10 @@ public class ContainerServiceImpl implements ContainerService {
     }
     
     /**
-     * ROOT 권한 확인
-     * 
-     * @param container 확인할 컨테이너
+     * 사용자가 컨테이너에 대한 ROOT 권한을 가지고 있는지 확인
+     * @param container 대상 컨테이너
      * @param memberId 확인할 사용자 ID
-     * @return 소유자이거나 ROOT 권한을 가진 경우 true
+     * @return ROOT 권한 보유 여부
      */
     private boolean hasRootAuthority(Container container, String memberId) {
         if (container.getOwner().getMemberId().equals(memberId)) {
@@ -552,21 +432,18 @@ public class ContainerServiceImpl implements ContainerService {
         
         return container.getTeam().getTeamUsers().stream()
                 .filter(tu -> tu.getMember().getMemberId().equals(memberId))
-                .anyMatch(tu -> "ROOT".equals(tu.getTeamAuth().getAuthId()));
+                .anyMatch(tu -> AUTHORITY_ROOT.equals(tu.getTeamAuth().getAuthId()));
     }
     
-    
-    
     /**
-     * 사용자의 컨테이너 권한 조회
-     * 
-     * @param container 확인할 컨테이너
-     * @param memberId 확인할 사용자 ID
-     * @return 사용자의 권한 문자열 (ROOT, USER, null)
+     * 특정 컨테이너에서 사용자의 권한을 조회
+     * @param container 대상 컨테이너
+     * @param memberId 사용자 ID
+     * @return 권한 문자열 (ROOT/USER) 또는 null
      */
     private String getUserAuthority(Container container, String memberId) {
         if (container.getOwner().getMemberId().equals(memberId)) {
-            return "ROOT";
+            return AUTHORITY_ROOT;
         }
         
         return container.getTeam().getTeamUsers().stream()
@@ -578,15 +455,15 @@ public class ContainerServiceImpl implements ContainerService {
     
     /**
      * 6개월 이상 비활동 멤버 자동 탈퇴
-     * 매일 새벽 2시에 실행
      */
     @Override
-    @Scheduled(cron = "0 0 2 * * *") // 매일 새벽 2시
+    @Scheduled(cron = INACTIVE_MEMBER_CLEANUP_SCHEDULE) // 매일 새벽 2시
     @Transactional
     public void removeInactiveMembers() {
-        LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6);
+        try {
+            LocalDateTime inactiveThreshold = LocalDateTime.now().minusMonths(INACTIVE_MONTHS);
         
-        log.info("Starting inactive member cleanup. Checking members inactive since: {}", sixMonthsAgo);
+            log.info("Starting inactive member cleanup. Checking members inactive since: {}", inactiveThreshold);
         
         // 모든 컨테이너의 TeamUser를 조회하여 비활동 멤버 제거
         List<TeamUser> inactiveUsers = new ArrayList<>();
@@ -598,9 +475,9 @@ public class ContainerServiceImpl implements ContainerService {
                         if (container.getOwner().getMemberId().equals(tu.getMember().getMemberId())) {
                             return false;
                         }
-                        // 활동 시간이 null이거나 6개월 이상 된 경우
-                        return tu.getLastActivityDate() == null || 
-                               tu.getLastActivityDate().isBefore(sixMonthsAgo);
+                        // 활동 시간이 null이거나 기준일 이상 된 경우
+                        LocalDateTime lastActivity = tu.getLastActivityDate();
+                        return lastActivity == null || lastActivity.isBefore(inactiveThreshold);
                     })
                     .collect(Collectors.toList());
             
@@ -618,49 +495,45 @@ public class ContainerServiceImpl implements ContainerService {
             }
         });
         
-        log.info("Inactive member cleanup completed. Total removed: {}", inactiveUsers.size());
+            log.info("Inactive member cleanup completed. Total removed: {}", inactiveUsers.size());
+        } catch (Exception e) {
+            log.error("Error during inactive member cleanup", e);
+            // 예외가 발생해도 서비스는 계속 실행
+        }
     }
     
     /**
-     * 컨테이너 검색 (QueryDSL 사용)
-     * 
-     * @param name 컨테이너 이름 (부분 일치, null 가능)
-     * @param visibility 공개 여부 (PUBLIC/PRIVATE, null 가능)
-     * @param ownerId 소유자 ID (null 가능)
-     * @param memberId 권한 표시를 위한 사용자 ID (null 가능)
-     * @return 검색 조건에 맞는 컨테이너 목록
+     * 컨테이너 검색
+     * @param name 컨테이너 이름
+     * @param isPublic 공개 여부
+     * @param ownerId 소유자 ID
+     * @param memberId 사용자 ID
+     * @return 검색된 컨테이너 목록
      */
     @Override
-    public List<ContainerResponseDto> searchContainers(String name, ContainerVisibility visibility, 
+    @Transactional(readOnly = true)
+    public List<ContainerResponseDto> searchContainers(String name, Boolean isPublic, 
                                                       String ownerId, String memberId) {
-        List<Container> containers = containerRepository.searchContainers(name, visibility, ownerId, memberId);
+        List<Container> containers = containerRepository.searchContainers(name, isPublic, ownerId, memberId);
         
-        return containers.stream()
-                .map(container -> {
-                    String authority = getUserAuthority(container, memberId != null ? memberId : "");
-                    return ContainerResponseDto.from(container, authority, container.getTeam().getTeamUsers().size());
-                })
-                .collect(Collectors.toList());
+        return convertToResponseDtoList(containers, memberId);
     }
     
     /**
      * 사용자의 권한별 컨테이너 통계 조회
-     * 
-     * @param memberId 통계를 조회할 사용자 ID
-     * @return 권한별 컨테이너 개수 Map (ROOT -> n개, USER -> m개)
-     * @throws IllegalArgumentException 회원이 존재하지 않는 경우
+     * @param memberId 사용자 ID
+     * @return 권한별 컨테이너 개수
      */
     @Override
-    public Map<Authority, Long> getContainerStatsByAuthority(String memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+    @Transactional(readOnly = true)
+    public Map<String, Long> getContainerStatsByAuthority(String memberId) {
+        Member member = getMemberOrThrow(memberId);
         
         List<ContainerAuthorityCount> stats = containerRepository.countContainersByAuthority(member);
         
-        Map<Authority, Long> result = new HashMap<>();
-        for (Authority auth : Authority.values()) {
-            result.put(auth, 0L);
-        }
+        Map<String, Long> result = new HashMap<>();
+        result.put(AUTHORITY_ROOT, 0L);
+        result.put(AUTHORITY_USER, 0L);
         
         stats.forEach(stat -> result.put(stat.getAuthority(), stat.getCount()));
         
@@ -669,15 +542,15 @@ public class ContainerServiceImpl implements ContainerService {
     
     /**
      * 컨테이너 상세 통계 정보 조회
-     * 
-     * @param containerId 통계를 조회할 컨테이너 ID
-     * @return 컨테이너 통계 정보 (전체 멤버 수, 활동 멤버 수, 권한별 분포 등)
-     * @throws ContainerNotFoundException 컨테이너가 존재하지 않는 경우
+     * @param containerId 컨테이너 ID
+     * @return 컨테이너 통계 정보
+     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
      */
     @Override
+    @Transactional(readOnly = true)
     public ContainerStatisticsDto getContainerStatistics(Long containerId) {
         Container container = containerRepository.findContainerWithDetails(containerId)
-                .orElseThrow(() -> new ContainerNotFoundException("컨테이너를 찾을 수 없습니다: " + containerId));
+                .orElseThrow(() -> new ContainerNotFoundException(ERROR_CONTAINER_NOT_FOUND + containerId));
         
         ContainerStatistics stats = containerRepository.getContainerStatistics(containerId);
         
@@ -696,8 +569,178 @@ public class ContainerServiceImpl implements ContainerService {
                 .inactiveMemberCount(stats.getMemberCount() - stats.getActiveMemberCount())
                 .lastActivityDate(stats.getLastActivityDate())
                 .createdDate(container.getContainerDate().atStartOfDay())
-                .rootMemberCount(authCounts.getOrDefault("ROOT", 0L))
-                .userMemberCount(authCounts.getOrDefault("USER", 0L))
+                .rootMemberCount(authCounts.getOrDefault(AUTHORITY_ROOT, 0L))
+                .userMemberCount(authCounts.getOrDefault(AUTHORITY_USER, 0L))
                 .build();
     }
+    
+    // 추가 헬퍼 메서드들
+    
+    /**
+     * 멤버를 조회하고 없으면 예외 발생
+     * @param memberId 조회할 멤버 ID
+     * @return 조회된 멤버 엔티티
+     * @throws MemberNotFoundException 멤버를 찾을 수 없는 경우
+     */
+    private Member getMemberOrThrow(String memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException(ERROR_MEMBER_NOT_FOUND + memberId));
+    }
+    
+    /**
+     * 컨테이너를 조회하고 없으면 예외 발생
+     * @param containerId 조회할 컨테이너 ID
+     * @return 조회된 컨테이너 엔티티
+     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
+     */
+    private Container getContainerOrThrow(Long containerId) {
+        return containerRepository.findById(containerId)
+                .orElseThrow(() -> new ContainerNotFoundException(ERROR_CONTAINER_NOT_FOUND + containerId));
+    }
+    
+    /**
+     * 권한을 조회하고 없으면 생성
+     * @param authId 권한 ID (ROOT/USER)
+     * @param authName 권한 명칭
+     * @return 조회 또는 생성된 권한 엔티티
+     */
+    private Auth getOrCreateAuth(String authId, String authName) {
+        return authRepository.findById(authId)
+                .orElseGet(() -> {
+                    Auth newAuth = new Auth();
+                    newAuth.setAuthId(authId);
+                    newAuth.setAuthName(authName);
+                    return authRepository.save(newAuth);
+                });
+    }
+    
+    /**
+     * 컨테이너의 팀 멤버를 조회하고 없으면 예외 발생
+     * @param container 대상 컨테이너
+     * @param memberId 조회할 멤버 ID
+     * @return 조회된 TeamUser 엔티티
+     * @throws UnauthorizedContainerAccessException 멤버가 아닌 경우
+     */
+    private TeamUser getTeamUserOrThrow(Container container, String memberId) {
+        return container.getTeam().getTeamUsers().stream()
+                .filter(tu -> tu.getMember().getMemberId().equals(memberId))
+                .findFirst()
+                .orElseThrow(() -> new UnauthorizedContainerAccessException(ERROR_NOT_CONTAINER_MEMBER));
+    }
+    
+    /**
+     * 컨테이너 엔티티를 응답 DTO로 변환
+     * @param container 변환할 컨테이너 엔티티
+     * @param memberId 현재 사용자 ID (null 가능)
+     * @return 변환된 컨테이너 응답 DTO
+     */
+    private ContainerResponseDto createContainerResponse(Container container, String memberId) {
+        String authority = (memberId != null) ? getUserAuthority(container, memberId) : null;
+        return ContainerResponseDto.from(container, authority, container.getTeam().getTeamUsers().size());
+    }
+    
+    // 페이징 지원 메서드 구현
+    
+    /**
+     * 컨테이너 고급 검색
+     * @param searchDto 검색 조건
+     * @param memberId 사용자 ID
+     * @return 검색 결과
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<ContainerResponseDto> advancedSearch(ContainerSearchDto searchDto, String memberId) {
+        // 검색 조건 추출
+        String name = searchDto.getName();
+        Boolean isPublic = searchDto.getIsPublic();
+        String ownerId = searchDto.getOwnerId();
+        String searchMemberId = searchDto.getMemberId();
+        
+        List<Container> containers = containerRepository.searchContainers(name, isPublic, ownerId, searchMemberId);
+        
+        return convertToResponseDtoList(containers, memberId);
+    }
+    
+    /**
+     * 배치 작업 - 여러 컨테이너의 공개 상태 변경
+     * @param containerIds 컨테이너 ID 목록
+     * @param isPublic 공개 상태
+     * @param requesterId 요청자 ID
+     * @return 업데이트된 컨테이너 수
+     * @throws UnauthorizedContainerAccessException 권한이 없는 경우
+     */
+    @Override
+    @Transactional
+    public long batchUpdateVisibility(List<Long> containerIds, Boolean isPublic, String requesterId) {
+        if (containerIds == null || containerIds.isEmpty()) {
+            return 0;
+        }
+        
+        // 각 컨테이너에 대한 권한 확인
+        List<Long> authorizedContainerIds = new ArrayList<>();
+        
+        for (Long containerId : containerIds) {
+            try {
+                Container container = getContainerOrThrow(containerId);
+                if (hasRootAuthority(container, requesterId)) {
+                    authorizedContainerIds.add(containerId);
+                }
+            } catch (ContainerNotFoundException e) {
+                // 존재하지 않는 컨테이너는 무시
+                log.warn("Container not found during batch update: {}", containerId);
+            }
+        }
+        
+        if (authorizedContainerIds.isEmpty()) {
+            return 0;
+        }
+        
+        // 배치 업데이트 실행
+        return containerRepository.updateContainerVisibility(authorizedContainerIds, isPublic);
+    }
+    
+    /**
+     * 멤버 ID의 유효성을 검증
+     * @param memberId 검증할 멤버 ID
+     * @param errorMessage 유효하지 않을 때 표시할 메시지
+     * @throws IllegalArgumentException 멤버 ID가 null이거나 빈 문자열인 경우
+     */
+    private void validateMemberId(String memberId, String errorMessage) {
+        if (memberId == null || memberId.trim().isEmpty()) {
+            if (errorMessage.equals(ERROR_PRIVATE_CONTAINER_ACCESS_DENIED)) {
+                throw new UnauthorizedContainerAccessException(errorMessage);
+            }
+            throw new IllegalArgumentException(errorMessage);
+        }
+    }
+    
+    /**
+     * 컨테이너 리스트를 응답 DTO 리스트로 변환
+     * @param containers 변환할 컨테이너 리스트
+     * @param memberId 현재 사용자 ID (null 가능)
+     * @return 변환된 DTO 리스트
+     */
+    private List<ContainerResponseDto> convertToResponseDtoList(List<Container> containers, String memberId) {
+        return containers.stream()
+                .map(container -> createContainerResponse(container, memberId))
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * TeamUser 엔티티 생성 헬퍼 메서드
+     * @param team 팀
+     * @param member 멤버
+     * @param auth 권한
+     * @return 생성된 TeamUser
+     */
+    private TeamUser createTeamUser(Team team, Member member, Auth auth) {
+        TeamUser teamUser = new TeamUser();
+        teamUser.setTeam(team);
+        teamUser.setMember(member);
+        teamUser.setTeamAuth(auth);
+        teamUser.setJoinedDate(LocalDateTime.now());
+        teamUser.setLastActivityDate(LocalDateTime.now());
+        return teamUser;
+    }
+    
 }

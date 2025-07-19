@@ -6,29 +6,32 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import solid.backend.entity.TeamUser;
-import solid.backend.common.enums.Authority;
 
 import java.time.LocalDateTime;
 
 /**
  * 팀 멤버 응답 DTO
- * 컨테이너에 속한 멤버 정보를 반환할 때 사용
- * 멤버의 기본 정보와 권한, 활동 시간 정보 포함
  */
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class GroupMemberResponseDto {
     
-    private Long teamUserId; // 팀 멤버 ID
-    private String memberId; // 회원 ID
-    private String memberName; // 회원 이름
-    private String memberEmail; // 회원 이메일
-    private Authority authority; // 멤버 권한 (ROOT/USER)
-    private LocalDateTime joinedDate; // 팀 가입 날짜
-    private LocalDateTime lastActivityDate; // 마지막 활동 날짜
+    /** 팀 멤버 고유 식별자 */
+    private Long teamUserId;
+    /** 회원 ID */
+    private String memberId;
+    /** 회원 이름 */
+    private String memberName;
+    /** 회원 이메일 */
+    private String memberEmail;
+    /** 멤버 권한 (ROOT/USER) */
+    private String authority;
+    /** 컨테이너 가입일시 */
+    private LocalDateTime joinedDate;
+    /** 마지막 활동일시 */
+    private LocalDateTime lastActivityDate;
     
     /**
      * TeamUser 엔티티를 DTO로 변환
@@ -36,12 +39,22 @@ public class GroupMemberResponseDto {
      * @return GroupMemberResponseDto
      */
     public static GroupMemberResponseDto from(TeamUser teamUser) {
+        if (teamUser == null) {
+            throw new IllegalArgumentException("TeamUser cannot be null");
+        }
+        if (teamUser.getMember() == null) {
+            throw new IllegalArgumentException("TeamUser must have a member");
+        }
+        if (teamUser.getTeamAuth() == null) {
+            throw new IllegalArgumentException("TeamUser must have an authority");
+        }
+        
         return GroupMemberResponseDto.builder()
-                .teamUserId(Long.valueOf(teamUser.getTeamUserId()))
+                .teamUserId(teamUser.getTeamUserId().longValue())
                 .memberId(teamUser.getMember().getMemberId())
                 .memberName(teamUser.getMember().getMemberName())
                 .memberEmail(teamUser.getMember().getMemberEmail())
-                .authority(Authority.valueOf(teamUser.getTeamAuth().getAuthId()))
+                .authority(teamUser.getTeamAuth().getAuthId())
                 .joinedDate(teamUser.getJoinedDate())
                 .lastActivityDate(teamUser.getLastActivityDate())
                 .build();

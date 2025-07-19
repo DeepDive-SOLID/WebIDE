@@ -7,30 +7,30 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import solid.backend.container.dto.*;
 import solid.backend.container.service.ContainerService;
-import solid.backend.common.enums.Authority;
-import solid.backend.common.enums.ContainerVisibility;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import solid.backend.common.ApiResponse;
 
 /**
  * 컨테이너 관리 REST API 컨트롤러
- * 컨테이너 CRUD, 멤버 관리, 권한 관리 등의 API 엔드포인트 제공
  */
 @RestController
 @RequestMapping("/api/containers")
 @RequiredArgsConstructor
 public class ContainerController {
     
+    /** 컨테이너 비즈니스 로직 처리 서비스 */
     private final ContainerService containerService;
     
     /**
      * 현재 인증된 사용자의 ID를 가져오는 헬퍼 메서드
+     * @return 사용자 ID
      */
     private String getCurrentMemberId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             return authentication.getName();
         }
@@ -39,8 +39,8 @@ public class ContainerController {
     
     /**
      * 컨테이너 생성
-     * @param createDto 컨테이너 생성 정보 - 컨테이너 이름, 내용, 공개여부, 초대할 멤버 목록 포함
-     * @return 생성된 컨테이너 정보 - 컨테이너 ID, 이름, 소유자 정보, 권한, 멤버 수 포함
+     * @param createDto 컨테이너 생성 정보
+     * @return 생성된 컨테이너 정보
      */
     @PostMapping
     public ResponseEntity<ContainerResponseDto> createContainer(
@@ -52,8 +52,8 @@ public class ContainerController {
     
     /**
      * 컨테이너 상세 조회
-     * @param containerId 컨테이너 ID - 조회할 컨테이너의 고유 식별자
-     * @return 컨테이너 상세 정보 - 컨테이너 정보와 요청자의 권한 정보 포함
+     * @param containerId 컨테이너 ID
+     * @return 컨테이너 상세 정보
      */
     @GetMapping("/{containerId}")
     public ResponseEntity<ContainerResponseDto> getContainer(
@@ -65,7 +65,7 @@ public class ContainerController {
     
     /**
      * 내 컨테이너 목록 조회
-     * @return 소유한 컨테이너 목록 - 사용자가 소유자(ROOT)인 모든 컨테이너 목록
+     * @return 소유한 컨테이너 목록
      */
     @GetMapping("/my")
     public ResponseEntity<List<ContainerResponseDto>> getMyContainers() {
@@ -76,7 +76,7 @@ public class ContainerController {
     
     /**
      * 공유된 컨테이너 목록 조회
-     * @return 참여중인 컨테이너 목록 (소유 컨테이너 제외) - 멤버로 초대받아 참여중인 컨테이너만 반환
+     * @return 참여중인 컨테이너 목록 (소유 컨테이너 제외)
      */
     @GetMapping("/shared")
     public ResponseEntity<List<ContainerResponseDto>> getSharedContainers() {
@@ -87,7 +87,7 @@ public class ContainerController {
     
     /**
      * 공개 컨테이너 목록 조회
-     * @return 모든 PUBLIC 컨테이너 목록 - 인증된 사용자의 경우 참여 여부 및 권한 정보 포함
+     * @return 모든 PUBLIC 컨테이너 목록
      */
     @GetMapping("/public")
     public ResponseEntity<List<ContainerResponseDto>> getPublicContainers() {
@@ -98,7 +98,7 @@ public class ContainerController {
     
     /**
      * 접근 가능한 모든 컨테이너 목록 조회
-     * @return 소유 + 참여중인 모든 컨테이너 목록 - 사용자가 접근 가능한 모든 컨테이너와 각각의 권한 정보
+     * @return 소유 + 참여중인 모든 컨테이너 목록
      */
     @GetMapping
     public ResponseEntity<List<ContainerResponseDto>> getAllAccessibleContainers() {
@@ -109,9 +109,9 @@ public class ContainerController {
     
     /**
      * 컨테이너 정보 수정
-     * @param containerId 컨테이너 ID - 수정할 컨테이너의 고유 식별자
-     * @param updateDto 수정할 정보 - 컨테이너 이름, 내용, 공개여부 중 수정할 항목만 포함
-     * @return 수정된 컨테이너 정보 - 업데이트된 컨테이너 정보와 권한 정보
+     * @param containerId 컨테이너 ID
+     * @param updateDto 수정할 정보
+     * @return 수정된 컨테이너 정보
      */
     @PutMapping("/{containerId}")
     public ResponseEntity<ContainerResponseDto> updateContainer(
@@ -124,8 +124,8 @@ public class ContainerController {
     
     /**
      * 컨테이너 삭제 (ROOT 권한 필요)
-     * @param containerId 컨테이너 ID - 삭제할 컨테이너의 고유 식별자
-     * @return 204 No Content - 성공 시 응답 본문 없음
+     * @param containerId 컨테이너 ID
+     * @return 204 No Content
      */
     @DeleteMapping("/{containerId}")
     public ResponseEntity<Void> deleteContainer(
@@ -137,9 +137,9 @@ public class ContainerController {
     
     /**
      * 컨테이너에 멤버 초대 (ROOT 권한 필요)
-     * @param containerId 컨테이너 ID - 멤버를 초대할 컨테이너의 고유 식별자
-     * @param inviteDto 초대 정보 - 초대할 멤버 ID와 부여할 권한(ROOT/USER) 포함
-     * @return 초대된 멤버 정보 - 멤버 정보와 부여된 권한, 가입 일시 포함
+     * @param containerId 컨테이너 ID
+     * @param inviteDto 초대 정보
+     * @return 초대된 멤버 정보
      */
     @PostMapping("/{containerId}/members")
     public ResponseEntity<GroupMemberResponseDto> inviteMember(
@@ -152,8 +152,8 @@ public class ContainerController {
     
     /**
      * 컨테이너 멤버 목록 조회
-     * @param containerId 컨테이너 ID - 멤버 목록을 조회할 컨테이너의 고유 식별자
-     * @return 컨테이너 멤버 목록 - 각 멤버의 정보, 권한, 가입일, 최근 활동일 포함
+     * @param containerId 컨테이너 ID
+     * @return 컨테이너 멤버 목록
      */
     @GetMapping("/{containerId}/members")
     public ResponseEntity<List<GroupMemberResponseDto>> getContainerMembers(
@@ -164,27 +164,10 @@ public class ContainerController {
     }
     
     /**
-     * 멤버 권한 변경 (ROOT 권한 필요)
-     * @param containerId 컨테이너 ID - 권한을 변경할 컨테이너의 고유 식별자
-     * @param targetMemberId 대상 멤버 ID - 권한을 변경할 멤버의 고유 식별자
-     * @param newAuthority 변경할 권한 - ROOT 또는 USER 중 선택
-     * @return 204 No Content - 성공 시 응답 본문 없음
-     */
-    @PutMapping("/{containerId}/members/{targetMemberId}/authority")
-    public ResponseEntity<Void> updateMemberAuthority(
-            @PathVariable Long containerId,
-            @PathVariable String targetMemberId,
-            @RequestParam Authority newAuthority) {
-        String requesterId = getCurrentMemberId();
-        containerService.updateMemberAuthority(containerId, requesterId, targetMemberId, newAuthority);
-        return ResponseEntity.noContent().build();
-    }
-    
-    /**
      * 멤버 제거 (ROOT 권한 필요)
-     * @param containerId 컨테이너 ID - 멤버를 제거할 컨테이너의 고유 식별자
-     * @param targetMemberId 제거할 멤버 ID - 컨테이너에서 제거할 멤버의 고유 식별자
-     * @return 204 No Content - 성공 시 응답 본문 없음
+     * @param containerId 컨테이너 ID
+     * @param targetMemberId 제거할 멤버 ID
+     * @return 204 No Content
      */
     @DeleteMapping("/{containerId}/members/{targetMemberId}")
     public ResponseEntity<Void> removeMember(
@@ -197,8 +180,8 @@ public class ContainerController {
     
     /**
      * 컨테이너 탈퇴 (소유자는 불가)
-     * @param containerId 컨테이너 ID - 탈퇴할 컨테이너의 고유 식별자
-     * @return 204 No Content - 성공 시 응답 본문 없음
+     * @param containerId 컨테이너 ID
+     * @return 204 No Content
      */
     @DeleteMapping("/{containerId}/members/me")
     public ResponseEntity<Void> leaveContainer(
@@ -210,8 +193,8 @@ public class ContainerController {
     
     /**
      * 멤버 활동 시간 업데이트
-     * @param containerId 컨테이너 ID - 활동을 기록할 컨테이너의 고유 식별자
-     * @return 204 No Content - 성공 시 응답 본문 없음, 6개월 비활동 자동 탈퇴 방지용
+     * @param containerId 컨테이너 ID
+     * @return 204 No Content
      */
     @PutMapping("/{containerId}/members/me/activity")
     public ResponseEntity<Void> updateActivity(
@@ -223,36 +206,52 @@ public class ContainerController {
     
     /**
      * 컨테이너 검색 (QueryDSL 활용)
-     * @param name 컨테이너 이름 (선택) - 부분 일치 검색, 대소문자 구분 없음
-     * @param visibility 공개 여부 (선택) - PUBLIC 또는 PRIVATE
-     * @param ownerId 소유자 ID (선택) - 특정 사용자가 소유한 컨테이너만 필터링
-     * @return 검색 결과 - 조건에 맞는 컨테이너 목록과 각 컨테이너에 대한 요청자의 권한
+     * @param name 컨테이너 이름 (선택)
+     * @param isPublic 공개 여부 (선택)
+     * @param ownerId 소유자 ID (선택)
+     * @return 검색 결과
      */
     @GetMapping("/search")
     public ResponseEntity<List<ContainerResponseDto>> searchContainers(
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) ContainerVisibility visibility,
+            @RequestParam(required = false) Boolean isPublic,
             @RequestParam(required = false) String ownerId) {
         String memberId = getCurrentMemberId();
-        List<ContainerResponseDto> response = containerService.searchContainers(name, visibility, ownerId, memberId);
+        List<ContainerResponseDto> response = containerService.searchContainers(name, isPublic, ownerId, memberId);
         return ResponseEntity.ok(response);
     }
     
     /**
+     * 컨테이너 고급 검색
+     * @param searchDto 검색 조건
+     * @return 검색 결과
+     */
+    @PostMapping("/search")
+    public ResponseEntity<ApiResponse<List<ContainerResponseDto>>> advancedSearch(
+            @RequestBody @Valid ContainerSearchDto searchDto) {
+        String memberId = getCurrentMemberId();
+        List<ContainerResponseDto> result = containerService.advancedSearch(searchDto, memberId);
+        return ResponseEntity.ok(ApiResponse.success(
+            result,
+            "검색이 완료되었습니다"
+        ));
+    }
+    
+    /**
      * 사용자의 권한별 컨테이너 통계
-     * @return 권한별 컨테이너 개수 - ROOT, USER 권한별로 참여중인 컨테이너 수
+     * @return 권한별 컨테이너 개수
      */
     @GetMapping("/stats/authority")
-    public ResponseEntity<Map<Authority, Long>> getContainerStatsByAuthority() {
+    public ResponseEntity<Map<String, Long>> getContainerStatsByAuthority() {
         String memberId = getCurrentMemberId();
-        Map<Authority, Long> response = containerService.getContainerStatsByAuthority(memberId);
+        Map<String, Long> response = containerService.getContainerStatsByAuthority(memberId);
         return ResponseEntity.ok(response);
     }
     
     /**
      * 컨테이너 상세 통계 정보
-     * @param containerId 컨테이너 ID - 통계를 조회할 컨테이너의 고유 식별자  
-     * @return 컨테이너 통계 정보 - 전체 멤버 수, 활동/비활동 멤버 수, 권한별 분포, 활동률 등
+     * @param containerId 컨테이너 ID
+     * @return 컨테이너 통계 정보
      */
     @GetMapping("/{containerId}/statistics")
     public ResponseEntity<ContainerStatisticsDto> getContainerStatistics(
@@ -263,4 +262,27 @@ public class ContainerController {
         ContainerStatisticsDto response = containerService.getContainerStatistics(containerId);
         return ResponseEntity.ok(response);
     }
+    
+    /**
+     * 여러 컨테이너의 공개 상태 변경
+     * @param batchDto 배치 작업 정보
+     * @return 업데이트 결과
+     */
+    @PutMapping("/batch/visibility")
+    public ResponseEntity<Map<String, Object>> batchUpdateVisibility(
+            @RequestBody @Valid BatchContainerVisibilityDto batchDto) {
+        String memberId = getCurrentMemberId();
+        long updatedCount = containerService.batchUpdateVisibility(
+            batchDto.getContainerIds(), 
+            batchDto.getIsPublic(), 
+            memberId
+        );
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("updatedCount", updatedCount);
+        response.put("requestedCount", batchDto.getContainerIds().size());
+        
+        return ResponseEntity.ok(response);
+    }
+
 }
