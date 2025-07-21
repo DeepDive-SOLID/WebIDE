@@ -1,35 +1,130 @@
-import Box from "../../UI/Box";
 import Bargraph from "../../UI/Bargraph";
 import ContextMenu from "../ContextMenu";
-import { IoListOutline } from "react-icons/io5";
-import { CiFileOn } from "react-icons/ci";
 import { FaUsers } from "react-icons/fa";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
+import { CiFileOn } from "react-icons/ci";
 
-type BoxItem = {
+type BoxItemType = {
   id: string;
   type: "folder" | "file";
   title: string;
+  parentId: string | null;
 };
 
 const AlgorithmSidebar = () => {
   const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null);
-  const [boxList, setBoxList] = useState<BoxItem[]>([]);
+  const [boxList, setBoxList] = useState<BoxItemType[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [openIds, setOpenIds] = useState<string[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const handleCreate = (type: "folder" | "file", title: string) => {
     const id = `${type}-${Date.now()}-${Math.random()}`;
-    setBoxList((prev) => [...prev, { id, type, title }]);
+    const parent =
+      selectedId &&
+      boxList.find((box) => box.id === selectedId && box.type === "folder");
+    const parentId = parent ? parent.id : null;
+
+    setBoxList((prev) => [...prev, { id, type, title, parentId }]);
+    if (parentId && !openIds.includes(parentId)) {
+      setOpenIds((prev) => [...prev, parentId]);
+    }
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
+    setSelectedId(null);
     setMenuPos({ x: e.clientX, y: e.clientY });
   };
 
   const closeMenu = () => {
     setMenuPos(null);
   };
+
+  const toggleOpen = (id: string) => {
+    setOpenIds((prev) =>
+      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]
+    );
+  };
+
+  const deleteRecursive = (id: string) => {
+    setBoxList((prev) => {
+      const toDelete = [id];
+      const collectChildren = (parentId: string) => {
+        prev.forEach((item) => {
+          if (item.parentId === parentId) {
+            toDelete.push(item.id);
+            if (item.type === "folder") collectChildren(item.id);
+          }
+        });
+      };
+      collectChildren(id);
+      return prev.filter((item) => !toDelete.includes(item.id));
+    });
+    setSelectedId(null);
+  };
+
+  const renderTree = (items: BoxItemType[], parentId: string | null) => {
+    return items
+      .filter((item) => item.parentId === parentId)
+      .map((item) => (
+        <div key={item.id} className="tree-node">
+          <div
+            className={`tree-item ${item.type} ${
+              selectedId === item.id ? "selected" : ""
+            } ${activeId === item.id ? "active" : ""}`}
+            onClick={() => {
+              setActiveId(item.id);
+              if (item.type === "folder") {
+                toggleOpen(item.id);
+              }
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setSelectedId(item.id);
+              setMenuPos({ x: e.clientX, y: e.clientY });
+            }}
+          >
+            {item.type === "folder" ? (
+              <span className="tree-label">
+                {openIds.includes(item.id) ? (
+                  <IoIosArrowDown className="tree-arrow" />
+                ) : (
+                  <IoIosArrowForward className="tree-arrow" />
+                )}
+                <span className="tree-title">{item.title}</span>
+              </span>
+            ) : (
+              <span className="tree-label">
+                <CiFileOn className="tree-icon" />
+                <span className="tree-title">{item.title}</span>
+              </span>
+            )}
+          </div>
+
+          {item.type === "folder" &&
+            openIds.includes(item.id) &&
+            renderTree(items, item.id)}
+        </div>
+      ));
+  };
+
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setMenuPos(null);
+      setSelectedId(null);
+    };
+
+    if (menuPos) {
+      document.addEventListener("click", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [menuPos]);
 
   return (
     <>
@@ -41,45 +136,39 @@ const AlgorithmSidebar = () => {
               x={menuPos.x}
               y={menuPos.y}
               onClose={closeMenu}
-              onCreate={handleCreate}
-              selectedId={selectedId}
+              onCreate={(type) => {
+                const title = prompt(
+                  `${type === "file" ? "파일" : "폴더"} 이름을 입력하세요`,
+                  ""
+                );
+                if (title && title.trim() !== "") {
+                  handleCreate(type, title.trim());
+                }
+                closeMenu();
+              }}
               onRename={(id) => {
-                const newTitle = prompt("새 이름을 입력하세요");
-                if (newTitle) {
+                const current = boxList.find((box) => box.id === id);
+                const newTitle = prompt(
+                  "새 이름을 입력하세요",
+                  current?.title ?? ""
+                );
+                if (newTitle && newTitle.trim() !== "") {
                   setBoxList((prev) =>
                     prev.map((box) =>
-                      box.id === id ? { ...box, title: newTitle } : box
+                      box.id === id ? { ...box, title: newTitle.trim() } : box
                     )
                   );
                 }
+                closeMenu();
               }}
               onDelete={(id) => {
-                setBoxList((prev) => prev.filter((box) => box.id !== id));
+                deleteRecursive(id);
+                closeMenu();
               }}
+              selectedId={selectedId}
             />
           )}
-          <div className="box-list">
-            {boxList.map((box) => (
-              <Box
-                key={box.id}
-                icon={
-                  box.type === "folder" ? (
-                    <IoListOutline size={20} />
-                  ) : (
-                    <CiFileOn size={20} />
-                  )
-                }
-                title={box.title}
-                onClick={() => {}}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  setSelectedId(box.id);
-                  setMenuPos({ x: e.clientX, y: e.clientY });
-                }}
-                className={box.type === "folder" ? "box-primary" : ""}
-              />
-            ))}
-          </div>
+          <div className="box-list">{renderTree(boxList, null)}</div>
         </div>
       </div>
 
