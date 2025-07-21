@@ -19,12 +19,14 @@ const ContextMenu = ({
   onRename,
   onDelete,
 }: ContextMenuProps) => {
+  // 이름 수정 핸들러
   const handleRename = () => {
     if (!selectedId) return;
     onRename(selectedId);
     onClose();
   };
 
+  // 삭제 핸들러
   const handleDelete = () => {
     if (!selectedId) return;
     onDelete(selectedId);

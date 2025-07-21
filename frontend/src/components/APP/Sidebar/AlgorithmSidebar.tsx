@@ -1,177 +1,90 @@
-import Bargraph from "../../UI/Bargraph";
-import ContextMenu from "../ContextMenu";
-import { FaUsers } from "react-icons/fa";
-import React, { useEffect, useState } from "react";
-import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
-import { CiFileOn } from "react-icons/ci";
-import styles from "../../../styles/AppSidebar.module.scss";
+import { useTreeManager } from "./useTreeManager";
 
-type BoxItemType = {
-  id: string;
-  type: "folder" | "file";
-  title: string;
-  parentId: string | null;
-};
+import TreeView from "./TreeView";
+import ContextMenu from "../ContextMenu";
+import Bargraph from "../../UI/Bargraph";
+import { FaUsers } from "react-icons/fa";
+import styles from "../../../styles/AppSidebar.module.scss";
+import { useState, useEffect } from "react";
 
 const AlgorithmSidebar = () => {
+  const {
+    boxList,
+    openIds,
+    setOpenIds,
+    selectedId,
+    setSelectedId,
+    create,
+    remove,
+    rename,
+  } = useTreeManager();
+
+  // 우클릭 메뉴 위치와 현재 활성 항목
   const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null);
-  const [boxList, setBoxList] = useState<BoxItemType[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [openIds, setOpenIds] = useState<string[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  const handleCreate = (type: "folder" | "file", title: string) => {
-    const id = `${type}-${Date.now()}-${Math.random()}`;
-    const parent =
-      selectedId &&
-      boxList.find((box) => box.id === selectedId && box.type === "folder");
-    const parentId = parent ? parent.id : null;
-
-    setBoxList((prev) => [...prev, { id, type, title, parentId }]);
-    if (parentId && !openIds.includes(parentId)) {
-      setOpenIds((prev) => [...prev, parentId]);
-    }
-  };
-
-  const handleContextMenu = (e: React.MouseEvent) => {
+  // 우클릭 메뉴 열기
+  const handleContextMenu = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
-    setSelectedId(null);
+    e.stopPropagation();
+    setSelectedId(id);
     setMenuPos({ x: e.clientX, y: e.clientY });
   };
 
-  const closeMenu = () => {
-    setMenuPos(null);
-  };
-
+  // 폴더 열기/닫기 토글
   const toggleOpen = (id: string) => {
     setOpenIds((prev) =>
       prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]
     );
   };
 
-  const deleteRecursive = (id: string) => {
-    setBoxList((prev) => {
-      const toDelete = [id];
-      const collectChildren = (parentId: string) => {
-        prev.forEach((item) => {
-          if (item.parentId === parentId) {
-            toDelete.push(item.id);
-            if (item.type === "folder") collectChildren(item.id);
-          }
-        });
-      };
-      collectChildren(id);
-      return prev.filter((item) => !toDelete.includes(item.id));
-    });
-    setSelectedId(null);
-  };
-
-  const renderTree = (items: BoxItemType[], parentId: string | null) => {
-    return items
-      .filter((item) => item.parentId === parentId)
-      .map((item) => (
-        <div key={item.id} className={styles.treeNode}>
-          <div
-            className={`${styles.treeItem} ${
-              item.type === "folder" ? styles.folder : styles.file
-            } ${selectedId === item.id ? styles.selected : ""} ${
-              activeId === item.id ? styles.treeItemActive : ""
-            }`}
-            onClick={() => {
-              setActiveId(item.id);
-              if (item.type === "folder") {
-                toggleOpen(item.id);
-              }
-            }}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setSelectedId(item.id);
-              setMenuPos({ x: e.clientX, y: e.clientY });
-            }}
-          >
-            {item.type === "folder" ? (
-              <span className={styles.treeLabel}>
-                {openIds.includes(item.id) ? (
-                  <IoIosArrowDown className={styles.treeArrow} />
-                ) : (
-                  <IoIosArrowForward className={styles.treeArrow} />
-                )}
-                <span className={styles.treeTitle}>{item.title}</span>
-              </span>
-            ) : (
-              <span className={styles.treeLabel}>
-                <CiFileOn className={styles.treeIcon} />
-                <span className={styles.treeTitle}>{item.title}</span>
-              </span>
-            )}
-          </div>
-
-          {item.type === "folder" &&
-            openIds.includes(item.id) &&
-            renderTree(items, item.id)}
-        </div>
-      ));
-  };
-
+  // 우클릭 메뉴 외부 클릭 시 닫기
   useEffect(() => {
-    const handleClickOutside = () => {
+    const close = () => {
       setMenuPos(null);
       setSelectedId(null);
     };
-
-    if (menuPos) {
-      document.addEventListener("click", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, [menuPos]);
+    if (menuPos) document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [menuPos, setSelectedId]);
 
   return (
     <>
       <div className={`${styles.section} ${styles.topSection}`}>
         <h2 className={styles.heading}>Algorithm</h2>
-        <div className={styles.boxArea} onContextMenu={handleContextMenu}>
+        <div
+          className={styles.boxArea}
+          onContextMenu={(e) => handleContextMenu("", e)}
+        >
           {menuPos && (
             <ContextMenu
               x={menuPos.x}
               y={menuPos.y}
-              onClose={closeMenu}
+              onClose={() => setMenuPos(null)}
               onCreate={(type) => {
-                const title = prompt(
-                  `${type === "file" ? "파일" : "폴더"} 이름을 입력하세요`,
-                  ""
-                );
-                if (title && title.trim() !== "") {
-                  handleCreate(type, title.trim());
-                }
-                closeMenu();
+                const title = prompt(`${type} 이름을 입력하세요`);
+                if (title) create(type, title);
               }}
               onRename={(id) => {
-                const current = boxList.find((box) => box.id === id);
-                const newTitle = prompt(
-                  "새 이름을 입력하세요",
-                  current?.title ?? ""
-                );
-                if (newTitle && newTitle.trim() !== "") {
-                  setBoxList((prev) =>
-                    prev.map((box) =>
-                      box.id === id ? { ...box, title: newTitle.trim() } : box
-                    )
-                  );
-                }
-                closeMenu();
+                const title = prompt("새 이름을 입력하세요");
+                if (title) rename(id, title);
               }}
-              onDelete={(id) => {
-                deleteRecursive(id);
-                closeMenu();
-              }}
+              onDelete={(id) => remove(id)}
               selectedId={selectedId}
             />
           )}
-          <div className={styles.boxList}>{renderTree(boxList, null)}</div>
+          <div className={styles.boxList}>
+            <TreeView
+              boxList={boxList}
+              openIds={openIds}
+              selectedId={selectedId}
+              activeId={activeId}
+              setActiveId={setActiveId}
+              setSelectedId={setSelectedId}
+              onSelect={handleContextMenu}
+              onToggle={toggleOpen}
+            />
+          </div>
         </div>
       </div>
 
@@ -184,7 +97,6 @@ const AlgorithmSidebar = () => {
           <Bargraph name="" language="" success={0} total={4} />
           <Bargraph name="" language="" success={0} total={4} />
         </div>
-
         <div className={styles.currentContainer}>
           <FaUsers className={styles.containerIcon} />
           <div className={styles.containerTexts}>
