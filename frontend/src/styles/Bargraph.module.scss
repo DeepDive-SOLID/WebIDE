@@ -1,4 +1,4 @@
-.bargraph-wrapper {
+.bargraphWrapper {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -6,7 +6,7 @@
   width: 100%;
 }
 
-.bargraph-user-info {
+.bargraphUserInfo {
   width: 60px;
   text-align: left;
   display: flex;
@@ -14,25 +14,25 @@
   flex-shrink: 0;
 }
 
-.bargraph-name {
+.bargraphName {
   font-weight: 500;
   font-size: 14px;
   line-height: 1.2;
 }
 
-.bargraph-language {
+.bargraphLanguage {
   font-size: 12px;
   color: #666;
   line-height: 1.2;
 }
 
-.bargraph-bar-wrapper {
+.bargraphBarWrapper {
   flex: 1;
   margin: 0 10px;
   height: 8px;
 }
 
-.bargraph-bar {
+.bargraphBar {
   background-color: #e0e0e0;
   border-radius: 4px;
   height: 100%;
@@ -40,14 +40,14 @@
   overflow: hidden;
 }
 
-.bargraph-bar-fill {
+.bargraphBarFill {
   height: 100%;
   background-color: $primary;
   border-radius: 4px;
   transition: width 0.3s ease;
 }
 
-.bargraph-percent {
+.bargraphPercent {
   width: 32px;
   text-align: right;
   color: $primary;

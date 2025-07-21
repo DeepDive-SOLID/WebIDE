@@ -6,7 +6,7 @@ import Toggle from "../../UI/Toggle";
 import Button from "../../UI/Button";
 import { useNavigate } from "react-router-dom";
 import AppSidebar from "../Sidebar/AppSidebar";
-import "../../../styles/AppNav.scss";
+import styles from "../../../styles/AppNav.module.scss";
 
 const AlgorithmNav = () => {
   const navigate = useNavigate();
@@ -30,28 +30,28 @@ const AlgorithmNav = () => {
 
   return (
     <>
-      <aside className="app-nav">
-        <div className="app-nav__top">
+      <aside className={styles.appNav}>
+        <div className={styles.appNavTop}>
           <Button
             icon={<IoHomeOutline size={30} />}
             onClick={() => handleNavClick("home")}
-            className="nav-btn"
+            className={styles.navBtn}
           />
           <Button
             icon={<PiListMagnifyingGlass size={30} />}
             onClick={() => handleNavClick("algorithm")}
-            className="nav-btn"
+            className={styles.navBtn}
           />
         </div>
 
-        <div className="app-nav__bottom">
-          <div className="theme-toggle-wrapper">
+        <div className={styles.appNavBottom}>
+          <div className={styles.themeToggleWrapper}>
             <Toggle />
           </div>
           <Button
             icon={<img src={profile} alt="profile" />}
             onClick={() => handleNavClick("mypage")}
-            className="profile-btn"
+            className={styles.profileBtn}
           />
         </div>
       </aside>

@@ -1,4 +1,4 @@
-import "../../../styles/AppSidebar.scss";
+import styles from "../../../styles/AppSidebar.module.scss";
 import ContainerSidebar from "./ContainerSidebar";
 import AlgorithmSidebar from "./AlgorithmSidebar";
 
@@ -11,7 +11,7 @@ const AppSidebar = ({ isOpen, type }: AppSidebarProps) => {
   if (!isOpen || !type) return null;
 
   return (
-    <div className="app-sidebar">
+    <div className={styles.appSidebar}>
       {type === "container" && <ContainerSidebar />}
       {type === "algorithm" && <AlgorithmSidebar />}
     </div>

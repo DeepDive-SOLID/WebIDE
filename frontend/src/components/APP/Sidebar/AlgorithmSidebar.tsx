@@ -4,6 +4,7 @@ import { FaUsers } from "react-icons/fa";
 import React, { useEffect, useState } from "react";
 import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
 import { CiFileOn } from "react-icons/ci";
+import styles from "../../../styles/AppSidebar.module.scss";
 
 type BoxItemType = {
   id: string;
@@ -69,11 +70,13 @@ const AlgorithmSidebar = () => {
     return items
       .filter((item) => item.parentId === parentId)
       .map((item) => (
-        <div key={item.id} className="tree-node">
+        <div key={item.id} className={styles.treeNode}>
           <div
-            className={`tree-item ${item.type} ${
-              selectedId === item.id ? "selected" : ""
-            } ${activeId === item.id ? "active" : ""}`}
+            className={`${styles.treeItem} ${
+              item.type === "folder" ? styles.folder : styles.file
+            } ${selectedId === item.id ? styles.selected : ""} ${
+              activeId === item.id ? styles.treeItemActive : ""
+            }`}
             onClick={() => {
               setActiveId(item.id);
               if (item.type === "folder") {
@@ -88,18 +91,18 @@ const AlgorithmSidebar = () => {
             }}
           >
             {item.type === "folder" ? (
-              <span className="tree-label">
+              <span className={styles.treeLabel}>
                 {openIds.includes(item.id) ? (
-                  <IoIosArrowDown className="tree-arrow" />
+                  <IoIosArrowDown className={styles.treeArrow} />
                 ) : (
-                  <IoIosArrowForward className="tree-arrow" />
+                  <IoIosArrowForward className={styles.treeArrow} />
                 )}
-                <span className="tree-title">{item.title}</span>
+                <span className={styles.treeTitle}>{item.title}</span>
               </span>
             ) : (
-              <span className="tree-label">
-                <CiFileOn className="tree-icon" />
-                <span className="tree-title">{item.title}</span>
+              <span className={styles.treeLabel}>
+                <CiFileOn className={styles.treeIcon} />
+                <span className={styles.treeTitle}>{item.title}</span>
               </span>
             )}
           </div>
@@ -128,9 +131,9 @@ const AlgorithmSidebar = () => {
 
   return (
     <>
-      <div className="section top-section">
-        <h2>Algorithm</h2>
-        <div className="box-area" onContextMenu={handleContextMenu}>
+      <div className={`${styles.section} ${styles.topSection}`}>
+        <h2 className={styles.heading}>Algorithm</h2>
+        <div className={styles.boxArea} onContextMenu={handleContextMenu}>
           {menuPos && (
             <ContextMenu
               x={menuPos.x}
@@ -168,12 +171,12 @@ const AlgorithmSidebar = () => {
               selectedId={selectedId}
             />
           )}
-          <div className="box-list">{renderTree(boxList, null)}</div>
+          <div className={styles.boxList}>{renderTree(boxList, null)}</div>
         </div>
       </div>
 
-      <div className="section bottom-section">
-        <div className="team-status">
+      <div className={`${styles.section} ${styles.bottomSection}`}>
+        <div className={styles.teamStatus}>
           <h3>팀원 현황(3 /5)</h3>
           <Bargraph name="user1" language="JS" success={4} total={4} />
           <Bargraph name="user2" language="JS" success={3} total={4} />
@@ -182,11 +185,11 @@ const AlgorithmSidebar = () => {
           <Bargraph name="" language="" success={0} total={4} />
         </div>
 
-        <div className="current-container">
-          <FaUsers className="container-icon" />
-          <div className="container-texts">
-            <p className="label">현재 컨테이너</p>
-            <p className="name">SOLID 컨테이너</p>
+        <div className={styles.currentContainer}>
+          <FaUsers className={styles.containerIcon} />
+          <div className={styles.containerTexts}>
+            <p className={styles.label}>현재 컨테이너</p>
+            <p className={styles.name}>SOLID 컨테이너</p>
           </div>
         </div>
       </div>

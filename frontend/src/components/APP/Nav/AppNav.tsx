@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { IoHomeOutline, IoFolderOpenOutline } from "react-icons/io5";
 import { AiOutlineGlobal } from "react-icons/ai";
-import "../../../styles/AppNav.scss";
 import { profile } from "../../../assets";
 import Toggle from "../../UI/Toggle";
 import { useNavigate } from "react-router-dom";
 import Button from "../../UI/Button";
 import AppSidebar from "../Sidebar/AppSidebar";
+import styles from "../../../styles/AppNav.module.scss";
 
 const AppNav = () => {
   const navigate = useNavigate();
@@ -47,33 +47,33 @@ const AppNav = () => {
 
   return (
     <>
-      <aside className="app-nav">
-        <div className="app-nav__top">
+      <aside className={styles.appNav}>
+        <div className={styles.appNavTop}>
           <Button
             icon={<IoHomeOutline size={30} />}
             onClick={() => handleNavClick("home")}
-            className="nav-btn"
+            className={styles.navBtn}
           />
           <Button
             icon={<IoFolderOpenOutline size={30} />}
             onClick={() => handleNavClick("container")}
-            className="nav-btn"
+            className={styles.navBtn}
           />
           <Button
             icon={<AiOutlineGlobal size={30} />}
             onClick={() => handleNavClick("global")}
-            className="nav-btn"
+            className={styles.navBtn}
           />
         </div>
 
-        <div className="app-nav__bottom">
-          <div className="theme-toggle-wrapper">
+        <div className={styles.appNavBottom}>
+          <div className={styles.themeToggleWrapper}>
             <Toggle />
           </div>
           <Button
             icon={<img src={profile} alt="profile" />}
             onClick={() => handleNavClick("mypage")}
-            className="profile-btn"
+            className={styles.profileBtn}
           />
         </div>
       </aside>

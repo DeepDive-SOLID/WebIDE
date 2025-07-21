@@ -1,5 +1,5 @@
 import React from "react";
-import "../../styles/Box.scss";
+import styles from "../../styles/Box.module.scss";
 
 export interface BoxProps {
   icon?: React.ReactNode;
@@ -20,15 +20,15 @@ const Box = ({
 }: BoxProps) => {
   return (
     <button
-      className={`box ${className}`}
+      className={`${styles.box} ${className}`}
       onClick={onClick}
       onContextMenu={onContextMenu}
     >
-      <div className="box-left">
-        <div className="box-icon">{icon}</div>
-        <span className="box-title">{title}</span>
+      <div className={styles.boxLeft}>
+        <div className={styles.boxIcon}>{icon}</div>
+        <span className={styles.boxTitle}>{title}</span>
       </div>
-      {cnt !== undefined && <span className="box-count">{cnt}</span>}
+      {cnt !== undefined && <span className={styles.boxCount}>{cnt}</span>}
     </button>
   );
 };

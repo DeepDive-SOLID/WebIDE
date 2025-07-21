@@ -1,0 +1,179 @@
+.appSidebar {
+  position: fixed;
+  left: 80px;
+  top: 0;
+  width: 250px;
+  height: 100vh;
+  background-color: #fff;
+  border-right: 1px solid #e0e0e0;
+  padding: 1.5rem 1rem;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 1000;
+}
+
+.topSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.bottomSection {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.teamStatus h3 {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.heading {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: $black;
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.bottomSectionOverride {
+  margin-bottom: 0;
+}
+
+.boxPrimary {
+  background-color: $primary;
+  color: #fff;
+
+  &:hover {
+    background-color: #0071db;
+  }
+
+  :global(body.dark-mode) & {
+    background-color: #005bb5;
+    color: #fff;
+  }
+}
+
+.boxArea {
+  flex: 1;
+  min-height: 95%;
+}
+
+.boxList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.currentContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e0e0e0;
+  background-color: $white;
+}
+
+.containerIcon {
+  font-size: 1.5rem;
+  color: $gray;
+}
+
+.containerTexts {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.label {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0.25rem;
+}
+
+.name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: $primary;
+  margin: 0.25rem;
+}
+
+:global(body.dark-mode) {
+  .appSidebar {
+    background-color: #1e1e1e;
+    border-right: 1px solid #333;
+    box-shadow: -4px 0 12px rgba(255, 255, 255, 0.05);
+  }
+
+  .heading {
+    color: #f0f0f0;
+  }
+
+  .currentContainer {
+    background-color: #2a2a2a;
+    border-color: #444;
+  }
+
+  .label {
+    color: #ccc;
+  }
+
+  .name {
+    color: #58aaff;
+  }
+
+  .containerIcon {
+    color: #ccc;
+  }
+}
+.treeNode {
+  margin-left: 1rem;
+}
+
+.treeItem {
+  display: flex;
+  align-items: center;
+  padding: 0.2rem 0.4rem;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background-color: #e8e8e8;
+  }
+}
+
+.treeItemActive {
+  background-color: #f0f8ff;
+  border-radius: 4px;
+
+  :global(body.dark-mode) & {
+    background-color: #2a2a2a;
+  }
+}
+
+.treeLabel {
+  display: flex;
+  align-items: center;
+}
+
+.treeArrow {
+  margin-right: 4px;
+}
+
+.treeIcon {
+  margin-right: 4px;
+}
+
+.treeTitle {
+  font-size: 0.95rem;
+}

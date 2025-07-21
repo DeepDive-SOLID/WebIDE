@@ -1,4 +1,4 @@
-import "../../styles/Bargraph.scss";
+import styles from "../../styles/Bargraph.module.scss";
 
 export interface BargraphProps {
   name: string;
@@ -10,24 +10,24 @@ export interface BargraphProps {
 const Bargraph = ({ name, language, success, total }: BargraphProps) => {
   const safeSuccess = Math.min(success, total);
   const percentage = total > 0 ? Math.round((safeSuccess / total) * 100) : 0;
+
   return (
-    <div className="bargraph-wrapper">
-      <div className="bargraph-user-info">
-        <div className="bargraph-name">{name || <>&nbsp;</>}</div>
-        <div className="bargraph-language">
-          {" "}
+    <div className={styles.bargraphWrapper}>
+      <div className={styles.bargraphUserInfo}>
+        <div className={styles.bargraphName}>{name || <>&nbsp;</>}</div>
+        <div className={styles.bargraphLanguage}>
           {language ? `(${language})` : <>&nbsp;</>}
         </div>
       </div>
-      <div className="bargraph-bar-wrapper">
-        <div className="bargraph-bar">
+      <div className={styles.bargraphBarWrapper}>
+        <div className={styles.bargraphBar}>
           <div
-            className="bargraph-bar-fill"
+            className={styles.bargraphBarFill}
             style={{ width: `${percentage}%` }}
           />
         </div>
       </div>
-      <span className="bargraph-percent">{percentage}%</span>
+      <span className={styles.bargraphPercent}>{percentage}%</span>
     </div>
   );
 };
