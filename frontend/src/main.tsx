@@ -6,6 +6,8 @@ import { store } from "./stores";
 import App from "./App";
 import Home from "./pages/Home";
 
+import Ide from "./pages/containerIde/Ide";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -14,6 +16,10 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <Home />,
+      },
+      {
+        path: "/ide",
+        element: <Ide />,
       },
     ],
   },
