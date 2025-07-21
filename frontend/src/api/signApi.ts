@@ -23,7 +23,7 @@ export const signApi = {
       const res = await signAxios.post("/sign/signUp", signUpDto);
       if (res.data === "SUCCESS") return "SUCCESS";
       return "FAIL";
-    } catch (_) {
+    } catch {
       return "FAIL";
     }
   },
@@ -33,7 +33,7 @@ export const signApi = {
     try {
       const res = await signAxios.post("/sign/checkId", signInCheckIdDto);
       return res.data; // true면 아이디가 있음, false면 아이디가 없음
-    } catch (_) {
+    } catch {
       throw new Error("ID 중복확인 중 오류가 발생했습니다.");
     }
   },
@@ -45,63 +45,44 @@ export const signApi = {
     try {
       const res = await signAxios.post("/sign/checkEmail", signInCheckEmailDto);
       return res.data; // true면 이메일이 있음, false면 이메일이 없음
-    } catch (_) {
+    } catch {
       throw new Error("이메일 중복확인 중 오류가 발생했습니다.");
     }
   },
 
   // 로그인
-  login: async (signInDto: SignInDto): Promise<any> => {
-    try {
-      const res = await signAxios.post("/sign/login", signInDto);
-      return res.data;
-    } catch (error) {
-      throw error;
-    }
+  login: async (
+    signInDto: SignInDto
+  ): Promise<{ token: string; memberId: string; authId: string }> => {
+    const res = await signAxios.post("/sign/login", signInDto);
+    return res.data;
   },
 
   // 아이디 찾기
   findId: async (signFindIdDto: SignFindIdDto): Promise<string> => {
-    try {
-      const res = await signAxios.post("/sign/findId", signFindIdDto);
-      return res.data; // memberId 반환
-    } catch (error) {
-      throw error;
-    }
+    const res = await signAxios.post("/sign/findId", signFindIdDto);
+    return res.data; // memberId 반환
   },
 
   // 비밀번호 찾기 - 인증
   checkIdEmail: async (
     signCheckIdEmailDto: SignCheckIdEmailDto
-  ): Promise<any> => {
-    try {
-      const res = await signAxios.post(
-        "/sign/checkIdEmail",
-        signCheckIdEmailDto
-      );
-      return res.data;
-    } catch (error) {
-      throw error;
-    }
+  ): Promise<{ success: boolean; message?: string }> => {
+    const res = await signAxios.post("/sign/checkIdEmail", signCheckIdEmailDto);
+    return res.data;
   },
 
   // 비밀번호 재설정
-  updPw: async (signUpdPwDto: SignUpdPwDto): Promise<any> => {
-    try {
-      const res = await signAxios.put("/sign/updPw", signUpdPwDto);
-      return res.data;
-    } catch (error) {
-      throw error;
-    }
+  updPw: async (
+    signUpdPwDto: SignUpdPwDto
+  ): Promise<{ success: boolean; message?: string }> => {
+    const res = await signAxios.put("/sign/updPw", signUpdPwDto);
+    return res.data;
   },
 
   // 토큰 재발급
   refreshToken: async (): Promise<string> => {
-    try {
-      const res = await signAxios.post("/token/refresh");
-      return res.data; // 새로운 access token 반환
-    } catch (error) {
-      throw error;
-    }
+    const res = await signAxios.post("/token/refresh");
+    return res.data; // 새로운 access token 반환
   },
 };

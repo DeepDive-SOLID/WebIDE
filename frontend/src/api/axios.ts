@@ -32,16 +32,16 @@ api.interceptors.response.use(
   async (error) => {
     // 로그인, 회원가입, 아이디/비밀번호 찾기 요청은 토큰 재발급 로직에서 제외
     const isLoginRequest =
-      error.config.url?.includes("/main/sign/login") ||
-      error.config.url?.includes("/main/sign/signUp") ||
-      error.config.url?.includes("/main/sign/findId") ||
-      error.config.url?.includes("/main/sign/checkIdEmail") ||
-      error.config.url?.includes("/main/sign/updPw");
+      error.config.url?.includes("/sign/login") ||
+      error.config.url?.includes("/sign/signUp") ||
+      error.config.url?.includes("/sign/findId") ||
+      error.config.url?.includes("/sign/checkIdEmail") ||
+      error.config.url?.includes("/sign/updPw");
 
     // 서버에서 토큰 만료된 경우
     if (error.response?.status === 401 && !isLoginRequest) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      window.location.href = "/";
       alert("세션이 만료되었습니다. 다시 로그인 해주세요.");
       return;
     }
@@ -65,7 +65,7 @@ api.interceptors.response.use(
       } catch {
         // 토큰 재발급 실패 시 로그인 페이지로 이동
         localStorage.removeItem("token");
-        window.location.href = "/login";
+        window.location.href = "/";
         return;
       }
     }
