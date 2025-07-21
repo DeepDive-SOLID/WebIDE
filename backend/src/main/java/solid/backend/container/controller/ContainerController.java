@@ -83,8 +83,8 @@ public class ContainerController {
     }
     
     /**
-     * 공유된 컨테이너 목록 조회
-     * @return 참여중인 컨테이너 목록 (팀 멤버로 참여한 컨테이너)
+     * 참여중인 컨테이너 목록 조회
+     * @return 팀 멤버로 참여한 컨테이너 목록 (소유자 제외)
      */
     @GetMapping("/shared")
     public ResponseEntity<ApiResponse<List<ContainerResponseDto>>> getSharedContainers() {

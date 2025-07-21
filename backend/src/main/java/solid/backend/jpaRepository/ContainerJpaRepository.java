@@ -54,12 +54,12 @@ public interface ContainerJpaRepository extends JpaRepository<Container, Long>, 
      * 공개 여부에 따라 컨테이너 목록을 조회합니다.
      * 
      * PUBLIC/PRIVATE 컨테이너를 구분하여 조회할 때 사용됩니다.
-     * SQL: SELECT * FROM container WHERE container_auth = ? ORDER BY container_date DESC
+     * SQL: SELECT * FROM container WHERE is_public = ? ORDER BY container_date DESC
      * 
-     * @param containerAuth true: PUBLIC 컨테이너만 조회, false: PRIVATE 컨테이너만 조회
+     * @param isPublic true: PUBLIC 컨테이너만 조회, false: PRIVATE 컨테이너만 조회
      * @return 해당 공개 설정의 컨테이너 목록 (생성일 기준 내림차순)
      */
-    List<Container> findByContainerAuthOrderByContainerDateDesc(Boolean containerAuth);
+    List<Container> findByIsPublicOrderByContainerDateDesc(Boolean isPublic);
     
     /*
      * QueryDSL로 구현된 복잡한 쿼리 메서드들:

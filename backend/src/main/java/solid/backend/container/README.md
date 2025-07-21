@@ -112,8 +112,8 @@ Authorization: Bearer {access_token}
   - 활동 시간 업데이트
 
 ### 접근 권한
-- **공개 컨테이너** (`containerAuth = true`) : 모든 사용자 조회 가능
-- **비공개 컨테이너** (`containerAuth = false`) : 멤버만 조회 가능
+- **공개 컨테이너** (`isPublic = true`) : 모든 사용자 조회 가능
+- **비공개 컨테이너** (`isPublic = false`) : 멤버만 조회 가능
 
 ## 주요 기능
 

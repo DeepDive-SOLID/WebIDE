@@ -96,7 +96,7 @@ public class ContainerJpaRepositoryImpl implements ContainerRepositoryCustom {
      * 사용자가 접근 가능한 모든 컨테이너를 조회합니다.
      * 
      * 접근 가능 조건 (OR 조건):
-     * 1. PUBLIC 컨테이너 (containerAuth = true)
+     * 1. PUBLIC 컨테이너 (isPublic = true)
      * 2. 사용자가 팀 멤버인 컨테이너
      * 
      * 중복 제거:
@@ -110,7 +110,7 @@ public class ContainerJpaRepositoryImpl implements ContainerRepositoryCustom {
                 .leftJoin(container.team, team)
                 .leftJoin(team.teamUsers, teamUser)
                 .where(
-                    container.containerAuth.isTrue()
+                    container.isPublic.isTrue()
                     .or(teamUser.member.eq(member))
                 )
                 .orderBy(container.containerDate.desc())
@@ -159,7 +159,7 @@ public class ContainerJpaRepositoryImpl implements ContainerRepositoryCustom {
     public long updateContainerVisibility(List<Long> containerIds, boolean isPublic) {
         return queryFactory
                 .update(container)
-                .set(container.containerAuth, isPublic)
+                .set(container.isPublic, isPublic)
                 .where(container.containerId.in(containerIds))
                 .execute();
     }
@@ -242,7 +242,7 @@ public class ContainerJpaRepositoryImpl implements ContainerRepositoryCustom {
      * 공개 여부 필터 조건
      */
     private BooleanExpression isPublicEq(Boolean isPublic) {
-        return isPublic != null ? container.containerAuth.eq(isPublic) : null;
+        return isPublic != null ? container.isPublic.eq(isPublic) : null;
     }
     
     /**
@@ -261,9 +261,9 @@ public class ContainerJpaRepositoryImpl implements ContainerRepositoryCustom {
      */
     private BooleanExpression memberAccessible(Member member) {
         if (member == null) {
-            return container.containerAuth.isTrue();
+            return container.isPublic.isTrue();
         }
-        return container.containerAuth.isTrue()
+        return container.isPublic.isTrue()
                 .or(container.owner.eq(member))
                 .or(teamUser.member.eq(member));
     }

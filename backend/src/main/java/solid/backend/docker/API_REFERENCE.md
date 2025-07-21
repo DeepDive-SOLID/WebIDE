@@ -12,6 +12,29 @@
 Authorization: Bearer {access_token}
 ```
 
+## Response Format
+모든 API 응답은 통일된 ApiResponse 형식을 사용합니다:
+
+### 성공 응답
+```json
+{
+  "success": true,
+  "data": { ... },           // 응답 데이터
+  "message": "성공 메시지",   // 선택적
+  "timestamp": "2024-01-20T10:00:00"
+}
+```
+
+### 오류 응답
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "오류 메시지",
+  "timestamp": "2024-01-20T10:00:00"
+}
+```
+
 ---
 
 ## 1. 코드 실행
@@ -41,6 +64,7 @@ Content-Type: application/json
 ### Response
 ```json
 {
+  "success": true,
   "data": {
     "executionId": 1,
     "language": "python",
@@ -76,6 +100,7 @@ GET /api/docker/executions/{executionId}/status
 ### Response
 ```json
 {
+  "success": true,
   "data": {
     "executionId": 1,
     "status": "RUNNING",
@@ -106,6 +131,7 @@ POST /api/docker/executions/{executionId}/stop
 ### Response
 ```json
 {
+  "success": true,
   "data": null,
   "message": "실행이 중지되었습니다",
   "timestamp": "2024-01-20T10:30:00"
@@ -124,6 +150,7 @@ GET /api/docker/containers/{containerId}/executions
 ### Response
 ```json
 {
+  "success": true,
   "data": [
     {
       "executionId": 1,
@@ -152,6 +179,7 @@ DELETE /api/docker/executions/{executionId}
 ### Response
 ```json
 {
+  "success": true,
   "data": null,
   "message": "실행 기록이 삭제되었습니다",
   "timestamp": "2024-01-20T10:30:00"
@@ -170,6 +198,7 @@ GET /api/docker/languages
 ### Response
 ```json
 {
+  "success": true,
   "data": ["python", "java", "javascript", "cpp", "c"],
   "message": "지원 언어 목록 조회 성공",
   "timestamp": "2024-01-20T10:30:00"
@@ -209,6 +238,7 @@ GET /api/docker/containers/{containerId}/statistics?startDate=2024-01-01&endDate
 ### Response
 ```json
 {
+  "success": true,
   "data": {
     "totalCount": 150,
     "avgExecutionTime": 250.5,
@@ -227,6 +257,7 @@ GET /api/docker/containers/{containerId}/statistics/languages
 ### Response
 ```json
 {
+  "success": true,
   "data": [
     {
       "language": "python",
@@ -250,6 +281,7 @@ GET /api/docker/containers/{containerId}/statistics/languages
 
 ```json
 {
+  "success": false,
   "data": null,
   "message": "에러 메시지",
   "timestamp": "2024-01-20T10:30:00"

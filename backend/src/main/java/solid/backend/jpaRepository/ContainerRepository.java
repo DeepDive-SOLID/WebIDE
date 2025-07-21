@@ -139,13 +139,13 @@ public class ContainerRepository extends QuerydslRepositorySupport {
     
     /**
      * 공개 여부로 컨테이너 목록 조회
-     * @param containerAuth 공개 여부
+     * @param isPublic 공개 여부
      * @return 컨테이너 목록
      */
-    public List<Container> findByContainerAuth(Boolean containerAuth) {
+    public List<Container> findByIsPublic(Boolean isPublic) {
         return queryFactory
                 .selectFrom(container)
-                .where(container.containerAuth.eq(containerAuth))
+                .where(container.isPublic.eq(isPublic))
                 .orderBy(container.containerDate.desc())
                 .fetch();
     }
@@ -359,7 +359,7 @@ public class ContainerRepository extends QuerydslRepositorySupport {
     public long updateContainerVisibility(List<Long> containerIds, Boolean isPublic) {
         return queryFactory
                 .update(container)
-                .set(container.containerAuth, isPublic)
+                .set(container.isPublic, isPublic)
                 .where(container.containerId.in(containerIds))
                 .execute();
     }
@@ -440,7 +440,7 @@ public class ContainerRepository extends QuerydslRepositorySupport {
         
         // 공개 여부 조건
         if (isPublic != null) {
-            BooleanExpression isPublicPredicate = container.containerAuth.eq(isPublic);
+            BooleanExpression isPublicPredicate = container.isPublic.eq(isPublic);
             predicate = predicate == null ? isPublicPredicate : predicate.and(isPublicPredicate);
         }
         
