@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * JPAQueryFactory를 Bean으로 등록
  */
 @Configuration
-public class QueryDslConfig {
+public class QueryDSLConfig {
     
     @PersistenceContext
     private EntityManager entityManager;
