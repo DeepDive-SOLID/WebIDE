@@ -4,8 +4,6 @@ import { createContext } from "react";
 interface AuthContextType {
   isLoggedIn: boolean; // 현재 로그인 상태 (true: 로그인됨, false: 로그인 안됨)
   userInfo: { memberId: string; authId: string } | null; // 사용자 정보 (ID, 권한)
-  isManager: boolean; // 관리자 권한 여부 (ADMIN, MANAGER)
-  isAdmin: boolean; // 최고 관리자 권한 여부 (ADMIN만)
   isLoading: boolean; // 초기 로딩 상태
   login: () => void; // 로그인 함수 (Context 상태를 true로 변경)
   logout: () => void; // 로그아웃 함수 (토큰 제거 + Context 상태를 false로 변경) - 나중에 구현
