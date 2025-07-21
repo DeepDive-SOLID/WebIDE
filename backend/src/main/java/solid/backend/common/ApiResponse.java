@@ -10,9 +10,16 @@ import java.time.LocalDateTime;
 
 /**
  * 통일된 API 응답 구조
- * 모든 API 응답은 이 형식을 따름
+ * 
+ * WebIDE의 모든 REST API 응답은 이 형식을 따릅니다.
+ * 일관된 응답 구조를 통해 클라이언트에서 예측 가능한 방식으로 응답을 처리할 수 있습니다.
+ * 
+ * 사용 예시:
+ * - 성공: ApiResponse.success(data, "메시지")
+ * - 실패: ApiResponse.error("오류 메시지", "ERROR_CODE")
  * 
  * @param <T> 응답 데이터 타입
+ * @since 2025-07-21 Container 모듈에 전면 적용
  */
 @Getter
 @NoArgsConstructor

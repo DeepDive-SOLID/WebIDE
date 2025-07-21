@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import solid.backend.container.dto.*;
 import solid.backend.entity.*;
-import solid.backend.jpaRepository.ContainerRepository;
+import solid.backend.jpaRepository.ContainerJpaRepository;
 import solid.backend.jpaRepository.MemberRepository;
 import solid.backend.jpaRepository.AuthRepository;
 import solid.backend.container.exception.*;
@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
-import solid.backend.jpaRepository.ContainerRepository.ContainerAuthorityCount;
-import solid.backend.jpaRepository.ContainerRepository.ContainerStatistics;
 import static solid.backend.container.constant.ContainerConstants.*;
 
 /**
@@ -31,7 +29,7 @@ import static solid.backend.container.constant.ContainerConstants.*;
 public class ContainerServiceImpl implements ContainerService {
     
     /** 컨테이너 데이터 접근 레포지토리 */
-    private final ContainerRepository containerRepository;
+    private final ContainerJpaRepository containerRepository;
     /** 멤버 데이터 접근 레포지토리 */
     private final MemberRepository memberRepository;
     /** 권한 데이터 접근 레포지토리 */
@@ -115,7 +113,7 @@ public class ContainerServiceImpl implements ContainerService {
     @Transactional(readOnly = true)
     public ContainerResponseDto getContainer(Long containerId, String memberId) {
         // QueryDSL을 사용하여 연관 데이터를 한번에 조회
-        Container container = containerRepository.findContainerWithDetails(containerId)
+        Container container = containerRepository.findByIdWithTeam(containerId)
                 .orElseThrow(() -> new ContainerNotFoundException(ERROR_CONTAINER_NOT_FOUND + containerId));
         
         // 접근 권한 확인 (비공개 컨테이너인 경우)
@@ -151,7 +149,7 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     @Transactional
     public ContainerResponseDto updateContainer(Long containerId, String memberId, ContainerUpdateDto updateDto) {
-        Container container = getContainerOrThrow(containerId);
+        Container container = getContainerWithTeamOrThrow(containerId);
         
         // 수정 권한 확인
         TeamUser teamUser = getTeamUserOrThrow(container, memberId);
@@ -189,7 +187,7 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     @Transactional
     public void deleteContainer(Long containerId, String memberId) {
-        Container container = getContainerOrThrow(containerId);
+        Container container = getContainerWithTeamOrThrow(containerId);
         
         // ROOT 권한 확인
         requireRootAuthority(container, memberId, "컨테이너 삭제는 관리자만 가능합니다.");
@@ -220,7 +218,7 @@ public class ContainerServiceImpl implements ContainerService {
     public List<ContainerResponseDto> getMyContainers(String memberId) {
         Member member = getMemberOrThrow(memberId);
         
-        return convertToResponseDtoList(containerRepository.findByOwner(member), memberId);
+        return convertToResponseDtoList(containerRepository.findByOwnerOrderByContainerDateDesc(member), memberId);
     }
     
     /**
@@ -244,7 +242,7 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     @Transactional(readOnly = true)
     public List<ContainerResponseDto> getPublicContainers(String memberId) {
-        return convertToResponseDtoList(containerRepository.findByContainerAuth(true), memberId);
+        return convertToResponseDtoList(containerRepository.findByContainerAuthOrderByContainerDateDesc(true), memberId);
     }
     
     /**
@@ -274,7 +272,7 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     @Transactional
     public GroupMemberResponseDto inviteMember(Long containerId, String requesterId, MemberInviteDto inviteDto) {
-        Container container = getContainerOrThrow(containerId);
+        Container container = getContainerWithTeamOrThrow(containerId);
         
         // ROOT 권한 확인
         requireRootAuthority(container, requesterId, ERROR_ROOT_AUTHORITY_REQUIRED);
@@ -317,7 +315,7 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     @Transactional(readOnly = true)
     public List<GroupMemberResponseDto> getContainerMembers(Long containerId, String memberId) {
-        Container container = getContainerOrThrow(containerId);
+        Container container = getContainerWithTeamOrThrow(containerId);
         
         // 접근 권한 확인 (비공개 컨테이너인 경우)
         if (!container.getContainerAuth() && !hasAccess(container, memberId)) {
@@ -326,7 +324,7 @@ public class ContainerServiceImpl implements ContainerService {
         
         return container.getTeam().getTeamUsers().stream()
                 .map(tu -> GroupMemberResponseDto.builder()
-                        .teamUserId(tu.getTeamUserId().longValue())
+                        .teamUserId(tu.getTeamUserId() != null ? tu.getTeamUserId().longValue() : null)
                         .memberId(tu.getMember().getMemberId())
                         .memberName(tu.getMember().getMemberName())
                         .memberEmail(tu.getMember().getMemberEmail())
@@ -349,7 +347,7 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     @Transactional
     public void removeMember(Long containerId, String requesterId, String targetMemberId) {
-        Container container = getContainerOrThrow(containerId);
+        Container container = getContainerWithTeamOrThrow(containerId);
         
         // ROOT 권한 확인
         requireRootAuthority(container, requesterId, ERROR_ROOT_AUTHORITY_REQUIRED);
@@ -373,7 +371,7 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     @Transactional
     public void leaveContainer(Long containerId, String memberId) {
-        Container container = getContainerOrThrow(containerId);
+        Container container = getContainerWithTeamOrThrow(containerId);
         
         // 소유자는 탈퇴 불가
         if (container.getOwner().getMemberId().equals(memberId)) {
@@ -394,7 +392,7 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     @Transactional
     public void updateMemberActivity(Long containerId, String memberId) {
-        Container container = getContainerOrThrow(containerId);
+        Container container = getContainerWithTeamOrThrow(containerId);
         
         TeamUser teamUser = getTeamUserOrThrow(container, memberId);
         
@@ -514,7 +512,20 @@ public class ContainerServiceImpl implements ContainerService {
     @Transactional(readOnly = true)
     public List<ContainerResponseDto> searchContainers(String name, Boolean isPublic, 
                                                       String ownerId, String memberId) {
-        List<Container> containers = containerRepository.searchContainers(name, isPublic, ownerId, memberId);
+        // 검색 구현을 서비스 레이어에서 처리
+        List<Container> allContainers;
+        if (memberId != null) {
+            allContainers = containerRepository.findAllAccessibleContainers(getMemberOrThrow(memberId));
+        } else {
+            allContainers = containerRepository.findByContainerAuthOrderByContainerDateDesc(true);
+        }
+        
+        // 필터링
+        List<Container> containers = allContainers.stream()
+                .filter(c -> name == null || c.getContainerName().toLowerCase().contains(name.toLowerCase()))
+                .filter(c -> isPublic == null || c.getContainerAuth().equals(isPublic))
+                .filter(c -> ownerId == null || c.getOwner().getMemberId().equals(ownerId))
+                .collect(Collectors.toList());
         
         return convertToResponseDtoList(containers, memberId);
     }
@@ -529,13 +540,13 @@ public class ContainerServiceImpl implements ContainerService {
     public Map<String, Long> getContainerStatsByAuthority(String memberId) {
         Member member = getMemberOrThrow(memberId);
         
-        List<ContainerAuthorityCount> stats = containerRepository.countContainersByAuthority(member);
+        // 권한별 통계 계산
+        List<Container> ownedContainers = containerRepository.findByOwnerOrderByContainerDateDesc(member);
+        List<Container> sharedContainers = containerRepository.findSharedContainers(member);
         
         Map<String, Long> result = new HashMap<>();
-        result.put(AUTHORITY_ROOT, 0L);
-        result.put(AUTHORITY_USER, 0L);
-        
-        stats.forEach(stat -> result.put(stat.getAuthority(), stat.getCount()));
+        result.put(AUTHORITY_ROOT, (long) ownedContainers.size());
+        result.put(AUTHORITY_USER, (long) sharedContainers.size());
         
         return result;
     }
@@ -549,10 +560,28 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     @Transactional(readOnly = true)
     public ContainerStatisticsDto getContainerStatistics(Long containerId) {
-        Container container = containerRepository.findContainerWithDetails(containerId)
+        Container container = containerRepository.findByIdWithTeam(containerId)
                 .orElseThrow(() -> new ContainerNotFoundException(ERROR_CONTAINER_NOT_FOUND + containerId));
         
-        ContainerStatistics stats = containerRepository.getContainerStatistics(containerId);
+        // 통계 계산
+        Team team = container.getTeam();
+        long memberCount = team.getTeamUsers().size();
+        
+        // TODO: 웹소켓 구현 후 실시간 접속 상태 확인으로 변경 필요
+        // 현재는 모든 멤버를 비활성으로 표시
+        long activeMemberCount = 0L;
+        
+        // 웹소켓 구현 시 아래 코드로 교체
+        // Set<String> onlineUsers = userPresenceService.getOnlineUsersInContainer(containerId);
+        // long activeMemberCount = team.getTeamUsers().stream()
+        //         .filter(tu -> tu.getMember() != null && onlineUsers.contains(tu.getMember().getMemberId()))
+        //         .count();
+        
+        LocalDateTime lastActivityDate = team.getTeamUsers().stream()
+                .map(TeamUser::getLastActivityDate)
+                .filter(date -> date != null)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
         
         // 권한별 멤버 수 계산
         Map<String, Long> authCounts = container.getTeam().getTeamUsers().stream()
@@ -564,10 +593,10 @@ public class ContainerServiceImpl implements ContainerService {
         return ContainerStatisticsDto.builder()
                 .containerId(containerId)
                 .containerName(container.getContainerName())
-                .totalMemberCount(stats.getMemberCount())
-                .activeMemberCount(stats.getActiveMemberCount())
-                .inactiveMemberCount(stats.getMemberCount() - stats.getActiveMemberCount())
-                .lastActivityDate(stats.getLastActivityDate())
+                .totalMemberCount(memberCount)
+                .activeMemberCount(activeMemberCount)
+                .inactiveMemberCount(memberCount - activeMemberCount)
+                .lastActivityDate(lastActivityDate)
                 .createdDate(container.getContainerDate().atStartOfDay())
                 .rootMemberCount(authCounts.getOrDefault(AUTHORITY_ROOT, 0L))
                 .userMemberCount(authCounts.getOrDefault(AUTHORITY_USER, 0L))
@@ -595,6 +624,17 @@ public class ContainerServiceImpl implements ContainerService {
      */
     private Container getContainerOrThrow(Long containerId) {
         return containerRepository.findById(containerId)
+                .orElseThrow(() -> new ContainerNotFoundException(ERROR_CONTAINER_NOT_FOUND + containerId));
+    }
+    
+    /**
+     * 컨테이너를 팀 정보와 함께 조회하고 없으면 예외 발생
+     * @param containerId 조회할 컨테이너 ID
+     * @return 조회된 컨테이너 엔티티 (팀 정보 포함)
+     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
+     */
+    private Container getContainerWithTeamOrThrow(Long containerId) {
+        return containerRepository.findByIdWithTeam(containerId)
                 .orElseThrow(() -> new ContainerNotFoundException(ERROR_CONTAINER_NOT_FOUND + containerId));
     }
     
@@ -656,7 +696,25 @@ public class ContainerServiceImpl implements ContainerService {
         String ownerId = searchDto.getOwnerId();
         String searchMemberId = searchDto.getMemberId();
         
-        List<Container> containers = containerRepository.searchContainers(name, isPublic, ownerId, searchMemberId);
+        // 검색 구현
+        List<Container> allContainers;
+        if (searchMemberId != null) {
+            Member searchMember = memberRepository.findById(searchMemberId).orElse(null);
+            if (searchMember != null) {
+                allContainers = containerRepository.findAllAccessibleContainers(searchMember);
+            } else {
+                allContainers = containerRepository.findByContainerAuthOrderByContainerDateDesc(true);
+            }
+        } else {
+            allContainers = containerRepository.findByContainerAuthOrderByContainerDateDesc(true);
+        }
+        
+        // 필터링
+        List<Container> containers = allContainers.stream()
+                .filter(c -> name == null || c.getContainerName().toLowerCase().contains(name.toLowerCase()))
+                .filter(c -> isPublic == null || c.getContainerAuth().equals(isPublic))
+                .filter(c -> ownerId == null || c.getOwner().getMemberId().equals(ownerId))
+                .collect(Collectors.toList());
         
         return convertToResponseDtoList(containers, memberId);
     }
@@ -681,7 +739,7 @@ public class ContainerServiceImpl implements ContainerService {
         
         for (Long containerId : containerIds) {
             try {
-                Container container = getContainerOrThrow(containerId);
+                Container container = getContainerWithTeamOrThrow(containerId);
                 if (hasRootAuthority(container, requesterId)) {
                     authorizedContainerIds.add(containerId);
                 }
@@ -696,7 +754,7 @@ public class ContainerServiceImpl implements ContainerService {
         }
         
         // 배치 업데이트 실행
-        return containerRepository.updateContainerVisibility(authorizedContainerIds, isPublic);
+        return (long) containerRepository.updateContainerVisibility(authorizedContainerIds, isPublic);
     }
     
     /**

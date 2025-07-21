@@ -23,9 +23,9 @@ public class ContainerStatisticsDto {
     private String containerName;
     /** 전체 멤버 수 */
     private Long totalMemberCount;
-    /** 활성 멤버 수 (최근 30일 내 활동) */
+    /** 활성 멤버 수 (현재 접속 중) */
     private Long activeMemberCount;
-    /** 비활성 멤버 수 (30일 이상 미활동) */
+    /** 비활성 멤버 수 (현재 미접속) */
     private Long inactiveMemberCount;
     /** 가장 최근 멤버 활동 시간 */
     private LocalDateTime lastActivityDate;

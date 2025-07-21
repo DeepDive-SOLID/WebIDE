@@ -17,7 +17,7 @@
 - **ContainerUpdateDto.java** : 컨테이너 정보 수정 요청 데이터
 - **ContainerResponseDto.java** : 컨테이너 응답 데이터
 - **ContainerSearchDto.java** : 컨테이너 검색 조건 데이터
-- **ContainerStatisticsDto.java** : 컨테이너 통계 정보
+- **ContainerStatisticsDto.java** : 컨테이너 통계 정보 (현재 접속 중/미접속)
 - **MemberInviteDto.java** : 멤버 초대 요청 데이터
 - **GroupMemberResponseDto.java** : 그룹 멤버 정보 응답 데이터
 - **BatchContainerVisibilityDto.java** : 일괄 공개 상태 변경 요청 데이터
@@ -34,7 +34,7 @@
 - **ContainerConstants.java** : 컨테이너 모듈의 상수 정의 (권한, 유효성 검사, 에러 메시지 등)
 
 ### Common
-- **ApiResponse.java** : 통합 API 응답 형식
+- **ApiResponse.java** : 통합 API 응답 형식 (모든 API에 적용됨)
 - **PageResponse.java** : 페이지네이션 응답 형식 (현재 미사용)
 
 ## 인증 방식
@@ -90,7 +90,7 @@ Authorization: Bearer {access_token}
 | GET | `/api/containers/search` | 컨테이너 검색 (간단) | PUBLIC |
 | POST | `/api/containers/search` | 컨테이너 고급 검색 | PUBLIC |
 | GET | `/api/containers/stats/authority` | 권한별 컨테이너 통계 | AUTHENTICATED |
-| GET | `/api/containers/{containerId}/statistics` | 컨테이너 상세 통계 | MEMBER |
+| GET | `/api/containers/{containerId}/statistics` | 컨테이너 상세 통계 (접속 상태 포함) | MEMBER |
 
 ### 권한 상세 설명
 1. **CONDITIONAL¹**: 공개 컨테이너는 누구나 조회 가능, 비공개 컨테이너는 멤버만 조회 가능
@@ -158,10 +158,11 @@ PUT /api/containers/batch/visibility
 
 ## 응답 형식
 
+모든 API는 통일된 ApiResponse 형식을 사용합니다.
+
 ### HTTP 상태 코드
 - **200 OK**: 성공적인 조회, 수정
 - **201 Created**: 성공적인 생성
-- **204 No Content**: 성공적인 삭제
 - **400 Bad Request**: 잘못된 요청 (유효성 검증 실패)
 - **401 Unauthorized**: 인증되지 않은 사용자
 - **403 Forbidden**: 권한 없음
@@ -169,7 +170,7 @@ PUT /api/containers/batch/visibility
 - **409 Conflict**: 중복된 리소스 (예: 이미 존재하는 멤버)
 - **500 Internal Server Error**: 서버 오류
 
-### 성공 응답 (ApiResponse 사용)
+### 성공 응답
 ```json
 {
   "success": true,
@@ -179,20 +180,17 @@ PUT /api/containers/batch/visibility
     "containerContent": "프로젝트 설명",
     "isPublic": true,
     "containerDate": "2024-01-20",
-    "owner": {
-      "memberId": "owner123",
-      "memberName": "홍길동",
-      "memberEmail": "hong@example.com"
-    },
+    "ownerName": "홍길동",
+    "ownerId": "owner123",
     "memberCount": 3,
-    "authority": "ROOT"
+    "userAuthority": "ROOT"
   },
   "message": "컨테이너가 생성되었습니다",
   "timestamp": "2024-01-20T10:00:00"
 }
 ```
 
-### 에러 응답 (ApiResponse 사용)
+### 에러 응답
 ```json
 {
   "success": false,
@@ -203,6 +201,14 @@ PUT /api/containers/batch/visibility
   "path": "/api/containers/999"
 }
 ```
+
+### ApiResponse 필드 설명
+- **success**: 요청 성공 여부 (boolean)
+- **data**: 실제 응답 데이터 (성공 시)
+- **message**: 사용자에게 표시할 메시지 (선택적)
+- **timestamp**: 응답 시간
+- **errorCode**: 에러 코드 (실패 시, 선택적)
+- **path**: 요청 경로 (실패 시, 선택적)
 
 ## 비즈니스 규칙
 
@@ -240,12 +246,38 @@ PUT /api/containers/batch/visibility
 - 구현: `@Scheduled(cron = "0 0 2 * * *")`
 - 메서드: `ContainerServiceImpl.removeInactiveMembers()`
 
+### 실시간 접속 상태 관리 (예정)
+- 현재 컨테이너 통계 API에서 활성/비활성 멤버 수는 모두 0으로 표시
+- WebSocket 기반 실시간 접속 상태 관리 기능 구현 예정
+- Redis 또는 메모리 기반 접속 상태 추적
+
+## 통합 기능
+
+### 도커 컨테이너 실행 환경
+- 각 컨테이너별로 격리된 코드 실행 환경 제공
+- 지원 언어: Python, Java, JavaScript, C, C++
+- 리소스 제한: 메모리 512MB, CPU 0.5 Core, 실행 시간 30초
+- 보안: 위험한 시스템 명령어 차단, 파일/네트워크 접근 제한
+- API: `/api/docker/*` 엔드포인트를 통한 코드 실행
+
+### 파일 관리 시스템
+- 컨테이너별 독립적인 파일 저장소
+- 파일 업로드/다운로드, 디렉토리 관리
+- 저장 경로: `{user.home}/Downloads/solid/container-{id}/`
+- 최대 파일 크기: 10MB
+
 ## 아키텍처 특징
+
+### 레포지토리 계층
+- **ContainerJpaRepository**: Spring Data JPA + QueryDSL 통합 레포지토리
+- **ContainerRepositoryCustom**: QueryDSL 커스텀 메서드 인터페이스
+- **ContainerJpaRepositoryImpl**: QueryDSL 구현체
 
 ### QueryDSL 통합
 - 모든 복잡한 쿼리는 QueryDSL을 사용하여 타입 안전하게 구현
 - 동적 쿼리 생성을 통한 유연한 검색 기능
 - Fetch Join을 활용한 N+1 문제 해결
+- BooleanExpression을 활용한 동적 조건 처리
 
 ### 트랜잭션 관리
 - 읽기 전용 메서드: `@Transactional(readOnly = true)`
@@ -261,12 +293,13 @@ PUT /api/containers/batch/visibility
 - 중복 코드 제거를 위한 헬퍼 메서드 활용
 - 상수 클래스를 통한 매직 넘버/스트링 제거
 - 일관된 JavaDoc 주석 스타일
+- 상세한 메서드 레벨 주석 (매개변수, 반환값, 예외, 사용 예시)
 
 ## 향후 개선 사항
 
 1. **API 응답 일관성**
-   - 모든 컨트롤러 메서드를 ApiResponse로 통합 (현재 일부만 적용)
-   - GlobalExceptionHandler 구현
+   - ✓ 모든 컨테이너 컨트롤러 메서드를 ApiResponse로 통합 완료 (2025-01-21)
+   - GlobalExceptionHandler 구현 필요
 
 2. **권한 시스템 확장**
    - 권한 양도 기능
@@ -281,6 +314,7 @@ PUT /api/containers/batch/visibility
    - 실시간 동시 편집
    - 멤버 간 메시징
    - 활동 로그 추적
+   - WebSocket 기반 실시간 접속 상태 관리
 
 5. **성능 최적화**
    - 페이징 기능 도입 (필요 시)
@@ -291,5 +325,31 @@ PUT /api/containers/batch/visibility
    - Swagger/OpenAPI 통합
    - API 버전 관리
 
+## 최근 변경사항
 
+### 2025-07-21
+1. **API 응답 형식 통일**
+   - 모든 컨테이너 API 응답을 ApiResponse 형식으로 통일
+   - 성공/실패 응답 형식 표준화
+   - 모든 응답에 timestamp 필드 추가
+   - 상황에 따른 메시지 필드 활용
+   - API 문서 및 HTTP 테스트 파일 업데이트
 
+### 2025-07-21  
+1. **레포지토리 구조 개선**
+   - QueryDSL 커스텀 인터페이스 패턴 적용
+   - ContainerRepositoryCustom 및 ContainerJpaRepositoryImpl 분리
+   - DockerExecutionRepository에도 동일 패턴 적용
+
+2. **코드 품질 향상**
+   - 모든 레포지토리 메서드에 상세 JavaDoc 추가
+   - QueryDSL 구현체에 성능 및 주의사항 주석 추가
+
+3. **실시간 접속 상태 기능 준비**
+   - ContainerStatisticsDto에 활성/비활성 멤버 필드 업데이트
+   - WebSocket 구현 대기 중 (TODO 주석 추가)
+
+4. **기타 개선사항**
+   - 중복 ContainerStatistics.java 파일 삭제
+   - ContainerUpdateDto에 상수 사용
+   - 컨테이너 컨트롤러 및 예외 처리기 주석 개선

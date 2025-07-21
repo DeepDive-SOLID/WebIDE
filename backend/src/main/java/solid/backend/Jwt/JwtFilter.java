@@ -29,6 +29,20 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        // 개발 환경 테스트용: memberId 헤더 확인
+        String testMemberId = request.getHeader("memberId");
+        if (testMemberId != null && !testMemberId.isEmpty()) {
+            log.warn("테스트 모드: memberId 헤더로 인증 처리 - {}", testMemberId);
+            Authentication auth = new UsernamePasswordAuthenticationToken(
+                testMemberId, 
+                null, 
+                List.of(new SimpleGrantedAuthority("ROLE_USER"))
+            );
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = resolveToken(request);
 
         try {
@@ -42,7 +56,11 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
 
                 String memberId = jwtUtil.getMemberId(token);
-                Authentication auth = new UsernamePasswordAuthenticationToken(memberId, null);
+                Authentication auth = new UsernamePasswordAuthenticationToken(
+                    memberId, 
+                    null,
+                    List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                );
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }

@@ -1,12 +1,21 @@
 package solid.backend.container.service;
 
 import solid.backend.container.dto.*;
+import solid.backend.container.exception.ContainerNotFoundException;
+import solid.backend.container.exception.MemberNotFoundException;
+import solid.backend.container.exception.InvalidMemberException;
 
 import java.util.List;
 import java.util.Map;
 
 /**
  * 컨테이너 서비스 인터페이스
+ * 
+ * 컨테이너 관련 비즈니스 로직을 정의합니다.
+ * 모든 컨트롤러 메서드는 이 서비스를 통해 처리되며,
+ * 응답은 ApiResponse 형식으로 래핑되어 반환됩니다.
+ * 
+ * @since 2025-07-21 v1.2.0 - ApiResponse 통일화 작업 완료
  */
 public interface ContainerService {
     

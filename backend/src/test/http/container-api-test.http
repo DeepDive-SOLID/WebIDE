@@ -1,296 +1,219 @@
 ### 컨테이너 관리 API 테스트
-### Team 기반 컨테이너 시스템 (ROOT/USER + 세분화된 권한 시스템)
+### Team 기반 컨테이너 시스템 (ROOT/USER 권한)
+### 
+### 모든 API 응답은 ApiResponse 형식으로 통일됨:
+### {
+###   "success": true/false,
+###   "data": { ... },
+###   "message": "응답 메시지 (선택적)",
+###   "timestamp": "2024-01-01T12:00:00",
+###   "errorCode": "에러코드 (실패시)",
+###   "path": "요청 경로 (실패시)"
+### }
 
 ### ========== 컨테이너 생성 테스트 ==========
 
-### 1. 컨테이너 생성 (PRIVATE) - 멤버 초대 포함
-POST http://localhost:8080/api/containers
+### 1. 컨테이너 생성 (비공개) - 멤버 초대 포함
+POST http://localhost:8081/api/containers
 Content-Type: application/json
 memberId: test001
 
 {
   "containerName": "My First Project",
   "containerContent": "This is my first container project",
-  "visibility": "PRIVATE",
+  "isPublic": false,
   "invitedMemberIds": ["test002", "test003"]
 }
 
-### 2. 컨테이너 생성 (PUBLIC) - 초대 없음
-POST http://localhost:8080/api/containers
+### 2. 컨테이너 생성 (공개) - 초대 없음
+POST http://localhost:8081/api/containers
 Content-Type: application/json
 memberId: test002
 
 {
   "containerName": "Public Demo",
   "containerContent": "This is a public demo container",
-  "visibility": "PUBLIC",
+  "isPublic": true,
   "invitedMemberIds": []
 }
 
 ### ========== 컨테이너 조회 테스트 ==========
 
 ### 3. 내 컨테이너 목록 조회
-GET http://localhost:8080/api/containers/my
+GET http://localhost:8081/api/containers/my
 memberId: test001
 
 ### 4. 컨테이너 상세 조회
-GET http://localhost:8080/api/containers/1
+GET http://localhost:8081/api/containers/1
 memberId: test001
 
 ### 5. 공유된 컨테이너 목록 조회
-GET http://localhost:8080/api/containers/shared
+GET http://localhost:8081/api/containers/shared
 memberId: test002
 
 ### 6. 공개 컨테이너 목록 조회 (비인증)
-GET http://localhost:8080/api/containers/public
+GET http://localhost:8081/api/containers/public
 
 ### 6-1. 공개 컨테이너 목록 조회 (인증된 사용자)
-GET http://localhost:8080/api/containers/public
-Authorization: Bearer [JWT_TOKEN]
+GET http://localhost:8081/api/containers/public
+memberId: test001
 
 ### 7. 모든 접근 가능한 컨테이너 목록 조회
-GET http://localhost:8080/api/containers
+GET http://localhost:8081/api/containers
 memberId: test001
 
 ### ========== 컨테이너 수정 테스트 ==========
 
 ### 8. 컨테이너 수정 (소유자)
-PUT http://localhost:8080/api/containers/1
+PUT http://localhost:8081/api/containers/1
 Content-Type: application/json
 memberId: test001
 
 {
   "containerName": "Updated Project Name",
   "containerContent": "Updated description",
-  "visibility": "PUBLIC"
+  "isPublic": true
 }
 
-### 9. 컨테이너 내용만 수정 (WRITE 권한 멤버)
-PUT http://localhost:8080/api/containers/1
+### 9. 컨테이너 내용만 수정 (USER 권한 멤버)
+PUT http://localhost:8081/api/containers/1
 Content-Type: application/json
 memberId: test002
 
 {
-  "containerContent": "Updated by member with WRITE permission"
+  "containerContent": "Updated by member with USER permission"
 }
 
 ### ========== 멤버 관리 테스트 ==========
 
 ### 10. 컨테이너 멤버 목록 조회
-GET http://localhost:8080/api/containers/1/members
+GET http://localhost:8081/api/containers/1/members
 memberId: test001
 
-### 11. 멤버 초대 - ROOT 권한 부여
-POST http://localhost:8080/api/containers/1/members
+### 11. 멤버 초대 (ROOT 권한 필요)
+POST http://localhost:8081/api/containers/1/members
 Content-Type: application/json
 memberId: test001
 
 {
-  "memberId": "test004",
-  "authority": "ROOT"
+  "memberId": "test003"
 }
 
-### 12. 멤버 초대 - ADMIN 권한 부여
-POST http://localhost:8080/api/containers/1/members
-Content-Type: application/json
+### 12. 멤버 제거 (ROOT 권한 필요)
+DELETE http://localhost:8081/api/containers/1/members/test003
 memberId: test001
 
-{
-  "memberId": "test005",
-  "authority": "ADMIN"
-}
-
-### 13. 멤버 초대 - INVITE 권한 부여
-POST http://localhost:8080/api/containers/1/members
-Content-Type: application/json
-memberId: test001
-
-{
-  "memberId": "admin001",
-  "authority": "INVITE"
-}
-
-### 14. INVITE 권한자가 멤버 초대 - WRITE 권한 부여
-POST http://localhost:8080/api/containers/1/members
-Content-Type: application/json
-memberId: admin001
-
-{
-  "memberId": "test001",
-  "authority": "WRITE"
-}
-
-### 15. 멤버 초대 - USER 권한 부여 (기존 권한)
-POST http://localhost:8080/api/containers/1/members
-Content-Type: application/json
-memberId: test001
-
-{
-  "memberId": "test002",
-  "authority": "USER"
-}
-
-### 16. 멤버 초대 - READ 권한 부여 (읽기 전용)
-POST http://localhost:8080/api/containers/1/members
-Content-Type: application/json
-memberId: test001
-
-{
-  "memberId": "test003",
-  "authority": "READ"
-}
-
-### ========== 권한 변경 테스트 ==========
-
-### 17. 멤버 권한 변경 - USER를 WRITE로
-PUT http://localhost:8080/api/containers/1/members/test003/authority?newAuthority=WRITE
-memberId: test001
-
-### 18. 멤버 권한 변경 - WRITE를 INVITE로
-PUT http://localhost:8080/api/containers/1/members/test002/authority?newAuthority=INVITE
-memberId: test001
-
-### 19. 멤버 권한 변경 - INVITE를 ADMIN으로
-PUT http://localhost:8080/api/containers/1/members/test002/authority?newAuthority=ADMIN
-memberId: test001
-
-### 20. 멤버 권한 변경 - READ를 ROOT로
-PUT http://localhost:8080/api/containers/1/members/newuser003/authority?newAuthority=ROOT
-memberId: test001
-
-### ========== 권한별 기능 테스트 ==========
-
-### 21. READ 권한자의 수정 시도 (실패 예상)
-PUT http://localhost:8080/api/containers/1
-Content-Type: application/json
-memberId: newuser003
-
-{
-  "containerContent": "This should fail"
-}
-
-### 22. WRITE 권한자의 설정 변경 시도 (실패 예상)
-PUT http://localhost:8080/api/containers/1
-Content-Type: application/json
+### 13. 컨테이너 탈퇴 (소유자는 불가)
+DELETE http://localhost:8081/api/containers/1/members/me
 memberId: test002
 
-{
-  "visibility": "PRIVATE"
-}
+### ========== 활동 시간 업데이트 ==========
 
-### 23. INVITE 권한자의 멤버 제거
-DELETE http://localhost:8080/api/containers/1/members/newuser002
-memberId: admin001
-
-### 24. USER 권한자의 멤버 초대 시도 (실패 예상)
-POST http://localhost:8080/api/containers/1/members
-Content-Type: application/json
-memberId: test003
-
-{
-  "memberId": "failuser",
-  "authority": "READ"
-}
-
-### ========== 활동 시간 및 자동 탈퇴 테스트 ==========
-
-### 25. 멤버 활동 시간 업데이트
-PUT http://localhost:8080/api/containers/1/members/me/activity
-memberId: test001
-
-### 26. 멤버 활동 시간 업데이트 (다른 멤버)
-PUT http://localhost:8080/api/containers/1/members/me/activity
-memberId: test002
-
-### ========== 멤버 제거 및 탈퇴 테스트 ==========
-
-### 27. ROOT 권한자가 멤버 제거
-DELETE http://localhost:8080/api/containers/1/members/test003
-memberId: test001
-
-### 28. ADMIN 권한자가 멤버 제거
-DELETE http://localhost:8080/api/containers/1/members/newuser001
-memberId: test005
-
-### 29. 일반 멤버의 컨테이너 탈퇴
-DELETE http://localhost:8080/api/containers/1/members/me
-memberId: test002
-
-### 30. 소유자의 컨테이너 탈퇴 시도 (실패 예상)
-DELETE http://localhost:8080/api/containers/1/members/me
+### 14. 멤버 활동 시간 업데이트
+PUT http://localhost:8081/api/containers/1/members/me/activity
 memberId: test001
 
 ### ========== 컨테이너 삭제 테스트 ==========
 
-### 31. 컨테이너 삭제 (ROOT 권한 소유자)
-DELETE http://localhost:8080/api/containers/1
+### 15. 컨테이너 삭제 (ROOT 권한 필요)
+DELETE http://localhost:8081/api/containers/1
 memberId: test001
 
-### 32. 컨테이너 삭제 (ADMIN 권한 멤버)
-DELETE http://localhost:8080/api/containers/2
-memberId: test005
+### ========== 검색 기능 테스트 ==========
+
+### 16. 컨테이너 검색 - 이름으로 검색
+GET http://localhost:8081/api/containers/search?name=Project
+memberId: test001
+
+### 17. 컨테이너 검색 - 공개 여부로 검색
+GET http://localhost:8081/api/containers/search?isPublic=true
+memberId: test001
+
+### 18. 컨테이너 검색 - 소유자로 검색
+GET http://localhost:8081/api/containers/search?ownerId=test001
+memberId: test001
+
+### 19. 컨테이너 고급 검색
+POST http://localhost:8081/api/containers/search
+Content-Type: application/json
+memberId: test001
+
+{
+  "name": "Project",
+  "isPublic": true,
+  "ownerId": "test001"
+}
+
+### ========== 통계 기능 테스트 ==========
+
+### 20. 권한별 컨테이너 통계
+GET http://localhost:8081/api/containers/stats/authority
+memberId: test001
+
+### 21. 컨테이너 상세 통계
+GET http://localhost:8081/api/containers/1/statistics
+memberId: test001
+
+### ========== 배치 작업 테스트 ==========
+
+### 22. 여러 컨테이너의 공개 상태 변경
+PUT http://localhost:8081/api/containers/batch/visibility
+Content-Type: application/json
+memberId: test001
+
+{
+  "containerIds": [1, 2, 3],
+  "isPublic": false
+}
 
 ### ========== 오류 케이스 테스트 ==========
 
-### 33. 존재하지 않는 멤버 초대
-POST http://localhost:8080/api/containers/1/members
+### 23. 존재하지 않는 멤버 초대
+POST http://localhost:8081/api/containers/1/members
 Content-Type: application/json
 memberId: test001
 
 {
-  "memberId": "notexist",
-  "authority": "READ"
+  "memberId": "notexist"
 }
 
-### 34. 이미 멤버인 사용자 재초대
-POST http://localhost:8080/api/containers/1/members
+### 24. 이미 멤버인 사용자 재초대
+POST http://localhost:8081/api/containers/1/members
 Content-Type: application/json
 memberId: test001
 
 {
-  "memberId": "test002",
-  "authority": "WRITE"
+  "memberId": "test002"
 }
 
-### 35. 권한 없는 사용자의 비공개 컨테이너 접근
-GET http://localhost:8080/api/containers/1
+### 25. 권한 없는 사용자의 비공개 컨테이너 접근
+GET http://localhost:8081/api/containers/1
 memberId: outsider001
 
-### 36. 잘못된 권한 값으로 초대
-POST http://localhost:8080/api/containers/1/members
+### 26. 소유자가 탈퇴 시도 (실패 예상)
+DELETE http://localhost:8081/api/containers/1/members/me
+memberId: test001
+
+### 27. 빈 이름으로 컨테이너 생성 (실패 예상)
+POST http://localhost:8081/api/containers
 Content-Type: application/json
 memberId: test001
 
 {
-  "memberId": "test006",
-  "authority": "INVALID_AUTH"
+  "containerName": "",
+  "containerContent": "Test content",
+  "isPublic": false,
+  "invitedMemberIds": []
 }
 
-### ========== QueryDSL 기반 새로운 기능 테스트 ==========
-
-### 37. 컨테이너 검색 - 이름으로 검색
-GET http://localhost:8080/api/containers/search?name=Project
+### 28. 너무 긴 이름으로 컨테이너 생성 (실패 예상)
+POST http://localhost:8081/api/containers
+Content-Type: application/json
 memberId: test001
 
-### 38. 컨테이너 검색 - 공개 여부로 검색
-GET http://localhost:8080/api/containers/search?visibility=PUBLIC
-memberId: test001
-
-### 39. 컨테이너 검색 - 소유자로 검색
-GET http://localhost:8080/api/containers/search?ownerId=test001
-memberId: test001
-
-### 40. 컨테이너 검색 - 복합 검색
-GET http://localhost:8080/api/containers/search?name=Demo&visibility=PUBLIC&memberId=test002
-memberId: test001
-
-### 41. 권한별 컨테이너 통계
-GET http://localhost:8080/api/containers/stats/authority
-memberId: test001
-
-### 42. 컨테이너 상세 통계
-GET http://localhost:8080/api/containers/1/statistics
-memberId: test001
-
-### 43. 특정 권한으로 접근 가능한 컨테이너 조회 (내부 테스트용)
-# QueryDSL의 findAccessibleContainersByAuthority 메서드를 활용
+{
+  "containerName": "This is a very long container name that exceeds the maximum length",
+  "containerContent": "Test content",
+  "isPublic": false,
+  "invitedMemberIds": []
+}
