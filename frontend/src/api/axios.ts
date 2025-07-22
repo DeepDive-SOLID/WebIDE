@@ -12,7 +12,7 @@ const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         // 모든 API 요청에 토큰 추가 (토큰이 있는 경우)
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("accessToken");
         if (token) {
             config.headers = config.headers || {};
             config.headers["Authorization"] = `Bearer ${token}`;
@@ -40,7 +40,7 @@ api.interceptors.response.use(
 
         // 서버에서 토큰 만료된 경우
         if (error.response?.status === 401 && !isLoginRequest) {
-            localStorage.removeItem("token");
+            localStorage.removeItem("accessToken");
             window.location.href = "/";
             alert("세션이 만료되었습니다. 다시 로그인 해주세요.");
             return;
@@ -48,7 +48,7 @@ api.interceptors.response.use(
 
         // 프론트에서 토큰 만료라고 판단될 경우
         const isLoggedIn = () => {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("accessToken");
             return !!token;
         };
 
@@ -59,12 +59,12 @@ api.interceptors.response.use(
             try {
                 const refreshResponse = await axios.post("/api/token/refresh");
                 const newToken = refreshResponse.data as string;
-                localStorage.setItem("token", newToken);
+                localStorage.setItem("accessToken", newToken);
                 error.config.headers["Authorization"] = `Bearer ${newToken}`;
                 return api(error.config);
             } catch {
                 // 토큰 재발급 실패 시 로그인 페이지로 이동
-                localStorage.removeItem("token");
+                localStorage.removeItem("accessToken");
                 window.location.href = "/";
                 return;
             }
