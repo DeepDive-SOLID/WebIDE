@@ -1,4 +1,4 @@
-package solid.backend.CodeFile.Dto;
+package solid.backend.CodeFile.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

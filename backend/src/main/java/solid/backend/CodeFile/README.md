@@ -19,6 +19,11 @@
 - HTTP request URL : CodeFile/list
 - return : List<CodeFileListDto>
 
+[코드 파일 내용 조회]
+- HTTP method : POST
+- HTTP request URL : CodeFile/content
+- return : String
+
 [코드 파일 생성]
 - HTTP method : POST
 - HTTP request URL : CodeFile/create

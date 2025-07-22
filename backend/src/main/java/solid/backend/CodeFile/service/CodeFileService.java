@@ -1,10 +1,9 @@
 package solid.backend.CodeFile.service;
 
-import solid.backend.CodeFile.Dto.CodeFileDelDto;
-import solid.backend.CodeFile.Dto.CodeFileListDto;
-import solid.backend.CodeFile.Dto.CodeFileSaveDto;
-import solid.backend.CodeFile.Dto.CodeFileUpdDto;
-import solid.backend.Directory.dto.DirectoryDto;
+import solid.backend.CodeFile.dto.CodeFileDelDto;
+import solid.backend.CodeFile.dto.CodeFileListDto;
+import solid.backend.CodeFile.dto.CodeFileSaveDto;
+import solid.backend.CodeFile.dto.CodeFileUpdDto;
 
 import java.util.List;
 
@@ -13,6 +12,12 @@ public interface CodeFileService {
      * 설명: 코드 파일 전체 조회
      */
     List<CodeFileListDto> getCodeFileList();
+
+    /**
+     * 설명: 코드 파일 내용 조회
+     * @param codeFileId
+     */
+    String codeContent(Integer codeFileId);
 
     /**
      * 설명: 코드 파일 생성

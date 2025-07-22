@@ -1,14 +1,14 @@
-package solid.backend.CodeFile.Controller;
+package solid.backend.CodeFile.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import solid.backend.CodeFile.Dto.CodeFileDelDto;
-import solid.backend.CodeFile.Dto.CodeFileListDto;
-import solid.backend.CodeFile.Dto.CodeFileSaveDto;
-import solid.backend.CodeFile.Dto.CodeFileUpdDto;
+import solid.backend.CodeFile.dto.CodeFileDelDto;
+import solid.backend.CodeFile.dto.CodeFileListDto;
+import solid.backend.CodeFile.dto.CodeFileSaveDto;
+import solid.backend.CodeFile.dto.CodeFileUpdDto;
 import solid.backend.CodeFile.service.CodeFileService;
 
 import java.util.List;
@@ -27,6 +27,17 @@ public class CodeFileController {
     @GetMapping("/list")
     public List<CodeFileListDto> getCodeFileList() {
         return codeFileService.getCodeFileList();
+    }
+
+    /**
+     * 설명: 코드 파일 내용 조회
+     * @param codeFileId
+     * @return String
+     */
+    @ResponseBody
+    @PostMapping("/content")
+    public String codeContent(@RequestBody Integer codeFileId) {
+        return codeFileService.codeContent(codeFileId);
     }
 
     /**
