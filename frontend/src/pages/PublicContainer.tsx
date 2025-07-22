@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "../styles/Container.module.scss";
-import { FaCrown, FaUser, FaCog, FaPlay } from "react-icons/fa";
+import { FaCrown, FaUser, FaPlay } from "react-icons/fa";
 import { AiOutlineGlobal } from "react-icons/ai";
 
 // 더미 데이터
@@ -58,9 +58,6 @@ const AllContainer: React.FC = () => {
               <span className={styles.memberCount}>
                 ({container.members.length}/{container.maxMembers})
               </span>
-              <button className={styles.settingBtn}>
-                <FaCog />
-              </button>
             </div>
             <div className={styles.memberList}>
               {container.members.map((member) => (

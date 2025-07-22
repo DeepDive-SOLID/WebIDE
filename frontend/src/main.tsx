@@ -9,6 +9,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import FindId from "./pages/FindId";
 import FindPw from "./pages/FindPw";
+import AllContainer from "./pages/AllContainer";
+import PublicContainer from "./pages/PublicContainer";
 
 const router = createBrowserRouter([
   {
@@ -34,6 +36,14 @@ const router = createBrowserRouter([
       {
         path: "home",
         element: <Home />,
+      },
+      {
+        path: "all-container",
+        element: <AllContainer />,
+      },
+      {
+        path: "public-container",
+        element: <PublicContainer />,
       },
     ],
   },

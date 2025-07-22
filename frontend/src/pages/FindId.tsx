@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import styles from "../styles/Find.module.scss";
 import { Link, useNavigate } from "react-router-dom";
-import logoImg from "../assets/CodeWith.png";
-import backIcon from "../assets/back.svg";
+import logoImg from "../assets/images/CodeWith.png";
+import backIcon from "../assets/icons/back.svg";
 import { signApi } from "../api/signApi";
 
 function removeKorean(text: string) {
