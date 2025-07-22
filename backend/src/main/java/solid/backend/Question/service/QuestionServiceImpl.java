@@ -119,6 +119,10 @@ public class QuestionServiceImpl implements QuestionService{
         }
     }
 
+    /**
+     * 설명: 문제 및 테스트 케이스 삭제
+     * @param questionId
+     */
     @Override
     @Transactional
     public void deleteQuestion(Integer questionId) {

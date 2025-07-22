@@ -6,10 +6,8 @@ import org.springframework.stereotype.Service;
 import solid.backend.Docker.dto.*;
 import solid.backend.common.DockerRun;
 import solid.backend.entity.CodeFile;
-import solid.backend.entity.Question;
 import solid.backend.entity.TestCase;
 import solid.backend.jpaRepository.CodeFileRepository;
-import solid.backend.jpaRepository.QuestionRepository;
 import solid.backend.jpaRepository.TestCaseRepository;
 
 import java.util.ArrayList;
@@ -20,12 +18,12 @@ import java.util.List;
 public class DockerServiceImpl implements DockerService {
     private final CodeFileRepository codeFileRepository;
     private final TestCaseRepository testcaseRepository;
-    private final QuestionRepository questionRepository;
     private final DockerRun dockerRun;
 
     /**
      * 설명: 코드 파일 도커 컨테이너에서 실행
      * @param codeFileId
+     * @param questionId
      * @return String (실행 결과)
      */
     @Override
@@ -75,6 +73,12 @@ public class DockerServiceImpl implements DockerService {
         );
     }
 
+    /**
+     * 설명: 테스트 실행
+     * @param codeFileId
+     * @param questionId
+     * @return ExecutionResultDto
+     */
     @Override
     @Transactional
     public ExecutionResultDto runTestCodeFile(Integer codeFileId, Integer questionId) {
@@ -124,6 +128,11 @@ public class DockerServiceImpl implements DockerService {
         );
     }
 
+    /**
+     * 설명: 사용자의 입력값으로 실행
+     * @param customInputDto
+     * @return CustomInputResultDto
+     */
     @Override
     @Transactional
     public CustomInputResultDto runExctCodeFile(CustomInputDto customInputDto) {

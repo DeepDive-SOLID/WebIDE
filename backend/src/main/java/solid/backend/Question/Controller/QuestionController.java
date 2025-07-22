@@ -19,8 +19,8 @@ public class QuestionController {
     private final QuestionService questionService;
 
     /**
-     * 설명:
-     * @return
+     * 설명: 문제 리스트 조회
+     * @return List<QuestionListDto>
      */
     @ResponseBody
     @GetMapping("/list")
@@ -59,7 +59,7 @@ public class QuestionController {
     /**
      * 설명: 문제 및 테스트 케이스 수정
      * @param questionUpdDto
-     * @return
+     * @return ResponseEntity<String>
      */
     @ResponseBody
     @PutMapping("/update")

@@ -22,7 +22,7 @@ public class DockerController {
     /**
      * 설명: 전체 실행
      * @param dockerRunDto
-     * @return ResponseEntity
+     * @return ResponseEntity<ExecutionResultDto>
      */
     @ResponseBody
     @PostMapping("/run")
@@ -31,14 +31,21 @@ public class DockerController {
     }
 
     /**
-     * 설명: 테스트케이스 실행
-     * */
+     * 설명: 테스트 실행
+     * @param dockerRunDto
+     * @return ResponseEntity<ExecutionResultDto>
+     */
     @ResponseBody
     @PostMapping("/test")
     public ResponseEntity<ExecutionResultDto> runTestCodeFile(@RequestBody DockerRunDto dockerRunDto) {
         return ResponseEntity.ok(dockerService.runTestCodeFile(dockerRunDto.getCodeFileId(), dockerRunDto.getQuestionId()));
     }
 
+    /**
+     * 설명: 사용자의 입력값으로 실행
+     * @param customInputDto
+     * @return ResponseEntity<CustomInputResultDto>
+     */
     @ResponseBody
     @PostMapping("/custom")
     public ResponseEntity<CustomInputResultDto> runExctCodeFile(@RequestBody CustomInputDto customInputDto) {
