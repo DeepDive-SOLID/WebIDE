@@ -29,10 +29,25 @@ public class DockerConfig {
      */
     @Bean
     public DockerClient dockerClient() {
+        System.out.println("Docker Host Configuration: " + dockerHost);
+        System.out.println("Docker API Version: " + apiVersion);
+        
+        // Docker Desktop for Windows in WSL2 환경에서는 환경 변수를 사용
+        String effectiveDockerHost = dockerHost;
+        
+        // DOCKER_HOST 환경 변수 확인
+        String dockerHostEnv = System.getenv("DOCKER_HOST");
+        if (dockerHostEnv != null && !dockerHostEnv.isEmpty()) {
+            effectiveDockerHost = dockerHostEnv;
+            System.out.println("Using DOCKER_HOST from environment: " + effectiveDockerHost);
+        }
+        
         DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-                .withDockerHost(dockerHost)
+                .withDockerHost(effectiveDockerHost)
                 .withApiVersion(apiVersion)
                 .build();
+                
+        System.out.println("Final Docker Host URI: " + config.getDockerHost());
                 
         DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
                 .dockerHost(config.getDockerHost())

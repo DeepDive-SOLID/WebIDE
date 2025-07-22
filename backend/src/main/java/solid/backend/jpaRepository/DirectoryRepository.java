@@ -37,7 +37,7 @@ public interface DirectoryRepository extends JpaRepository<Directory, Integer> {
     List<Directory> findByContainer_ContainerIdAndDirectoryRoot(Long containerId, String directoryRoot);
     
     // feat/be/file 브랜치의 메서드들
-    List<Directory> findAllByContainer_ContainerId(Integer containerId);
+    List<Directory> findAllByContainer_ContainerId(Long containerId);
     
-    Optional<Directory> findByDirectoryNameAndContainer_ContainerIdAndTeam_TeamId(String directoryName, Integer containerId, Integer teamId);
+    Optional<Directory> findByDirectoryNameAndContainer_ContainerIdAndTeam_TeamId(String directoryName, Long containerId, Integer teamId);
 }

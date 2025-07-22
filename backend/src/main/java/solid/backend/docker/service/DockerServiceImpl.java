@@ -25,7 +25,7 @@ import solid.backend.docker.dto.LanguageStatisticsDto;
 import solid.backend.docker.dto.LanguageStatisticsResponseDto;
 import solid.backend.docker.entity.DockerExecution;
 import solid.backend.docker.exception.DockerExecutionException;
-import solid.backend.jpaRepository.DockerExecutionJpaRepository;
+import solid.backend.jpaRepository.DockerExecutionRepository;
 import solid.backend.entity.Code;
 import solid.backend.entity.CodeFile;
 import solid.backend.entity.Container;
@@ -62,7 +62,7 @@ public class DockerServiceImpl implements DockerService {
     /** 도커 클라이언트 */
     private final DockerClient dockerClient;
     /** 도커 실행 기록 레포지토리 */
-    private final DockerExecutionJpaRepository dockerExecutionRepository;
+    private final DockerExecutionRepository dockerExecutionRepository;
     /** 컨테이너 레포지토리 */
     private final ContainerJpaRepository containerRepository;
     /** 회원 레포지토리 */

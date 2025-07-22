@@ -113,7 +113,7 @@ public class FileManager {
      * @param containerId
      * @param directoryName
      */
-    public void createDirectoryPath(Integer containerId, String directoryName) {
+    public void createDirectoryPath(Long containerId, String directoryName) {
         String directoryPath = String.format("container-%d/%s", containerId, directoryName);
         Path fullPath = Paths.get(fileStorageConfig.getUploadDir(), directoryPath)
                 .toAbsolutePath()
@@ -132,7 +132,7 @@ public class FileManager {
      * @param directoryRoot
      * @param directoryName
      */
-    public void deleteDirectory(Integer containerId, String directoryRoot, String directoryName) {
+    public void deleteDirectory(Long containerId, String directoryRoot, String directoryName) {
         if (directoryRoot == null || directoryRoot.isEmpty()) return;
 
         String baseDir = fileStorageConfig.getUploadDir();
@@ -155,7 +155,7 @@ public class FileManager {
      * @param oldName
      * @param newName
      */
-    public void renameDirectory(Integer containerId, String directoryRoot, String oldName, String newName) {
+    public void renameDirectory(Long containerId, String directoryRoot, String oldName, String newName) {
         String baseDir = fileStorageConfig.getUploadDir();
         String oldPathStr = baseDir + File.separator + String.format("container-%d%s/%s", containerId, directoryRoot, oldName);
         String newPathStr = baseDir + File.separator + String.format("container-%d%s/%s", containerId, directoryRoot, newName);

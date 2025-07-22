@@ -99,7 +99,7 @@ public class CodeFileServiceImpl implements CodeFileService {
     @Override
     @Transactional
     public void updateCodeFile(CodeFileUpdDto codeFileUpdDto) {
-        CodeFile codeFile = codeFileRepository.findById(String.valueOf(codeFileUpdDto.getCodeFileId()))
+        CodeFile codeFile = codeFileRepository.findById(codeFileUpdDto.getCodeFileId())
                 .orElseThrow(() -> new IllegalArgumentException("파일이 존재하지 않습니다."));
 
         Path filePath = Paths.get(codeFile.getCodeFilePath());
@@ -120,7 +120,7 @@ public class CodeFileServiceImpl implements CodeFileService {
     @Override
     @Transactional
     public void deleteCodeFile(CodeFileDelDto codeFileDelDto) {
-        CodeFile codeFile = codeFileRepository.findById(String.valueOf(codeFileDelDto.getCodeFileId()))
+        CodeFile codeFile = codeFileRepository.findById(codeFileDelDto.getCodeFileId())
                 .orElseThrow(() -> new IllegalArgumentException("삭제할 코드 파일이 존재하지 않습니다."));
 
         Path filePath = Paths.get(codeFile.getCodeFilePath());

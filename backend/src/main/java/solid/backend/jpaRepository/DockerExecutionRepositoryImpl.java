@@ -2,6 +2,7 @@ package solid.backend.jpaRepository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
 import solid.backend.docker.entity.DockerExecution;
 import solid.backend.docker.entity.QDockerExecution;
@@ -10,17 +11,20 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 도커 실행 기록 커스텀 레포지토리 구현체
+ * 도커 실행 기록 레포지토리 구현체
  * 
  * QueryDSL을 사용하여 복잡한 쿼리를 구현합니다.
  */
 @Repository
-@RequiredArgsConstructor
-public class DockerExecutionJpaRepositoryImpl implements DockerExecutionRepositoryCustom {
+public class DockerExecutionRepositoryImpl extends QuerydslRepositorySupport implements DockerExecutionRepositoryCustom {
     
     private final JPAQueryFactory queryFactory;
     
-    @Override
+    public DockerExecutionRepositoryImpl(JPAQueryFactory queryFactory) {
+        super(DockerExecution.class);
+        this.queryFactory = queryFactory;
+    }
+    
     public long deleteByCreatedAtBefore(LocalDateTime dateTime) {
         QDockerExecution dockerExecution = QDockerExecution.dockerExecution;
         
@@ -30,7 +34,6 @@ public class DockerExecutionJpaRepositoryImpl implements DockerExecutionReposito
                 .execute();
     }
     
-    @Override
     public List<DockerExecution> findRunningExecutions(String memberId) {
         QDockerExecution dockerExecution = QDockerExecution.dockerExecution;
         
@@ -47,7 +50,6 @@ public class DockerExecutionJpaRepositoryImpl implements DockerExecutionReposito
                 .fetch();
     }
     
-    @Override
     public List<DockerExecution> findExecutionStatistics(Long containerId, LocalDateTime startDate, LocalDateTime endDate) {
         QDockerExecution dockerExecution = QDockerExecution.dockerExecution;
         

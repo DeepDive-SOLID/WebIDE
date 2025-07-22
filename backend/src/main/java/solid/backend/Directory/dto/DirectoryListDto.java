@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DirectoryListDto {
-    private Integer containerId;
+    private Long containerId;
 }

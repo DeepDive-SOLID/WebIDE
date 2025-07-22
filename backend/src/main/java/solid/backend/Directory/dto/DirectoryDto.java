@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DirectoryDto {
     private Integer directoryId;
-    private Integer containerId;
+    private Long containerId;
     private Integer teamId;
     private String directoryName;
     private String directoryRoot;

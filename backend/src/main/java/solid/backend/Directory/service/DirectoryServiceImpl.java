@@ -9,7 +9,7 @@ import solid.backend.Directory.dto.DirectoryListDto;
 import solid.backend.Directory.dto.DirectoryUpdDto;
 import solid.backend.common.FileManager;
 import solid.backend.entity.Directory;
-import solid.backend.jpaRepository.ContainerRepository;
+import solid.backend.jpaRepository.ContainerJpaRepository;
 import solid.backend.jpaRepository.DirectoryRepository;
 import solid.backend.jpaRepository.TeamRepository;
 
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class DirectoryServiceImpl implements DirectoryService {
 
     private final DirectoryRepository directoryRepository;
-    private final ContainerRepository containerRepository;
+    private final ContainerJpaRepository containerRepository;
     private final TeamRepository teamRepository;
     private final FileManager fileManager;
 
@@ -38,8 +38,8 @@ public class DirectoryServiceImpl implements DirectoryService {
         return directories.stream()
                 .map(d -> new DirectoryDto(
                         d.getDirectoryId(),
-                        d.getTeam().getTeamId(),
                         d.getContainer().getContainerId(),
+                        d.getTeam().getTeamId(),
                         d.getDirectoryName(),
                         d.getDirectoryRoot()
                 ))

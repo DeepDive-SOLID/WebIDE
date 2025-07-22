@@ -1,15 +1,12 @@
 package solid.backend.jpaRepository;
 
+import solid.backend.docker.entity.DockerExecution;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
-import solid.backend.docker.entity.DockerExecution;
-
 /**
- * 도커 실행 기록에 대한 커스텀 레포지토리 인터페이스
- * 
- * QueryDSL을 사용한 복잡한 쿼리를 정의합니다.
- * 실제 구현은 DockerExecutionJpaRepositoryImpl 클래스에서 수행됩니다.
+ * 도커 실행 기록 레포지토리 커스텀 인터페이스
  */
 public interface DockerExecutionRepositoryCustom {
     

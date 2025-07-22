@@ -42,7 +42,7 @@ public class DockerExecution {
     private String language;
     
     /** 파일 경로 */
-    @Column(name = "file_path", nullable = false)
+    @Column(name = "file_path")
     private String filePath;
     
     /** 실행 코드 */

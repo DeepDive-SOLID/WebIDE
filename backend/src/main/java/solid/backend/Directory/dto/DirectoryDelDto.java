@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DirectoryDelDto {
     private Integer directoryId;
-    private Integer containerId;
+    private Long containerId;
     private String directoryRoot;
     private String directoryName;
 }

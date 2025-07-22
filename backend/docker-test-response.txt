@@ -1,0 +1,4 @@
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   219    0   119  100   100   1441   1211 --:--:-- --:--:-- --:--:--  2670
+{"timestamp":"2025-07-22T08:08:37.994+00:00","status":500,"error":"Internal Server Error","path":"/api/docker/execute"}
