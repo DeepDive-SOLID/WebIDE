@@ -5,7 +5,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.jpa.impl.JPAUpdateClause;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import solid.backend.container.repository.ContainerRepositoryCustom;
 import solid.backend.entity.Container;
 import solid.backend.entity.Member;
 import solid.backend.entity.QContainer;
@@ -20,9 +19,9 @@ import static solid.backend.entity.QTeam.team;
 import static solid.backend.entity.QTeamUser.teamUser;
 
 /**
- * 컨테이너 레포지토리 QueryDSL 구현체
+ * 컨테이너 QueryDSL 레포지토리
  * 
- * ContainerRepositoryCustom 인터페이스에 정의된 복잡한 쿼리들을 QueryDSL로 구현합니다.
+ * QueryDSL을 사용하여 복잡한 쿼리를 처리하는 독립적인 레포지토리입니다.
  * 
  * QueryDSL 사용 이유:
  * - 타입 안전한 쿼리 작성 (컴파일 타임에 오류 감지)
@@ -33,13 +32,10 @@ import static solid.backend.entity.QTeamUser.teamUser;
  * 주입받는 의존성:
  * - JPAQueryFactory: QueryDSL 쿼리 생성을 위한 팩토리
  *   (@Configuration 클래스에서 Bean으로 등록되어야 함)
- * 
- * @see ContainerRepositoryCustom - 구현할 인터페이스
- * @see ContainerJpaRepository - 이 구현체를 사용하는 메인 레포지토리
  */
 @Repository
 @RequiredArgsConstructor
-public class ContainerJpaRepositoryImpl implements ContainerRepositoryCustom {
+public class ContainerQueryRepository {
     
     /** QueryDSL 쿼리 생성을 위한 팩토리 */
     private final JPAQueryFactory queryFactory;

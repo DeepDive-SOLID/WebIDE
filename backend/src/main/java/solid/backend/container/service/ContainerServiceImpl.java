@@ -10,6 +10,7 @@ import solid.backend.entity.*;
 import solid.backend.jpaRepository.ContainerJpaRepository;
 import solid.backend.jpaRepository.MemberRepository;
 import solid.backend.jpaRepository.AuthRepository;
+import solid.backend.container.repository.ContainerQueryRepository;
 import solid.backend.container.exception.*;
 
 import java.time.LocalDateTime;
@@ -30,6 +31,8 @@ public class ContainerServiceImpl implements ContainerService {
     
     /** 컨테이너 데이터 접근 레포지토리 */
     private final ContainerJpaRepository containerRepository;
+    /** 컨테이너 QueryDSL 레포지토리 */
+    private final ContainerQueryRepository containerQueryRepository;
     /** 멤버 데이터 접근 레포지토리 */
     private final MemberRepository memberRepository;
     /** 권한 데이터 접근 레포지토리 */
@@ -113,7 +116,7 @@ public class ContainerServiceImpl implements ContainerService {
     @Transactional(readOnly = true)
     public ContainerResponseDto getContainer(Long containerId, String memberId) {
         // QueryDSL을 사용하여 연관 데이터를 한번에 조회
-        Container container = containerRepository.findByIdWithTeam(containerId)
+        Container container = containerQueryRepository.findByIdWithTeam(containerId)
                 .orElseThrow(() -> new ContainerNotFoundException(ERROR_CONTAINER_NOT_FOUND + containerId));
         
         // 접근 권한 확인 (비공개 컨테이너인 경우)
@@ -231,7 +234,7 @@ public class ContainerServiceImpl implements ContainerService {
     public List<ContainerResponseDto> getSharedContainers(String memberId) {
         Member member = getMemberOrThrow(memberId);
         
-        return convertToResponseDtoList(containerRepository.findSharedContainers(member), memberId);
+        return convertToResponseDtoList(containerQueryRepository.findSharedContainers(member), memberId);
     }
     
     /**
@@ -255,7 +258,7 @@ public class ContainerServiceImpl implements ContainerService {
     public List<ContainerResponseDto> getAllAccessibleContainers(String memberId) {
         Member member = getMemberOrThrow(memberId);
         
-        return convertToResponseDtoList(containerRepository.findAllAccessibleContainers(member), memberId);
+        return convertToResponseDtoList(containerQueryRepository.findAllAccessibleContainers(member), memberId);
     }
     
     /**
@@ -515,7 +518,7 @@ public class ContainerServiceImpl implements ContainerService {
         // 검색 구현을 서비스 레이어에서 처리
         List<Container> allContainers;
         if (memberId != null) {
-            allContainers = containerRepository.findAllAccessibleContainers(getMemberOrThrow(memberId));
+            allContainers = containerQueryRepository.findAllAccessibleContainers(getMemberOrThrow(memberId));
         } else {
             allContainers = containerRepository.findByContainerAuthOrderByContainerDateDesc(true);
         }
@@ -542,7 +545,7 @@ public class ContainerServiceImpl implements ContainerService {
         
         // 권한별 통계 계산
         List<Container> ownedContainers = containerRepository.findByOwnerOrderByContainerDateDesc(member);
-        List<Container> sharedContainers = containerRepository.findSharedContainers(member);
+        List<Container> sharedContainers = containerQueryRepository.findSharedContainers(member);
         
         Map<String, Long> result = new HashMap<>();
         result.put(AUTHORITY_ROOT, (long) ownedContainers.size());
@@ -560,7 +563,7 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     @Transactional(readOnly = true)
     public ContainerStatisticsDto getContainerStatistics(Long containerId) {
-        Container container = containerRepository.findByIdWithTeam(containerId)
+        Container container = containerQueryRepository.findByIdWithTeam(containerId)
                 .orElseThrow(() -> new ContainerNotFoundException(ERROR_CONTAINER_NOT_FOUND + containerId));
         
         // 통계 계산
@@ -634,7 +637,7 @@ public class ContainerServiceImpl implements ContainerService {
      * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
      */
     private Container getContainerWithTeamOrThrow(Long containerId) {
-        return containerRepository.findByIdWithTeam(containerId)
+        return containerQueryRepository.findByIdWithTeam(containerId)
                 .orElseThrow(() -> new ContainerNotFoundException(ERROR_CONTAINER_NOT_FOUND + containerId));
     }
     
@@ -701,7 +704,7 @@ public class ContainerServiceImpl implements ContainerService {
         if (searchMemberId != null) {
             Member searchMember = memberRepository.findById(searchMemberId).orElse(null);
             if (searchMember != null) {
-                allContainers = containerRepository.findAllAccessibleContainers(searchMember);
+                allContainers = containerQueryRepository.findAllAccessibleContainers(searchMember);
             } else {
                 allContainers = containerRepository.findByContainerAuthOrderByContainerDateDesc(true);
             }
@@ -754,7 +757,7 @@ public class ContainerServiceImpl implements ContainerService {
         }
         
         // 배치 업데이트 실행
-        return (long) containerRepository.updateContainerVisibility(authorizedContainerIds, isPublic);
+        return (long) containerQueryRepository.updateContainerVisibility(authorizedContainerIds, isPublic);
     }
     
     /**
