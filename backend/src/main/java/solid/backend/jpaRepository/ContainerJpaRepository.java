@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import solid.backend.entity.Container;
 import solid.backend.entity.Member;
+import solid.backend.container.repository.ContainerRepositoryCustom;
 
 import java.util.List;
 

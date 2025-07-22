@@ -1,4 +1,4 @@
-package solid.backend.jpaRepository;
+package solid.backend.container.repository;
 
 import solid.backend.entity.Container;
 import solid.backend.entity.Member;

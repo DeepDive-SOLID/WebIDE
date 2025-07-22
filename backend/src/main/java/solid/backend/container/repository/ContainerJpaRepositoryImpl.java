@@ -1,10 +1,11 @@
-package solid.backend.jpaRepository;
+package solid.backend.container.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.jpa.impl.JPAUpdateClause;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import solid.backend.container.repository.ContainerRepositoryCustom;
 import solid.backend.entity.Container;
 import solid.backend.entity.Member;
 import solid.backend.entity.QContainer;
