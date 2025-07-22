@@ -22,31 +22,31 @@ import java.util.List;
 public class Member {
 
     @Id
-    @Column(name = "MEMBER_ID", length = 20)
+    @Column(name = "member_id", length = 20)
     @Comment("회원 ID")
     private String memberId;
 
-    @Column(name = "MEMBER_NAME", nullable = false, length = 10)
+    @Column(name = "member_name", nullable = false, length = 10)
     @Comment("회원명")
     private String memberName;
 
-    @Column(name = "MEMBER_PW", nullable = false, length = 100)
+    @Column(name = "member_pw", nullable = false, length = 100)
     @Comment("회원 비밀번호")
     private String memberPassword;
 
-    @Column(name = "MEMBER_EMAIL", nullable = false, length = 30)
+    @Column(name = "member_email", nullable = false, length = 30)
     @Comment("회원 이메일")
     private String memberEmail;
 
-    @Column(name = "MEMBER_PHONE", length = 15)
+    @Column(name = "member_phone", length = 15)
     @Comment("회원 전화번호")
     private String memberPhone;
 
-    @Column(name = "MEMBER_BIRTH")
+    @Column(name = "member_birth")
     @Comment("회원 생년월일")
     private LocalDate memberBirth;
 
-    @Column(name = "MEMBER_IMG", length = 500)
+    @Column(name = "member_img", length = 500)
     @Comment("회원 이미지")
     private String memberImg;
 
