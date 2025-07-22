@@ -1,6 +1,8 @@
 package solid.backend.jpaRepository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import solid.backend.entity.Container;
 import solid.backend.entity.Member;
@@ -45,5 +47,20 @@ public interface ContainerJpaRepository extends JpaRepository<Container, Long> {
      * @return 해당 공개 설정의 컨테이너 목록 (생성일 기준 내림차순)
      */
     List<Container> findByIsPublicOrderByContainerDateDesc(Boolean isPublic);
+    
+    /**
+     * 특정 사용자가 컨테이너가 속한 팀의 멤버인지 확인합니다.
+     * 컨테이너의 팀에 해당 사용자가 TeamUser로 등록되어 있는지 검사합니다.
+     * 
+     * @param containerId 확인할 컨테이너 ID
+     * @param memberId 확인할 사용자 ID
+     * @return 팀 멤버인 경우 true, 아닌 경우 false
+     */
+    @Query("SELECT COUNT(tu) > 0 FROM Container c " +
+           "JOIN c.team t " +
+           "JOIN TeamUser tu ON tu.team = t " +
+           "WHERE c.containerId = :containerId " +
+           "AND tu.member.memberId = :memberId")
+    boolean isTeamMember(@Param("containerId") Long containerId, @Param("memberId") String memberId);
     
 }

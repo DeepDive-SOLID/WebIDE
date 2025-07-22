@@ -2,7 +2,6 @@ package solid.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.attoparser.dom.Text;
 import org.hibernate.annotations.Comment;
 
 import java.time.LocalDate;
@@ -22,9 +21,9 @@ public class Code {
     @Comment("파일명")
     private String codeName;
 
-    @Column(name = "code_text")
+    @Column(name = "code_text", columnDefinition = "TEXT")
     @Comment("코드 내용")
-    private Text codeText;
+    private String codeText;
 
     @Column(name = "code_upload_dt", nullable = false)
     @Comment("파일 업로드일")
