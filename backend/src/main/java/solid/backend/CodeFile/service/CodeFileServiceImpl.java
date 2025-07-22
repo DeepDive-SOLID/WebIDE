@@ -3,10 +3,10 @@ package solid.backend.CodeFile.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import solid.backend.CodeFile.Dto.CodeFileDelDto;
-import solid.backend.CodeFile.Dto.CodeFileListDto;
-import solid.backend.CodeFile.Dto.CodeFileSaveDto;
-import solid.backend.CodeFile.Dto.CodeFileUpdDto;
+import solid.backend.CodeFile.dto.CodeFileDelDto;
+import solid.backend.CodeFile.dto.CodeFileListDto;
+import solid.backend.CodeFile.dto.CodeFileSaveDto;
+import solid.backend.CodeFile.dto.CodeFileUpdDto;
 import solid.backend.config.FileStorageConfig;
 import solid.backend.entity.CodeFile;
 import solid.backend.entity.Directory;
@@ -47,6 +47,26 @@ public class CodeFileServiceImpl implements CodeFileService {
                         codeFile.getCodeFileUploadDt(),
                         codeFile.getCodeFileCreateDt()
                 )).collect(Collectors.toList());
+    }
+
+    /**
+     * 설명: 코드 파일 내용 조회
+     * @param codeFileId
+     * @return String
+     */
+    @Override
+    @Transactional
+    public String codeContent(Integer codeFileId) {
+        CodeFile codeFile = codeFileRepository.findById(String.valueOf(codeFileId))
+                .orElseThrow(() -> new IllegalArgumentException("파일이 존재하지 않습니다."));
+
+        Path filePath = Paths.get(codeFile.getCodeFilePath());
+
+        try {
+            return Files.readString(filePath);
+        } catch (IOException e) {
+            throw new RuntimeException("파일 내용 읽기 실패" + e.getMessage(), e);
+        }
     }
 
     /**
@@ -133,5 +153,4 @@ public class CodeFileServiceImpl implements CodeFileService {
 
         codeFileRepository.delete(codeFile);
     }
-
 }
