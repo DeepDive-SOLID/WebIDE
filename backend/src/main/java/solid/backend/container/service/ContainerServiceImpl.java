@@ -307,7 +307,7 @@ public class ContainerServiceImpl implements ContainerService {
         
         return container.getTeam().getTeamUsers().stream()
                 .map(tu -> GroupMemberResponseDto.builder()
-                        .teamUserId(tu.getTeamUserId())
+                        .teamUserId(tu.getTeamUserId() != null ? tu.getTeamUserId().longValue() : null)
                         .memberId(tu.getMember().getMemberId())
                         .memberName(tu.getMember().getMemberName())
                         .memberEmail(tu.getMember().getMemberEmail())
