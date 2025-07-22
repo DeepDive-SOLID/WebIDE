@@ -85,11 +85,12 @@ const Login: React.FC = () => {
     setIsLoading(true);
     setSubmitError("");
     try {
-      await signApi.login({
+      const token = await signApi.login({
         memberId: formData.memberId,
         memberPw: formData.memberPw,
       });
-      // 로그인 성공 시 처리
+      // 로그인 성공 시 access token 저장
+      localStorage.setItem("accessToken", token);
       alert("로그인 성공!");
       navigate("/home"); // 홈으로 이동
     } catch (error: unknown) {

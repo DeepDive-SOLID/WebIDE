@@ -51,11 +51,9 @@ export const signApi = {
   },
 
   // 로그인
-  login: async (
-    signInDto: SignInDto
-  ): Promise<{ token: string; memberId: string; authId: string }> => {
+  login: async (signInDto: SignInDto): Promise<string> => {
     const res = await signAxios.post("/sign/login", signInDto);
-    return res.data;
+    return res.data; // JWT 문자열 반환
   },
 
   // 아이디 찾기

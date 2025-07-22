@@ -11,7 +11,7 @@ interface TokenPayload {
 
 // 토큰이 존재하고 유효한지 확인 (만료 시간 포함)
 export const isLoggedIn = (): boolean => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("accessToken");
   if (!token) return false;
 
   // 토큰 디코딩하여 만료 시간 확인
@@ -30,12 +30,12 @@ export const isLoggedIn = (): boolean => {
 
 // 토큰 가져오기
 export const getToken = (): string | null => {
-  return localStorage.getItem("token");
+  return localStorage.getItem("accessToken");
 };
 
 // 토큰 저장하기
 export const setToken = (token: string): void => {
-  localStorage.setItem("token", token);
+  localStorage.setItem("accessToken", token);
 };
 
 // JWT 토큰 디코딩 (더 안전한 버전)
@@ -109,7 +109,7 @@ export const refreshNewToken = async (): Promise<string | null> => {
 
   try {
     const newToken = await signApi.refreshToken();
-    localStorage.setItem("token", newToken);
+    localStorage.setItem("accessToken", newToken);
     return newToken;
   } catch (error) {
     console.error("토큰 재발급 실패", error);
