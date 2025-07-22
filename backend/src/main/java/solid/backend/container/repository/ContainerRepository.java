@@ -1,6 +1,7 @@
 package solid.backend.container.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
@@ -253,7 +254,7 @@ public class ContainerRepository extends QuerydslRepositorySupport {
      */
     public List<Container> searchContainers(String name, Boolean isPublic, 
                                            String ownerId, String memberId) {
-        JPQLQuery<Container> query = queryFactory
+        JPAQuery<Container> query = queryFactory
                 .selectFrom(container)
                 .leftJoin(container.team, team).fetchJoin()
                 .leftJoin(container.owner, member).fetchJoin();

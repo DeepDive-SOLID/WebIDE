@@ -706,7 +706,7 @@ public class ContainerServiceImpl implements ContainerService {
             if (searchMember != null) {
                 allContainers = containerQueryRepository.findAllAccessibleContainers(searchMember);
             } else {
-                allContainers = containerRepository.findByContainerAuthOrderByContainerDateDesc(true);
+                allContainers = containerRepository.findByIsPublicOrderByContainerDateDesc(true);
             }
         } else {
             allContainers = containerRepository.findByIsPublicOrderByContainerDateDesc(true);
