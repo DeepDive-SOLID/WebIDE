@@ -42,13 +42,7 @@ public class SecurityConfig {
         // 권한 설정
         http.authorizeHttpRequests(auth -> auth
                 // 인증 없이 접근 가능한 경로
-                .requestMatchers("/", "/api/test/**").permitAll()
-                .requestMatchers("/api/sign/signup", "/api/sign/signin").permitAll()
-                .requestMatchers("/api/containers/public", "/api/containers/search").permitAll()
-                // 임시 테스트용 - 컨테이너 API 인증 해제
-                .requestMatchers("/api/containers/**").permitAll()
-                // 도커 API 허용
-                .requestMatchers("/api/docker/**").permitAll()
+                .requestMatchers("/", "/sign/**", "/token/refresh", "/error", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 // 나머지는 인증 필요
                 .anyRequest().authenticated()
         );

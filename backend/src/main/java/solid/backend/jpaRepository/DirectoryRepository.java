@@ -35,4 +35,9 @@ public interface DirectoryRepository extends JpaRepository<Directory, Integer> {
      * @return 디렉토리 목록
      */
     List<Directory> findByContainer_ContainerIdAndDirectoryRoot(Long containerId, String directoryRoot);
+    
+    // feat/be/file 브랜치의 메서드들
+    List<Directory> findAllByContainer_ContainerId(Integer containerId);
+    
+    Optional<Directory> findByDirectoryNameAndContainer_ContainerIdAndTeam_TeamId(String directoryName, Integer containerId, Integer teamId);
 }
