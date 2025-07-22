@@ -1,4 +1,10 @@
+import Chat from "../components/UI/Chat";
+
 const Home = () => {
-  return <div>홈화면 입니다</div>;
+  return (
+    <div>
+      <Chat />
+    </div>
+  );
 };
 export default Home;
