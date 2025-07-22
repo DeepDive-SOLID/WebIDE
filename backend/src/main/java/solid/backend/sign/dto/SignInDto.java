@@ -11,8 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class SignInDto {
-    
     private String memberId;
-    private String password;
-    
+    private String memberPw;
 }

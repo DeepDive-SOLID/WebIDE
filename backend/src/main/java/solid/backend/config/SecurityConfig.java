@@ -4,72 +4,29 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import solid.backend.Jwt.JwtFilter;
-import java.util.Arrays;
 
-/**
- * Spring Security 설정
- * JWT 기반 인증 구현
- */
 @Configuration
-@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtFilter jwtFiler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        // CORS 설정
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
-        
-        // CSRF 비활성화 (JWT 사용)
-        http.csrf(csrf -> csrf.disable());
-
-        // 폼 로그인 비활성화
-        http.formLogin(formLogin -> formLogin.disable());
-
-        // HTTP Basic 인증 비활성화
-        http.httpBasic(httpBasic -> httpBasic.disable());
-
-        // 권한 설정 - 테스트를 위해 임시로 모든 요청 허용
-        http.authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()
-        );
-
-        // JWT 필터 추가
-        http.addFilterBefore(jwtFiler, UsernamePasswordAuthenticationFilter.class);
-
-        // 세션 관리: STATELESS (JWT 사용으로 세션 미사용)
-        http.sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        );
+        http
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        // 테스트를 위한 permitAll 처리
+                        .requestMatchers("/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtFiler, UsernamePasswordAuthenticationFilter.class)
+                .formLogin(form -> form.disable());
 
         return http.build();
-    }
-    
-    /**
-     * CORS 설정
-     */
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(false);
-        configuration.setMaxAge(3600L);
-        
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 
     @Bean
