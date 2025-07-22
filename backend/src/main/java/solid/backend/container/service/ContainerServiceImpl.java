@@ -78,30 +78,10 @@ public class ContainerServiceImpl implements ContainerService {
         
         // 초대 멤버 처리
         if (createDto.getInvitedMemberIds() != null && !createDto.getInvitedMemberIds().isEmpty()) {
-            // 존재하지 않는 멤버 확인
-            List<String> invalidMemberIds = new ArrayList<>();
-            for (String invitedMemberId : createDto.getInvitedMemberIds()) {
-                if (!memberRepository.existsById(invitedMemberId)) {
-                    invalidMemberIds.add(invitedMemberId);
-                }
-            }
-            
-            if (!invalidMemberIds.isEmpty()) {
-                throw new InvalidMemberException("존재하지 않는 멤버 ID: " + String.join(", ", invalidMemberIds));
-            }
-            
-            // 기본값은 USER 권한으로 설정
-            Auth userAuth = getOrCreateAuth(AUTHORITY_USER, "사용자");
-            
-            for (String invitedMemberId : createDto.getInvitedMemberIds()) {
-                Member invitedMember = memberRepository.findById(invitedMemberId)
-                        .orElseThrow(() -> new MemberNotFoundException("초대할 회원을 찾을 수 없습니다: " + invitedMemberId));
-                TeamUser teamUser = createTeamUser(team, invitedMember, userAuth);
-                team.getTeamUsers().add(teamUser);
-            }
+            validateAndAddInvitedMembers(team, createDto.getInvitedMemberIds());
         }
         
-        return ContainerResponseDto.from(savedContainer, AUTHORITY_ROOT, savedContainer.getTeam().getTeamUsers().size());
+        return createContainerResponse(savedContainer, memberId);
     }
     
     /**
@@ -327,11 +307,11 @@ public class ContainerServiceImpl implements ContainerService {
         
         return container.getTeam().getTeamUsers().stream()
                 .map(tu -> GroupMemberResponseDto.builder()
-                        .teamUserId(tu.getTeamUserId() != null ? tu.getTeamUserId().longValue() : null)
+                        .teamUserId(tu.getTeamUserId())
                         .memberId(tu.getMember().getMemberId())
                         .memberName(tu.getMember().getMemberName())
                         .memberEmail(tu.getMember().getMemberEmail())
-                        .authority(tu.getTeamAuth().getAuthId())
+                        .authority(tu.getTeamAuth() != null ? tu.getTeamAuth().getAuthId() : AUTHORITY_USER)
                         .joinedDate(tu.getJoinedDate())
                         .lastActivityDate(tu.getLastActivityDate())
                         .build())
@@ -360,8 +340,7 @@ public class ContainerServiceImpl implements ContainerService {
             throw new IllegalArgumentException(ERROR_OWNER_CANNOT_BE_REMOVED);
         }
         
-        container.getTeam().getTeamUsers().removeIf(tu -> 
-            tu.getMember().getMemberId().equals(targetMemberId));
+        removeTeamMember(container.getTeam(), targetMemberId);
     }
     
     /**
@@ -381,8 +360,7 @@ public class ContainerServiceImpl implements ContainerService {
             throw new IllegalArgumentException(ERROR_OWNER_CANNOT_LEAVE);
         }
         
-        container.getTeam().getTeamUsers().removeIf(tu -> 
-            tu.getMember().getMemberId().equals(memberId));
+        removeTeamMember(container.getTeam(), memberId);
     }
     
     /**
@@ -515,21 +493,8 @@ public class ContainerServiceImpl implements ContainerService {
     @Transactional(readOnly = true)
     public List<ContainerResponseDto> searchContainers(String name, Boolean isPublic, 
                                                       String ownerId, String memberId) {
-        // 검색 구현을 서비스 레이어에서 처리
-        List<Container> allContainers;
-        if (memberId != null) {
-            allContainers = containerQueryRepository.findAllAccessibleContainers(getMemberOrThrow(memberId));
-        } else {
-            allContainers = containerRepository.findByIsPublicOrderByContainerDateDesc(true);
-        }
-        
-        // 필터링
-        List<Container> containers = allContainers.stream()
-                .filter(c -> name == null || c.getContainerName().toLowerCase().contains(name.toLowerCase()))
-                .filter(c -> isPublic == null || c.getIsPublic().equals(isPublic))
-                .filter(c -> ownerId == null || c.getOwner().getMemberId().equals(ownerId))
-                .collect(Collectors.toList());
-        
+        Member member = memberId != null ? getMemberOrThrow(memberId) : null;
+        List<Container> containers = containerQueryRepository.searchContainers(name, isPublic, ownerId, member);
         return convertToResponseDtoList(containers, memberId);
     }
     
@@ -693,31 +658,16 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     @Transactional(readOnly = true)
     public List<ContainerResponseDto> advancedSearch(ContainerSearchDto searchDto, String memberId) {
-        // 검색 조건 추출
-        String name = searchDto.getName();
-        Boolean isPublic = searchDto.getIsPublic();
-        String ownerId = searchDto.getOwnerId();
-        String searchMemberId = searchDto.getMemberId();
+        // 검색 멤버 결정
+        Member searchMember = searchDto.getMemberId() != null ? 
+                memberRepository.findById(searchDto.getMemberId()).orElse(null) : null;
         
-        // 검색 구현
-        List<Container> allContainers;
-        if (searchMemberId != null) {
-            Member searchMember = memberRepository.findById(searchMemberId).orElse(null);
-            if (searchMember != null) {
-                allContainers = containerQueryRepository.findAllAccessibleContainers(searchMember);
-            } else {
-                allContainers = containerRepository.findByIsPublicOrderByContainerDateDesc(true);
-            }
-        } else {
-            allContainers = containerRepository.findByIsPublicOrderByContainerDateDesc(true);
-        }
-        
-        // 필터링
-        List<Container> containers = allContainers.stream()
-                .filter(c -> name == null || c.getContainerName().toLowerCase().contains(name.toLowerCase()))
-                .filter(c -> isPublic == null || c.getIsPublic().equals(isPublic))
-                .filter(c -> ownerId == null || c.getOwner().getMemberId().equals(ownerId))
-                .collect(Collectors.toList());
+        List<Container> containers = containerQueryRepository.searchContainers(
+                searchDto.getName(), 
+                searchDto.getIsPublic(), 
+                searchDto.getOwnerId(), 
+                searchMember
+        );
         
         return convertToResponseDtoList(containers, memberId);
     }
@@ -757,7 +707,7 @@ public class ContainerServiceImpl implements ContainerService {
         }
         
         // 배치 업데이트 실행
-        return (long) containerQueryRepository.updateContainerVisibility(authorizedContainerIds, isPublic);
+        return containerQueryRepository.updateContainerVisibility(authorizedContainerIds, isPublic);
     }
     
     /**
@@ -802,6 +752,42 @@ public class ContainerServiceImpl implements ContainerService {
         teamUser.setJoinedDate(LocalDateTime.now());
         teamUser.setLastActivityDate(LocalDateTime.now());
         return teamUser;
+    }
+    
+    /**
+     * 초대 멤버 유효성 검증 및 추가
+     * @param team 대상 팀
+     * @param invitedMemberIds 초대할 멤버 ID 목록
+     * @throws InvalidMemberException 존재하지 않는 멤버가 있는 경우
+     */
+    private void validateAndAddInvitedMembers(Team team, List<String> invitedMemberIds) {
+        // 존재하지 않는 멤버 확인
+        List<String> invalidMemberIds = invitedMemberIds.stream()
+                .filter(id -> !memberRepository.existsById(id))
+                .collect(Collectors.toList());
+        
+        if (!invalidMemberIds.isEmpty()) {
+            throw new InvalidMemberException("존재하지 않는 멤버 ID: " + String.join(", ", invalidMemberIds));
+        }
+        
+        // 기본값은 USER 권한으로 설정
+        Auth userAuth = getOrCreateAuth(AUTHORITY_USER, "사용자");
+        
+        for (String invitedMemberId : invitedMemberIds) {
+            Member invitedMember = getMemberOrThrow(invitedMemberId);
+            TeamUser teamUser = createTeamUser(team, invitedMember, userAuth);
+            team.getTeamUsers().add(teamUser);
+        }
+    }
+    
+    /**
+     * 팀에서 멤버 제거
+     * @param team 대상 팀
+     * @param memberId 제거할 멤버 ID
+     */
+    private void removeTeamMember(Team team, String memberId) {
+        team.getTeamUsers().removeIf(tu -> 
+            tu.getMember().getMemberId().equals(memberId));
     }
     
 }

@@ -13,7 +13,6 @@ import java.util.List;
  * 복잡한 쿼리는 ContainerQueryRepository에서 별도로 처리합니다.
  * 
  * @see Container - 컨테이너 엔티티
- * @see ContainerQueryRepository - QueryDSL을 사용한 복잡한 쿼리 처리
  */
 @Repository
 public interface ContainerJpaRepository extends JpaRepository<Container, Long> {
