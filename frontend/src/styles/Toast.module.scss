@@ -1,0 +1,80 @@
+.toastWrapper {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  animation: fadeInOut 3s ease-in-out;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px 12px;
+  width: 386px;
+  height: 66px;
+  border-radius: 24px;
+  background: linear-gradient(0deg, #f2f2f2, #f2f2f2);
+  backdrop-filter: blur(75px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  font-family: "SF Pro", sans-serif;
+}
+
+.toastIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8.5px;
+  object-fit: cover;
+}
+
+.toastText {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+}
+
+.toastHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 20px;
+  margin-bottom: 2px;
+}
+
+.title {
+  font-weight: 590;
+  font-size: 15px;
+  color: #000;
+  letter-spacing: -0.23px;
+}
+
+.time {
+  font-size: 13px;
+  color: #666;
+  text-align: right;
+}
+
+.message {
+  font-size: 15px;
+  color: #000;
+  letter-spacing: -0.23px;
+}
+
+/* 애니메이션 */
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  10%,
+  90% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
