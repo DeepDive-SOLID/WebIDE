@@ -269,9 +269,8 @@ PUT /api/containers/batch/visibility
 ## 아키텍처 특징
 
 ### 레포지토리 계층
-- **ContainerJpaRepository**: Spring Data JPA + QueryDSL 통합 레포지토리
-- **ContainerRepositoryCustom**: QueryDSL 커스텀 메서드 인터페이스
-- **ContainerJpaRepositoryImpl**: QueryDSL 구현체
+- **ContainerJpaRepository**: Spring Data JPA 기본 CRUD 레포지토리
+- **ContainerQueryRepository**: QueryDSL 전용 독립 레포지토리 (복잡한 쿼리 처리)
 
 ### QueryDSL 통합
 - 모든 복잡한 쿼리는 QueryDSL을 사용하여 타입 안전하게 구현
@@ -337,9 +336,9 @@ PUT /api/containers/batch/visibility
 
 ### 2025-07-21  
 1. **레포지토리 구조 개선**
-   - QueryDSL 커스텀 인터페이스 패턴 적용
-   - ContainerRepositoryCustom 및 ContainerJpaRepositoryImpl 분리
-   - DockerExecutionRepository에도 동일 패턴 적용
+   - QueryDSL 독립 레포지토리 패턴 적용
+   - ContainerQueryRepository로 QueryDSL 쿼리 분리
+   - 최신 Spring Data JPA 패턴 적용
 
 2. **코드 품질 향상**
    - 모든 레포지토리 메서드에 상세 JavaDoc 추가

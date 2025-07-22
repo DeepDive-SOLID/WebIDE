@@ -8,10 +8,8 @@ import java.util.List;
 
 /**
  * 도커 실행 기록 JPA 레포지토리 인터페이스
- * 
  * 도커 컨테이너 실행 기록을 관리하는 레포지토리입니다.
  * 컨테이너 생성, 실행, 종료 등의 이벤트를 기록하여 사용 통계 및 모니터링에 활용됩니다.
- * 
  * 상속 구조:
  * 1. JpaRepository<DockerExecution, Long>: Spring Data JPA의 기본 CRUD 기능
  * 2. DockerExecutionRepositoryCustom: QueryDSL을 사용한 복잡한 쿼리
@@ -25,7 +23,6 @@ public interface DockerExecutionJpaRepository extends JpaRepository<DockerExecut
     
     /**
      * 특정 컨테이너의 모든 실행 기록을 조회합니다.
-     * 
      * 사용 예시:
      * - 컨테이너의 사용 내역 확인
      * - 컨테이너별 실행 통계 수집
@@ -37,7 +34,6 @@ public interface DockerExecutionJpaRepository extends JpaRepository<DockerExecut
     
     /**
      * 특정 사용자의 모든 도커 실행 기록을 조회합니다.
-     * 
      * 사용 예시:
      * - 사용자의 활동 내역 확인
      * - 사용자별 사용량 통계
@@ -49,7 +45,6 @@ public interface DockerExecutionJpaRepository extends JpaRepository<DockerExecut
     
     /**
      * 특정 컨테이너에서 특정 사용자의 실행 기록을 조회합니다.
-     * 
      * 사용 예시:
      * - 특정 컨테이너에서 특정 사용자의 활동 확인
      * - 권한 검증 후 사용 내역 표시
