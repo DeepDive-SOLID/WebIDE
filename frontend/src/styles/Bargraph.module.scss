@@ -42,7 +42,7 @@
 
 .bargraphBarFill {
   height: 100%;
-  background-color: $primary;
+  background-color: #0085ff;
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -50,7 +50,7 @@
 .bargraphPercent {
   width: 32px;
   text-align: right;
-  color: $primary;
+  color: #0085ff;
   font-size: 14px;
   flex-shrink: 0;
 }

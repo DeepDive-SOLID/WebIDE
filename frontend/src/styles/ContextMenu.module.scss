@@ -36,7 +36,7 @@
   .contextMenu {
     background-color: #2a2a2a;
     color: #f0f0f0;
-    border: 1px solid #444;
+    border: 1px solid #444444;
     box-shadow: 0 4px 16px rgba(255, 255, 255, 0.05);
   }
 
@@ -46,7 +46,7 @@
     }
 
     &:active {
-      background-color: #444;
+      background-color: #444444;
     }
 
     & + li {

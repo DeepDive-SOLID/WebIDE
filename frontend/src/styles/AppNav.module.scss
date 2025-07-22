@@ -36,7 +36,7 @@
   }
 
   svg {
-    color: #333;
+    color: #333333;
   }
 }
 
@@ -62,7 +62,7 @@
 :global(body.dark-mode) {
   .appNav {
     background-color: #1e1e1e;
-    border-right: 1px solid #333;
+    border-right: 1px solid #333333;
     box-shadow: 2px 0 8px rgba(255, 255, 255, 0.05);
   }
 
@@ -74,7 +74,7 @@
     }
 
     svg {
-      color: #eee;
+      color: #eeeeee;
     }
   }
 
