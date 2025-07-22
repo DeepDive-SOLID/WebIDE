@@ -51,8 +51,7 @@ public class ContainerQueryRepository {
      * - OneToMany 관계에서 Fetch Join 사용 시 발생하는 중복 제거
      * - 컨테이너 1개 - 팀원 N명 관계에서 컨테이너가 N번 조회되는 것 방지
      */
-    @Override
-    public Optional<Container> findByIdWithTeam(Long containerId) {
+        public Optional<Container> findByIdWithTeam(Long containerId) {
         Container result = queryFactory
                 .selectFrom(container)
                 .leftJoin(container.team, team).fetchJoin()
@@ -74,8 +73,7 @@ public class ContainerQueryRepository {
      * 
      * 정렬: 컨테이너 생성일 기준 내림차순
      */
-    @Override
-    public List<Container> findSharedContainers(Member member) {
+        public List<Container> findSharedContainers(Member member) {
         return queryFactory
                 .selectFrom(container)
                 .leftJoin(container.team, team)
@@ -100,8 +98,7 @@ public class ContainerQueryRepository {
      * - 사용자가 팀 멤버이면서 동시에 PUBLIC인 컨테이너의 경우
      *   DISTINCT로 중복 제거
      */
-    @Override
-    public List<Container> findAllAccessibleContainers(Member member) {
+        public List<Container> findAllAccessibleContainers(Member member) {
         return queryFactory
                 .selectFrom(container)
                 .leftJoin(container.team, team)
@@ -126,8 +123,7 @@ public class ContainerQueryRepository {
      * teamUser -> team -> container 순서로 조인하여
      * 특정 컨테이너의 팀에 특정 멤버가 존재하는지 확인
      */
-    @Override
-    public boolean isTeamMember(Long containerId, String memberId) {
+        public boolean isTeamMember(Long containerId, String memberId) {
         Integer count = queryFactory
                 .selectOne()
                 .from(teamUser)
@@ -152,8 +148,7 @@ public class ContainerQueryRepository {
      * 
      * @return 업데이트된 레코드 수
      */
-    @Override
-    public long updateContainerVisibility(List<Long> containerIds, boolean isPublic) {
+        public long updateContainerVisibility(List<Long> containerIds, boolean isPublic) {
         return queryFactory
                 .update(container)
                 .set(container.isPublic, isPublic)
@@ -175,8 +170,7 @@ public class ContainerQueryRepository {
      * - ownerIdEq: 소유자 ID 필터
      * - memberAccessible: 사용자 접근 권한 확인
      */
-    @Override
-    public List<Container> searchContainers(String name, Boolean isPublic, String ownerId, Member member) {
+        public List<Container> searchContainers(String name, Boolean isPublic, String ownerId, Member member) {
         return queryFactory
                 .selectFrom(container)
                 .leftJoin(container.team, team)
@@ -203,8 +197,7 @@ public class ContainerQueryRepository {
      * - Team 엔티티
      * - TeamUser 커렉션 (각 컨테이너에서 사용자의 권한 확인용)
      */
-    @Override
-    public List<Container> findContainersByMemberWithAuthority(Member member) {
+        public List<Container> findContainersByMemberWithAuthority(Member member) {
         return queryFactory
                 .selectFrom(container)
                 .leftJoin(container.team, team).fetchJoin()
