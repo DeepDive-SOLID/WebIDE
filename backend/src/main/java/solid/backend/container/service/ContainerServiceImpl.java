@@ -245,7 +245,7 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     @Transactional(readOnly = true)
     public List<ContainerResponseDto> getPublicContainers(String memberId) {
-        return convertToResponseDtoList(containerRepository.findByContainerAuthOrderByContainerDateDesc(true), memberId);
+        return convertToResponseDtoList(containerRepository.findByIsPublicOrderByContainerDateDesc(true), memberId);
     }
     
     /**
@@ -520,7 +520,7 @@ public class ContainerServiceImpl implements ContainerService {
         if (memberId != null) {
             allContainers = containerQueryRepository.findAllAccessibleContainers(getMemberOrThrow(memberId));
         } else {
-            allContainers = containerRepository.findByContainerAuthOrderByContainerDateDesc(true);
+            allContainers = containerRepository.findByIsPublicOrderByContainerDateDesc(true);
         }
         
         // 필터링
@@ -709,7 +709,7 @@ public class ContainerServiceImpl implements ContainerService {
                 allContainers = containerRepository.findByContainerAuthOrderByContainerDateDesc(true);
             }
         } else {
-            allContainers = containerRepository.findByContainerAuthOrderByContainerDateDesc(true);
+            allContainers = containerRepository.findByIsPublicOrderByContainerDateDesc(true);
         }
         
         // 필터링

@@ -1,9 +1,7 @@
 package solid.backend.container.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +28,6 @@ import java.util.Optional;
 /**
  * 컨테이너 리포지토리
  */
-@Slf4j
 @Repository
 public class ContainerRepository extends QuerydslRepositorySupport {
     
