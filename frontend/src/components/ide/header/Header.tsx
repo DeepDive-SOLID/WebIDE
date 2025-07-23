@@ -9,7 +9,7 @@ const Header = ({ activeMember, handleOnClick }: HeaderProps) => {
     // 해당 컨테이너 유저를 가져오는 api
     // 더미 데이터
     setMember([
-      { id: "1", name: "l" },
+      { id: "test", name: "테스트" },
       { id: "2", name: "k" },
       { id: "3", name: "p" },
     ]);

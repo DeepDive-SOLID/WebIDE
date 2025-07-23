@@ -14,7 +14,7 @@ const CodeEditor = ({ language, code, onChange }: CodeEditorProps) => {
     <>
       <Editor
         width='100%' // 너비
-        height='100%' // 높이
+        height='70%' // 높이
         language={language}
         value={code}
         onChange={onChange}

@@ -15,11 +15,11 @@ const Question = ({ question }: QusetionProp) => {
       </div>
       <div>
         <h3>입력</h3>
-        <p className={styles.question_length}>{question?.question}</p>
+        <p className={styles.question_length}>{question?.questionInput}</p>
       </div>
       <div>
         <h3>출력</h3>
-        <p className={styles.question_length}>{"더한 값만 나오고 출력한다."}</p>
+        <p className={styles.question_length}>{question?.questionOutput}</p>
       </div>
       <div className={styles.question_overflow}>
         <h3>예시</h3>

@@ -18,7 +18,7 @@ const Ide = () => {
     // 컨테이너 유저 목록을 가져오는 api
 
     // 테스트용 더미 데이터
-    const id = "1";
+    const id = "test";
     setLoginId(id);
     setActiveButtonId(id);
 

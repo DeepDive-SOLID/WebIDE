@@ -72,3 +72,22 @@
 .font_color {
     color: rgba(117, 117, 117, 0.431);
 }
+
+.terminal_case {
+    width: 100px;
+    height: 30px;
+    display: flex;
+    border-top-right-radius: 8px;
+    border-top-left-radius: 8px;
+    color: white;
+    background-color: gray;
+    font-size: 13px;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.terminal_case.terminal_case_active {
+    background-color: black;
+
+}

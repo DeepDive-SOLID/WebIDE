@@ -42,4 +42,23 @@ export interface ContainerMemberCode {
 export interface ContainerProp {
     activeMember: string | null;
 }
+
+export interface ContainerSubmit {
+    directoryId: number,
+    codeFileName: string,
+    codeContent: string | undefined
+}
+
+export interface XtermProps {
+    isInputDisabled: boolean,
+    setIsInputDisabled: (check: boolean) => void
+    codeId: number | undefined,
+    height: number,
+}
+
+export interface codeFileList {
+    codeFileId: number;
+    codeFileName: string;
+    directoryId: number;
+}
 export type MonacoEditor = editor.IStandaloneCodeEditor

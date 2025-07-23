@@ -1,90 +1,80 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import lang from "../../../assets/defaultLang.json";
 import CodeEditor from "../codeEditor/CodeEditor";
+import XtermComponent from "../terminal/XtermComponent";
 import styles from "./container.module.scss";
-import type { ContainerProp } from "../../../types/ide";
-
-// api 요청에 따른 변경 후 모듈화 시전
-interface a {
-  id: string;
-  code: string;
-  language: string;
-}
+import { useDispatch, useSelector } from "react-redux";
+import { setRestart } from "../../../stores/terminalSlice";
+import type { codeFileList, ContainerProp } from "../../../types/ide";
+import type { RootState } from "../../../stores";
+import TestResult from "../terminal/TestResult";
 
 const Container = ({ activeMember }: ContainerProp) => {
   const [code, setCode] = useState<string | undefined>("");
-  const [resultMember, setResultMember] = useState<a[]>([]);
+  const [codeFile, setCodeFile] = useState<codeFileList[]>([]);
+  const [codeId, setCodeId] = useState<number>();
   const [toggle, setToggle] = useState<boolean>(false);
+  const [terminalToggle, setTerminalToggle] = useState<string>("run");
+  const [isInputDisabled, setIsInputDisabled] = useState<boolean>(true);
   const [selectedLanguage, setSelectedLanguage] = useState<string>("javascript");
+  const dispatch = useDispatch();
+  const output = useSelector((state: RootState) => state.terminal.output);
 
+  // 임시 더미 데이터
+  const directoryId = 1;
   useEffect(() => {
-    const res = async () => {
-      //api 요청
-      // 더미
-      setResultMember([
-        { id: "1", code: "asdasdasda", language: "javascript" },
-        { id: "2", code: "hi", language: "java" },
-        { id: "2", code: "javascript", language: "javascript" },
-        { id: "2", code: "python", language: "python" },
-        { id: "3", code: "function test() { \n  console.log('hello') \n}\n\ntest(); ", language: "javascript" },
-      ]);
+    // 디렉토리 id를 받는다는 가정
+    const fetchCodeFile = async () => {
+      try {
+        // 디렉토리에 존재하는 제출 코드 가져오는 api
+        const res = await axios.get("http://localhost:8080/CodeFile/list");
+        const filterRes = res.data.filter((items: codeFileList) => items.directoryId === directoryId);
+        setCodeFile(filterRes);
+      } catch (e) {
+        console.log(e);
+      }
     };
-    res();
+    fetchCodeFile();
   }, []);
 
   useEffect(() => {
-    // 해당 문제에 대한 풀이가 없으면 firstCode 로 기본 코드 초기화
-    // 만일 문제 푼 게 있으면 기본 코드가 아닌 푼 코드로 초기화
-    memberCode();
+    // codeFile이 비어있지 않을 때만 실행하도록 조건 추가
+    if (codeFile.length > 0) {
+      memberCode();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLanguage, activeMember]);
+  }, [selectedLanguage, activeMember, codeFile]); // codeFile을 의존성 배열에 추가
 
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedLanguage(e.target.value);
-  };
-
-  const handleCodeChange = (value: string | null | undefined) => {
-    setCode(value ?? "");
-  };
-
-  const testAPI = async () => {
-    console.log("testAPI 입니다.");
-  };
-  const runAPI = async () => {
-    console.log("runAPI 입니다.");
-  };
-  const submitAPI = async () => {
-    console.log("submitAPI 입니다.");
-  };
-
-  const handleClickEvent = (type: string) => {
-    switch (type) {
-      case "reset":
-        setToggle((prev) => !prev);
-        break;
-      case "test":
-        // api 함수
-        testAPI();
-        break;
-      case "run":
-        // api 함수
-        runAPI();
-        break;
-      case "submit":
-        // api 함수
-        submitAPI();
-        break;
-      default:
-        console.log(`${type}은 알수없는 타입입니다.`);
+  // 코드 리스트중 코드id 를 가지고 코드내용을 가져오는 api
+  const fileData = async (codeFileId: number) => {
+    try {
+      const res = await axios.post("http://localhost:8080/CodeFile/content", { codeFileId: codeFileId });
+      setCode(res.data);
+    } catch (e) {
+      console.log(e);
     }
   };
 
+  // 코드 초기화 함수
   const memberCode = () => {
-    const memberCode = resultMember.find((member) => member.id === activeMember && member.language === selectedLanguage);
+    const languageMap: { [key: string]: string } = {
+      js: "javascript",
+      java: "java",
+      py: "python",
+    };
 
+    const memberCode = codeFile.find((member) => {
+      const parts = member.codeFileName.split(".");
+      const fileName = parts[0];
+      const fileExtension = parts[1];
+
+      const fullLanguageName = languageMap[fileExtension];
+      return fileName === activeMember && fullLanguageName === selectedLanguage;
+    });
     if (memberCode) {
-      // 해당 멤버의 해당 언어 코드가 있으면 설정
-      setCode(memberCode.code);
+      fileData(memberCode.codeFileId);
+      setCodeId(memberCode.codeFileId);
     } else {
       // 없으면 기본 코드 설정
       if (selectedLanguage === "javascript") {
@@ -97,6 +87,73 @@ const Container = ({ activeMember }: ContainerProp) => {
     }
   };
 
+  // 선택 언어 변경 이벤트
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedLanguage(e.target.value);
+  };
+  // 작성 코드 변경 이벤트
+  const handleCodeChange = (value: string | null | undefined) => {
+    setCode(value ?? "");
+  };
+
+  // 테스트 api
+  const testAPI = async () => {
+    try {
+      const res = axios.post("http://localhost:8080/docker/test", { codeId: codeId, questionId: 1 });
+      console.log(res);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  // 저장과 수정 api
+  const saveAPI = async () => {
+    if (output !== "") {
+      dispatch(setRestart());
+    }
+    try {
+      // 로그인한 유저 id 로 파일 명 바꾸기
+      const select = selectedLanguage === "javascript" ? `${activeMember}.js` : selectedLanguage === "java" ? `${activeMember}.java` : `${activeMember}.py`;
+      const existCode = codeFile.find((itmes) => itmes.codeFileName === select);
+      if (!existCode) {
+        const data = await axios.post("http://localhost:8080/CodeFile/create", { directoryId: 1, codeFileName: select, codeContent: code });
+        console.log(data);
+      } else {
+        const data = await axios.put("http://localhost:8080/CodeFile/update", { codeFileId: existCode.codeFileId, codeContent: code });
+        console.log(data);
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  // 버튼에 따른 클릭 이벤트
+  const handleClickEvent = (type: string) => {
+    switch (type) {
+      case "reset":
+        setToggle((prev) => !prev);
+        break;
+      case "test":
+        setTerminalToggle(type);
+        saveAPI();
+        testAPI();
+        break;
+      case "run":
+        setTerminalToggle(type);
+        saveAPI();
+        setIsInputDisabled((prev) => !prev);
+        break;
+      case "submit": {
+        setTerminalToggle(type);
+        saveAPI();
+        break;
+      }
+      default:
+        console.log(`${type}은 알수없는 타입입니다.`);
+    }
+  };
+  const handleTerminalClick = (tabName: string) => {
+    setTerminalToggle(tabName);
+  };
   return (
     <div className={styles.flex}>
       <div className={styles.flex_space}>
@@ -121,7 +178,22 @@ const Container = ({ activeMember }: ContainerProp) => {
         </select>
       </div>
       {activeMember && <CodeEditor language={selectedLanguage} code={code} onChange={handleCodeChange} />}
-
+      <div>
+        <div style={{ display: "flex" }}>
+          <div className={`${styles.terminal_case} ${terminalToggle === "run" ? styles.terminal_case_active : ""}`} onClick={() => handleTerminalClick("run")}>
+            실행 결과
+          </div>
+          <div className={`${styles.terminal_case} ${terminalToggle === "test" ? styles.terminal_case_active : ""}`} onClick={() => handleTerminalClick("test")}>
+            테스트 결과
+          </div>
+          <div className={`${styles.terminal_case} ${terminalToggle === "submit" ? styles.terminal_case_active : ""}`} onClick={() => handleTerminalClick("submit")}>
+            제출 결과
+          </div>
+        </div>
+      </div>
+      <div style={{ minHeight: "300px" }}>
+        {terminalToggle === "test" ? <TestResult /> : <XtermComponent isInputDisabled={isInputDisabled} setIsInputDisabled={setIsInputDisabled} codeId={codeId} height={300} />}
+      </div>
       <div className={`${styles.resetModal} ${toggle ? styles.action : ""}`}>
         <div className={styles.resetModal_box}>
           <p>
