@@ -37,9 +37,9 @@ public interface SignService {
 
     /**
      * 설명: 아이디 이메일 체크
-     * @param signCheckIIdEmailDto
+     * @param signCheckIdEmailDto
      */
-    void checkIdEmail(SignCheckIIdEmailDto signCheckIIdEmailDto);
+    void checkIdEmail(SignCheckIdEmailDto signCheckIdEmailDto);
 
     /**
      * 설명: 비밀번호 재설정

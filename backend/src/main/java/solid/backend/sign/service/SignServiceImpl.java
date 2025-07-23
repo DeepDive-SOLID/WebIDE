@@ -1,6 +1,5 @@
 package solid.backend.sign.service;
 
-import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -125,14 +124,14 @@ public class SignServiceImpl implements SignService {
 
     /**
      * 설명: 아이디 이메일 체크
-     * @param signCheckIIdEmailDto
+     * @param signCheckIdEmailDto
      */
     @Override
-    public void checkIdEmail(SignCheckIIdEmailDto signCheckIIdEmailDto) {
-        Member member = signRepository.findById(signCheckIIdEmailDto.getMemberId())
+    public void checkIdEmail(SignCheckIdEmailDto signCheckIdEmailDto) {
+        Member member = signRepository.findById(signCheckIdEmailDto.getMemberId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다."));
 
-        if (!member.getMemberEmail().equals(signCheckIIdEmailDto.getMemberEmail())) {
+        if (!member.getMemberEmail().equals(signCheckIdEmailDto.getMemberEmail())) {
             throw new IllegalArgumentException("아이디와 이메일이 일치하지 않습니다.");
         }
     }
