@@ -9,10 +9,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExecutionResultDto {
+public class ExecutionTestDto {
     private String language;
-    private float time;
-    private String mem;
     private Boolean isCorrect;
     private List<TestcaseResultDto> testcaseResults;
 }

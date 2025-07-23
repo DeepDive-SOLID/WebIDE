@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DockerRunDto {
+    private String memberId;
     private Integer codeFileId;
     private Integer questionId;
 }

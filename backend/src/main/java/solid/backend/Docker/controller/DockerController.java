@@ -7,10 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import solid.backend.Docker.dto.CustomInputDto;
-import solid.backend.Docker.dto.CustomInputResultDto;
-import solid.backend.Docker.dto.DockerRunDto;
-import solid.backend.Docker.dto.ExecutionResultDto;
+import solid.backend.Docker.dto.*;
 import solid.backend.Docker.service.DockerServiceImpl;
 
 @Controller
@@ -27,7 +24,7 @@ public class DockerController {
     @ResponseBody
     @PostMapping("/run")
     public ResponseEntity<ExecutionResultDto> runCodeFile(@RequestBody DockerRunDto dockerRunDto) {
-        return ResponseEntity.ok(dockerService.runCodeFile(dockerRunDto.getCodeFileId(), dockerRunDto.getQuestionId()));
+        return ResponseEntity.ok(dockerService.runCodeFile(dockerRunDto.getMemberId(), dockerRunDto.getCodeFileId(), dockerRunDto.getQuestionId()));
     }
 
     /**
@@ -37,7 +34,7 @@ public class DockerController {
      */
     @ResponseBody
     @PostMapping("/test")
-    public ResponseEntity<ExecutionResultDto> runTestCodeFile(@RequestBody DockerRunDto dockerRunDto) {
+    public ResponseEntity<ExecutionTestDto> runTestCodeFile(@RequestBody DockerRunDto dockerRunDto) {
         return ResponseEntity.ok(dockerService.runTestCodeFile(dockerRunDto.getCodeFileId(), dockerRunDto.getQuestionId()));
     }
 
