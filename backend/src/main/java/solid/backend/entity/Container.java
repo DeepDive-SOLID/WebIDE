@@ -37,8 +37,9 @@ public class Container {
     /**
      * 컨테이너 공개 여부 (true: 공개, false: 비공개)
      */
-    @Column(name = "is_public", nullable = false)
-    private Boolean isPublic;
+    @Column(name = "container_auth", nullable = false)
+    @Builder.Default
+    private Boolean containerAuth = true;
     
     /**
      * 컨테이너 생성일 (기본값: 현재 날짜)
