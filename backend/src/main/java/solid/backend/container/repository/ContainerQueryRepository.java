@@ -92,7 +92,7 @@ public class ContainerQueryRepository {
                 .leftJoin(container.team, team)
                 .leftJoin(team.teamUsers, teamUser)
                 .where(
-                    container.isPublic.isTrue()
+                    container.containerAuth.isTrue()
                     .or(teamUser.member.eq(member))
                 )
                 .orderBy(container.containerDate.desc())
@@ -135,7 +135,7 @@ public class ContainerQueryRepository {
         public long updateContainerVisibility(List<Long> containerIds, boolean isPublic) {
         return queryFactory
                 .update(container)
-                .set(container.isPublic, isPublic)
+                .set(container.containerAuth, isPublic)
                 .where(container.containerId.in(containerIds))
                 .execute();
     }
@@ -211,7 +211,7 @@ public class ContainerQueryRepository {
      * 공개 여부 필터 조건
      */
     private BooleanExpression isPublicEq(Boolean isPublic) {
-        return isPublic != null ? container.isPublic.eq(isPublic) : null;
+        return isPublic != null ? container.containerAuth.eq(isPublic) : null;
     }
     
     /**
@@ -229,9 +229,9 @@ public class ContainerQueryRepository {
      */
     private BooleanExpression memberAccessible(Member member) {
         if (member == null) {
-            return container.isPublic.isTrue();
+            return container.containerAuth.isTrue();
         }
-        return container.isPublic.isTrue()
+        return container.containerAuth.isTrue()
                 .or(container.owner.eq(member))
                 .or(teamUser.member.eq(member));
     }

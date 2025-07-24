@@ -61,7 +61,7 @@ public class ContainerServiceImpl implements ContainerService {
         Container container = Container.builder()
                 .containerName(createDto.getContainerName())
                 .containerContent(createDto.getContainerContent())
-                .isPublic(createDto.getIsPublic())
+                .containerAuth(createDto.getIsPublic())
                 .owner(owner)
                 .team(team)
                 .build();
@@ -98,7 +98,7 @@ public class ContainerServiceImpl implements ContainerService {
                 .orElseThrow(() -> new ContainerNotFoundException(ERROR_CONTAINER_NOT_FOUND + containerId));
         
         // 접근 권한 확인 (비공개 컨테이너인 경우)
-        if (!container.getIsPublic()) { // false = 비공개
+        if (!container.getContainerAuth()) { // false = 비공개
             // memberId가 null인 경우 비공개 컨테이너 접근 불가
             validateMemberId(memberId, ERROR_PRIVATE_CONTAINER_ACCESS_DENIED);
             
@@ -152,7 +152,7 @@ public class ContainerServiceImpl implements ContainerService {
             container.setContainerContent(updateDto.getContainerContent());
         }
         if (updateDto.getIsPublic() != null) {
-            container.setIsPublic(updateDto.getIsPublic());
+            container.setContainerAuth(updateDto.getIsPublic());
         }
         
         return ContainerResponseDto.from(container, userAuth, container.getTeam().getTeamUsers().size());
@@ -223,7 +223,7 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     @Transactional(readOnly = true)
     public List<ContainerResponseDto> getPublicContainers(String memberId) {
-        return convertToResponseDtoList(containerRepository.findByIsPublicOrderByContainerDateDesc(true), memberId);
+        return convertToResponseDtoList(containerRepository.findByContainerAuthOrderByContainerDateDesc(true), memberId);
     }
     
     /**
@@ -299,7 +299,7 @@ public class ContainerServiceImpl implements ContainerService {
         Container container = getContainerWithTeamOrThrow(containerId);
         
         // 접근 권한 확인 (비공개 컨테이너인 경우)
-        if (!container.getIsPublic() && !hasAccess(container, memberId)) {
+        if (!container.getContainerAuth() && !hasAccess(container, memberId)) {
             throw new IllegalArgumentException("접근 권한이 없습니다.");
         }
         

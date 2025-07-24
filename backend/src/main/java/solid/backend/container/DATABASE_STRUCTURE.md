@@ -26,7 +26,7 @@ CREATE TABLE container (
     container_id BIGINT PRIMARY KEY,
     container_nm VARCHAR(20) NOT NULL,
     container_content VARCHAR(200),
-    is_public BOOLEAN NOT NULL,
+    container_auth BOOLEAN NOT NULL,
     container_date DATE NOT NULL,
     owner_id VARCHAR(255) NOT NULL,  -- Member 테이블의 FK
     team_id BIGINT NOT NULL,

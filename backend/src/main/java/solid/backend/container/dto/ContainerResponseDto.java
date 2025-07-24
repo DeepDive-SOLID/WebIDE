@@ -64,7 +64,7 @@ public class ContainerResponseDto {
                 .containerId(container.getContainerId())
                 .containerName(container.getContainerName())
                 .containerContent(container.getContainerContent())
-                .isPublic(container.getIsPublic())
+                .isPublic(container.getContainerAuth())
                 .containerDate(container.getContainerDate())
                 .ownerName(container.getOwner().getMemberName())
                 .ownerId(container.getOwner().getMemberId())
