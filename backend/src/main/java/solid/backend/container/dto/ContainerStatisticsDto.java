@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 컨테이너 통계 정보 DTO
@@ -36,6 +37,9 @@ public class ContainerStatisticsDto {
     private Long rootMemberCount;
     /** USER 권한을 가진 멤버 수 */
     private Long userMemberCount;
+    
+    /** 컨테이너 멤버 리스트 (접속 여부 포함) */
+    private List<ContainerMemberDto> members;
     
     /**
      * 활동률 계산 (백분율)

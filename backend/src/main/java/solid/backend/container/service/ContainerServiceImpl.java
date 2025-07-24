@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import static solid.backend.container.constant.ContainerConstants.*;
+import solid.backend.container.dto.ContainerMemberDto;
 
 /**
  * 컨테이너 서비스 구현체
@@ -554,6 +555,33 @@ public class ContainerServiceImpl implements ContainerService {
                     Collectors.counting()
                 ));
         
+        // 멤버 리스트 생성 (접속 여부 포함)
+        List<ContainerMemberDto> memberList = team.getTeamUsers().stream()
+                .map(teamUser -> {
+                    Member member = teamUser.getMember();
+                    return ContainerMemberDto.builder()
+                            .memberId(member.getMemberId())
+                            .memberName(member.getMemberName())
+                            .isOnline(member.getMemberIsOnline())
+                            .authority(teamUser.getTeamAuth().getAuthId())
+                            .lastActivityDate(teamUser.getLastActivityDate())
+                            .joinedDate(teamUser.getJoinedDate())
+                            .build();
+                })
+                .sorted((a, b) -> {
+                    // 온라인 사용자를 먼저 정렬
+                    if (a.getIsOnline() != b.getIsOnline()) {
+                        return b.getIsOnline() ? 1 : -1;
+                    }
+                    // 그 다음 권한별 정렬 (ROOT 먼저)
+                    if (!a.getAuthority().equals(b.getAuthority())) {
+                        return AUTHORITY_ROOT.equals(a.getAuthority()) ? -1 : 1;
+                    }
+                    // 마지막으로 이름순 정렬
+                    return a.getMemberName().compareTo(b.getMemberName());
+                })
+                .collect(Collectors.toList());
+        
         return ContainerStatisticsDto.builder()
                 .containerId(containerId)
                 .containerName(container.getContainerName())
@@ -564,6 +592,7 @@ public class ContainerServiceImpl implements ContainerService {
                 .createdDate(container.getContainerDate().atStartOfDay())
                 .rootMemberCount(authCounts.getOrDefault(AUTHORITY_ROOT, 0L))
                 .userMemberCount(authCounts.getOrDefault(AUTHORITY_USER, 0L))
+                .members(memberList)
                 .build();
     }
     

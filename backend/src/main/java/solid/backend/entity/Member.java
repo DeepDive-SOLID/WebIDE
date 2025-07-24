@@ -63,4 +63,11 @@ public class Member {
     @Builder.Default
     private Boolean memberIsOnline = false;
 
+    /**
+     * 회원 접속 여부 확인
+     * @return 접속 중이면 true, 아니면 false
+     */
+    public boolean isMemberIsOnline() {
+        return memberIsOnline != null && memberIsOnline;
+    }
 }
