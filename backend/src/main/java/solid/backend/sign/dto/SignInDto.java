@@ -1,15 +1,8 @@
 package solid.backend.sign.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Data;
 
-
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Data
 public class SignInDto {
     private String memberId;
     private String memberPw;

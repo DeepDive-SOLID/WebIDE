@@ -1,3 +1,6 @@
+### 변수 설정 (로그인 후 받은 토큰을 여기에 넣으세요)
+@token = eyJhbGciOiJIUzUxMiJ9.eyJtZW1iZXJJZCI6InRlc3R1c2VyIiwiaWF0IjoxNzUzMTg1MDMzLCJleHAiOjE3NTMxODg2MzN9.Ynrld_SbaGlcPDjDfWUqr7EXEnyWIb62txTa5F48izRrlfZctAFFrv2oDZQ9QNK9m16O9oYXbx_5QOBW6BvL5A
+
 ### 컨테이너 관리 API 테스트
 ### Team 기반 컨테이너 시스템 (ROOT/USER 권한)
 ### 
@@ -10,25 +13,37 @@
 ###   "errorCode": "에러코드 (실패시)",
 ###   "path": "요청 경로 (실패시)"
 ### }
+###
+### ========== 인증 토큰 발급 ==========
+### 먼저 로그인하여 JWT 토큰을 발급받으세요
+
+### 0. 로그인 (JWT 토큰 발급)
+POST http://localhost:8081/sign/login
+Content-Type: application/json
+
+{
+  "memberId": "testuser",
+  "memberPw": "password123"
+}
 
 ### ========== 컨테이너 생성 테스트 ==========
 
 ### 1. 컨테이너 생성 (비공개) - 멤버 초대 포함
 POST http://localhost:8081/api/containers
+Authorization: Bearer {{token}}
 Content-Type: application/json
-memberId: test001
 
 {
   "containerName": "My First Project",
   "containerContent": "This is my first container project",
   "isPublic": false,
-  "invitedMemberIds": ["test002", "test003"]
+  "invitedMemberIds": []
 }
 
 ### 2. 컨테이너 생성 (공개) - 초대 없음
 POST http://localhost:8081/api/containers
+Authorization: Bearer {{token}}
 Content-Type: application/json
-memberId: test002
 
 {
   "containerName": "Public Demo",
@@ -41,33 +56,33 @@ memberId: test002
 
 ### 3. 내 컨테이너 목록 조회
 GET http://localhost:8081/api/containers/my
-memberId: test001
+Authorization: Bearer {{token}}
 
 ### 4. 컨테이너 상세 조회
 GET http://localhost:8081/api/containers/1
-memberId: test001
+Authorization: Bearer {{token}}
 
 ### 5. 공유된 컨테이너 목록 조회
 GET http://localhost:8081/api/containers/shared
-memberId: test002
+Authorization: Bearer {{token}}
 
 ### 6. 공개 컨테이너 목록 조회 (비인증)
 GET http://localhost:8081/api/containers/public
 
 ### 6-1. 공개 컨테이너 목록 조회 (인증된 사용자)
 GET http://localhost:8081/api/containers/public
-memberId: test001
+Authorization: Bearer {{token}}
 
 ### 7. 모든 접근 가능한 컨테이너 목록 조회
 GET http://localhost:8081/api/containers
-memberId: test001
+Authorization: Bearer {{token}}
 
 ### ========== 컨테이너 수정 테스트 ==========
 
 ### 8. 컨테이너 수정 (소유자)
 PUT http://localhost:8081/api/containers/1
 Content-Type: application/json
-memberId: test001
+Authorization: Bearer {{token}}
 
 {
   "containerName": "Updated Project Name",
@@ -78,7 +93,7 @@ memberId: test001
 ### 9. 컨테이너 내용만 수정 (USER 권한 멤버)
 PUT http://localhost:8081/api/containers/1
 Content-Type: application/json
-memberId: test002
+Authorization: Bearer {{token}}
 
 {
   "containerContent": "Updated by member with USER permission"
@@ -88,78 +103,78 @@ memberId: test002
 
 ### 10. 컨테이너 멤버 목록 조회
 GET http://localhost:8081/api/containers/1/members
-memberId: test001
+Authorization: Bearer {{token}}
 
 ### 11. 멤버 초대 (ROOT 권한 필요)
 POST http://localhost:8081/api/containers/1/members
 Content-Type: application/json
-memberId: test001
+Authorization: Bearer {{token}}
 
 {
-  "memberId": "test003"
+  "memberId": "testuser2"
 }
 
 ### 12. 멤버 제거 (ROOT 권한 필요)
-DELETE http://localhost:8081/api/containers/1/members/test003
-memberId: test001
+DELETE http://localhost:8081/api/containers/1/members/testuser2
+Authorization: Bearer {{token}}
 
 ### 13. 컨테이너 탈퇴 (소유자는 불가)
 DELETE http://localhost:8081/api/containers/1/members/me
-memberId: test002
+Authorization: Bearer {{token}}
 
 ### ========== 활동 시간 업데이트 ==========
 
 ### 14. 멤버 활동 시간 업데이트
 PUT http://localhost:8081/api/containers/1/members/me/activity
-memberId: test001
+Authorization: Bearer {{token}}
 
 ### ========== 컨테이너 삭제 테스트 ==========
 
 ### 15. 컨테이너 삭제 (ROOT 권한 필요)
 DELETE http://localhost:8081/api/containers/1
-memberId: test001
+Authorization: Bearer {{token}}
 
 ### ========== 검색 기능 테스트 ==========
 
 ### 16. 컨테이너 검색 - 이름으로 검색
 GET http://localhost:8081/api/containers/search?name=Project
-memberId: test001
+Authorization: Bearer {{token}}
 
 ### 17. 컨테이너 검색 - 공개 여부로 검색
 GET http://localhost:8081/api/containers/search?isPublic=true
-memberId: test001
+Authorization: Bearer {{token}}
 
 ### 18. 컨테이너 검색 - 소유자로 검색
-GET http://localhost:8081/api/containers/search?ownerId=test001
-memberId: test001
+GET http://localhost:8081/api/containers/search?ownerId=testuser
+Authorization: Bearer {{token}}
 
 ### 19. 컨테이너 고급 검색
 POST http://localhost:8081/api/containers/search
 Content-Type: application/json
-memberId: test001
+Authorization: Bearer {{token}}
 
 {
   "name": "Project",
   "isPublic": true,
-  "ownerId": "test001"
+  "ownerId": "testuser"
 }
 
 ### ========== 통계 기능 테스트 ==========
 
 ### 20. 권한별 컨테이너 통계
 GET http://localhost:8081/api/containers/stats/authority
-memberId: test001
+Authorization: Bearer {{token}}
 
 ### 21. 컨테이너 상세 통계
 GET http://localhost:8081/api/containers/1/statistics
-memberId: test001
+Authorization: Bearer {{token}}
 
 ### ========== 배치 작업 테스트 ==========
 
 ### 22. 여러 컨테이너의 공개 상태 변경
 PUT http://localhost:8081/api/containers/batch/visibility
 Content-Type: application/json
-memberId: test001
+Authorization: Bearer {{token}}
 
 {
   "containerIds": [1, 2, 3],
@@ -171,7 +186,7 @@ memberId: test001
 ### 23. 존재하지 않는 멤버 초대
 POST http://localhost:8081/api/containers/1/members
 Content-Type: application/json
-memberId: test001
+Authorization: Bearer {{token}}
 
 {
   "memberId": "notexist"
@@ -180,24 +195,24 @@ memberId: test001
 ### 24. 이미 멤버인 사용자 재초대
 POST http://localhost:8081/api/containers/1/members
 Content-Type: application/json
-memberId: test001
+Authorization: Bearer {{token}}
 
 {
-  "memberId": "test002"
+  "memberId": "testuser"
 }
 
 ### 25. 권한 없는 사용자의 비공개 컨테이너 접근
 GET http://localhost:8081/api/containers/1
-memberId: outsider001
+Authorization: Bearer {{token}}
 
 ### 26. 소유자가 탈퇴 시도 (실패 예상)
 DELETE http://localhost:8081/api/containers/1/members/me
-memberId: test001
+Authorization: Bearer {{token}}
 
 ### 27. 빈 이름으로 컨테이너 생성 (실패 예상)
 POST http://localhost:8081/api/containers
 Content-Type: application/json
-memberId: test001
+Authorization: Bearer {{token}}
 
 {
   "containerName": "",
@@ -209,7 +224,7 @@ memberId: test001
 ### 28. 너무 긴 이름으로 컨테이너 생성 (실패 예상)
 POST http://localhost:8081/api/containers
 Content-Type: application/json
-memberId: test001
+Authorization: Bearer {{token}}
 
 {
   "containerName": "This is a very long container name that exceeds the maximum length",

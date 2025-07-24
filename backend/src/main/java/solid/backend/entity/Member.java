@@ -57,4 +57,10 @@ public class Member {
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
     @Builder.Default
     private List<Container> ownedContainers = new ArrayList<>();
+
+    @Column(name = "member_is_online", nullable = false)
+    @Comment("회원 접속 여부")
+    @Builder.Default
+    private Boolean memberIsOnline = false;
+
 }

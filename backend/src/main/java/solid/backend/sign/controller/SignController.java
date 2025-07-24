@@ -95,14 +95,14 @@ public class SignController {
 
     /**
      * 설명: 아이디, 이메일 확인
-     * @param signCheckIIdEmailDto
+     * @param signCheckIdEmailDto
      * @return ResponseEntity<String>
      */
     @ResponseBody
     @PostMapping("/checkIdEmail")
-    public ResponseEntity<String> checkIdEmail(@RequestBody SignCheckIIdEmailDto signCheckIIdEmailDto) {
+    public ResponseEntity<String> checkIdEmail(@RequestBody SignCheckIdEmailDto signCheckIdEmailDto) {
         try {
-            signService.checkIdEmail(signCheckIIdEmailDto);
+            signService.checkIdEmail(signCheckIdEmailDto);
             return ResponseEntity.ok("SUCCESS");
         } catch (Exception e) {
             e.printStackTrace();

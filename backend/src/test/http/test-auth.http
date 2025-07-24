@@ -1,0 +1,39 @@
+### 1. 회원가입 (처음 한 번만)
+POST http://localhost:8080/sign/signUp
+Content-Type: application/json
+
+{
+  "memberId": "testuser",
+  "memberName": "테스트유저",
+  "memberPw": "password123",
+  "memberEmail": "test@example.com",
+  "memberPhone": "010-1234-5678",
+  "memberBirth": "2000-01-01"
+}
+
+### 2. 아이디 중복 확인
+POST http://localhost:8080/sign/checkId
+Content-Type: application/json
+
+{
+  "memberId": "testuser"
+}
+
+### 3. 로그인 (토큰 받기)
+POST http://localhost:8080/sign/login
+Content-Type: application/json
+
+{
+  "memberId": "testuser",
+  "memberPw": "password123"
+}
+
+### 4. 컨테이너 생성 (위에서 받은 토큰을 여기에 붙여넣기)
+POST http://localhost:8080/api/containers
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJtZW1iZXJJZCI6InRlc3R1c2VyIiwiaWF0IjoxNzUzMTg1MDMzLCJleHAiOjE3NTMxODg2MzN9.Ynrld_SbaGlcPDjDfWUqr7EXEnyWIb62txTa5F48izRrlfZctAFFrv2oDZQ9QNK9m16O9oYXbx_5QOBW6BvL5A
+Content-Type: application/json
+
+{
+  "containerName": "My Container",
+  "isPublic": true
+}

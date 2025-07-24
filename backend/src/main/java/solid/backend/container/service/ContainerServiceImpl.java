@@ -14,10 +14,7 @@ import solid.backend.container.repository.ContainerQueryRepository;
 import solid.backend.container.exception.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 import java.util.stream.Collectors;
 import static solid.backend.container.constant.ContainerConstants.*;
 
@@ -535,15 +532,14 @@ public class ContainerServiceImpl implements ContainerService {
         Team team = container.getTeam();
         long memberCount = team.getTeamUsers().size();
         
-        // TODO: 웹소켓 구현 후 실시간 접속 상태 확인으로 변경 필요
-        // 현재는 모든 멤버를 비활성으로 표시
-        long activeMemberCount = 0L;
-        
-        // 웹소켓 구현 시 아래 코드로 교체
-        // Set<String> onlineUsers = userPresenceService.getOnlineUsersInContainer(containerId);
-        // long activeMemberCount = team.getTeamUsers().stream()
-        //         .filter(tu -> tu.getMember() != null && onlineUsers.contains(tu.getMember().getMemberId()))
-        //         .count();
+
+
+         long activeMemberCount = team.getTeamUsers().stream()
+                 .map(TeamUser::getMember)
+                 .filter(Objects::nonNull)
+                 .filter(Member::isMemberIsOnline)
+                 .count();
+
         
         LocalDateTime lastActivityDate = team.getTeamUsers().stream()
                 .map(TeamUser::getLastActivityDate)
