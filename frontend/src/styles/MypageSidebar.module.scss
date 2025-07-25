@@ -91,3 +91,41 @@
     }
   }
 }
+
+:global(body.dark-mode) {
+  .sidebar {
+    background-color: #1e1e1e;
+    box-shadow: 0 8px 24px 0 rgba(255, 255, 255, 0.05);
+
+    .profileImg {
+      box-shadow: 0 0 0 2px #444;
+    }
+
+    .greeting,
+    .userName {
+      color: #f5f5f5;
+    }
+
+    .menuList {
+      .item {
+        color: #e0e0e0;
+        border-bottom: 1px solid #333;
+
+        &:hover {
+          background-color: #2a2a2a;
+          color: #ffffff;
+        }
+
+        &.active {
+          background-color: #0085ff;
+          color: #ffffff;
+          box-shadow: 0 2px 4px rgba(0, 133, 255, 0.4);
+        }
+
+        svg {
+          color: #ffffff;
+        }
+      }
+    }
+  }
+}

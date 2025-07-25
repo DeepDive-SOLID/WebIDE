@@ -441,3 +441,131 @@
     background: #0074d9;
   }
 }
+
+:global(body.dark-mode) {
+  .profileForm {
+    background: #1e1e1e;
+    box-shadow: 0 2px 16px rgba(255, 255, 255, 0.05);
+  }
+
+  .inputGroup label {
+    color: #f0f0f0;
+  }
+
+  .inputGroup input {
+    background: #2c2c2c;
+    color: #f0f0f0;
+    border: 1px solid #444;
+  }
+
+  .inputGroup input:focus {
+    background: #333;
+    border-color: #2196f3;
+  }
+
+  .inputGroup input:disabled {
+    background: #333;
+    color: #90caf9;
+  }
+
+  .readOnlyValue {
+    background-color: #2c2c2c;
+    color: #f0f0f0;
+    border: 1px solid #444;
+  }
+
+  .saveButton {
+    background: #2196f3;
+    color: #fff;
+
+    &:hover {
+      background: #1e88e5;
+    }
+  }
+
+  .withdrawButton {
+    color: #ccc;
+
+    &:hover {
+      color: #ef4444;
+    }
+  }
+
+  .modal {
+    background: #2c2c2c;
+    color: #f0f0f0;
+  }
+
+  .modal h3 {
+    color: #fff;
+  }
+
+  .modal p {
+    color: #bbb;
+  }
+
+  .warningText {
+    color: #f87171 !important;
+  }
+
+  .fileNotice {
+    background: #2c2c2c;
+    border-color: #444;
+
+    p {
+      color: #ccc;
+    }
+
+    strong {
+      color: #fff;
+    }
+  }
+
+  .fileInput input[type="file"] {
+    background: #2c2c2c;
+    color: #eee;
+    border-color: #444;
+  }
+
+  .changePictureButton {
+    background: #2c2c2c;
+    color: #ccc;
+    border-color: #444;
+
+    &:hover {
+      background: #1e1e1e;
+      color: #2196f3;
+      border-color: #2196f3;
+    }
+  }
+
+  .emailCheckBtn {
+    background: #2196f3;
+
+    &:hover {
+      background: #1e88e5;
+    }
+
+    &:disabled {
+      background: #666;
+    }
+  }
+
+  .emailError {
+    color: #f87171;
+  }
+
+  .emailSuccess {
+    color: #34d399;
+  }
+
+  .input {
+    background: #2c2c2c;
+    color: #f0f0f0;
+    border: 1px solid #444;
+
+    &::placeholder {
+      color: #888;
+    }
+  }
+}
