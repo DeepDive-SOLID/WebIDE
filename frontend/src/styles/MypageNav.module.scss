@@ -1,0 +1,131 @@
+.sidebar {
+  width: 240px;
+  background-color: #fff;
+  padding: 24px 16px;
+  height: auto;
+  min-height: 300px;
+  margin-left: 24px;
+  margin-top: 24px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.1);
+  border: none;
+  display: flex;
+  flex-direction: column;
+
+  .profileBox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 32px;
+    margin-top: 8px;
+  }
+
+  .profileImg {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 16px;
+    border: none;
+    display: block;
+  }
+
+  .greeting {
+    text-align: center;
+    font-size: 17px;
+    font-weight: 500;
+    margin-bottom: 0;
+    margin-top: 0;
+  }
+
+  .userName {
+    color: #2584f7;
+    font-weight: 700;
+    font-size: 17px;
+    margin-right: 2px;
+  }
+
+  .logo {
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+
+    a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #374151;
+      font-weight: 600;
+      font-size: 16px;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #4a6cf7;
+      }
+
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+
+  .menuList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .item {
+    margin-bottom: 8px;
+
+    a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      text-decoration: none;
+      color: #6b7280;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      font-size: 14px;
+      font-weight: 500;
+
+      &:hover {
+        background-color: #f9fafb;
+        color: #374151;
+      }
+
+      &.active {
+        background-color: #4a6cf7;
+        color: #ffffff;
+        box-shadow: 0 2px 4px rgba(74, 108, 247, 0.2);
+      }
+
+      svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+      }
+
+      span {
+        white-space: nowrap;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    margin-left: 0;
+    margin-top: 0;
+    border-radius: 0;
+    min-height: unset;
+  }
+}

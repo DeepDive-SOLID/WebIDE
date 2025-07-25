@@ -1,0 +1,405 @@
+.editProfilePage {
+  min-height: 100vh;
+}
+
+.profileFormContainer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  padding: 24px;
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  width: 100%;
+}
+
+.loadingContainer p {
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+}
+
+.profileForm {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+  padding: 48px 48px 32px 48px;
+  min-width: 380px;
+  max-width: 1082px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profileSection {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 32px;
+  width: 100%;
+}
+
+.profileImageBox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.profileImage {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f5f5f5;
+  box-shadow: 0 2px 8px #f3f3f3;
+}
+
+.profileInputs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.inputGroup {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 22px;
+}
+.inputGroup label {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #222;
+}
+.inputGroup input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 15px;
+  background: #fafbfc;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.inputGroup input:focus {
+  border-color: #2196f3;
+  background: #fff;
+}
+.inputGroup input:disabled {
+  background: #f5f5f5;
+  color: #2196f3;
+  font-weight: 700;
+  cursor: not-allowed;
+}
+
+.errorInput {
+  border-color: #ef4444 !important;
+  background: #fef2f2 !important;
+}
+
+.errorMessage {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.passwordInputWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.passwordInputWrapper input {
+  padding-right: 48px;
+}
+
+.eyeBtn {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+}
+
+.saveButton {
+  width: 100%;
+  background: #4a6cf7;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 15px 0;
+  margin-top: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.saveButton:hover {
+  background: #3a5ce7;
+}
+
+.withdrawButton {
+  background: none;
+  color: #b0b0b0;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 0;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.withdrawButton:hover {
+  color: #ef4444;
+}
+
+.mainContent {
+  display: flex;
+  align-items: flex-start;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  padding-top: 70px;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal h3 {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #222;
+}
+
+.modal p {
+  margin: 0 0 12px 0;
+  font-size: 15px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.warningText {
+  color: #ef4444 !important;
+  font-weight: 500;
+}
+
+.modalButtons {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.confirmButton {
+  flex: 1;
+  background: #ef4444;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.confirmButton:hover {
+  background: #dc2626;
+}
+
+.cancelButton {
+  flex: 1;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cancelButton:hover {
+  background: #e5e7eb;
+}
+
+.profileActions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fileNotice {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.fileNotice p {
+  margin: 0 0 4px 0;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.fileNotice p:last-child {
+  margin-bottom: 0;
+}
+
+.fileNotice strong {
+  color: #374151;
+  font-weight: 600;
+}
+
+.fileInput {
+  width: 100%;
+}
+
+.fileInput input[type="file"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.fileInput input[type="file"]:hover {
+  border-color: #4a6cf7;
+}
+
+.changePictureButton {
+  background: #fff;
+  color: #666;
+  font-size: 14px;
+  font-weight: 400;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.changePictureButton:hover {
+  background: #f8fafc;
+  border-color: #4a6cf7;
+  color: #4a6cf7;
+}
+
+.emailInputWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.emailCheckBtn {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  height: 27px;
+  min-width: 60px;
+  background: #0085ff;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background 0.2s;
+  z-index: 2;
+
+  &:hover {
+    background: #0074d9;
+  }
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+}
+
+.emailError {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.emailSuccess {
+  color: #10b981;
+  font-size: 13px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.input {
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+
+  &::placeholder {
+    color: #999;
+  }
+}
+
+.inputWithButton {
+  padding-right: 110px;
+}
+
+.readOnlyValue {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  font-size: 15px;
+}
