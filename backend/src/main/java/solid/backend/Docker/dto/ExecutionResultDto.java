@@ -14,5 +14,6 @@ public class ExecutionResultDto {
     private float time;
     private String mem;
     private Boolean isCorrect;
+    private Integer progress;
     private List<TestcaseResultDto> testcaseResults;
 }

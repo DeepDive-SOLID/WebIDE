@@ -43,6 +43,7 @@ public class DockerServiceImpl implements DockerService {
         String language = dockerRun.getLanguageByExtension(extension);
         float time = 0.0f;
         float memory = 0.0f;
+        int count = 0;
 
         List<TestcaseResultDto> testcaseResults = new ArrayList<>();
         boolean allPass = true;
@@ -68,6 +69,7 @@ public class DockerServiceImpl implements DockerService {
             if(time < (Math.round(execTime * 100.0) / 100.0)) time = (float) (Math.round(execTime * 100.0) / 100.0);
             if(memory < (Math.round(execTime * 100.0) / 100.0)) memory = (float) (Math.round(memUsedMb * 100.0) / 100.0);
 
+            if(pass) count++;
             allPass &= pass;
 
             testcaseResults.add(new TestcaseResultDto(
@@ -79,6 +81,9 @@ public class DockerServiceImpl implements DockerService {
                     pass
             ));
         }
+        System.out.println(count);
+        System.out.println(testcases.size());
+        int progress = (int) ((double) count / testcases.size() * 100.0);
 
         Result result = new Result();
         result.setResultTime(time);
@@ -96,6 +101,7 @@ public class DockerServiceImpl implements DockerService {
                 time,
                 String.format("%.2f MB", memory),
                 allPass,
+                progress,
                 testcaseResults
         );
     }
