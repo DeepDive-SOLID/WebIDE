@@ -21,6 +21,14 @@ public class Chat {
     @Comment("채팅 내용")
     private String chatText;
 
+    @Column(name = "chat_type", length = 20)
+    @Comment("채팅 타입")
+    private String chatType;
+
+    @Column(name = "chat_date", nullable = false)
+    @Comment("채팅 날짜")
+    private LocalDate chatDate;
+
     @Column(name = "chat_data", nullable = false)
     @Comment("채팅 날짜")
     private LocalDate chatData;
