@@ -41,6 +41,7 @@ api.interceptors.response.use(
     // 서버에서 토큰 만료된 경우
     if (error.response?.status === 401 && !isLoginRequest) {
       localStorage.removeItem("accessToken");
+      window.location.href = "/";
       alert("세션이 만료되었습니다. 다시 로그인 해주세요.");
       return;
     }
