@@ -1,0 +1,131 @@
+.sidebar {
+  width: 240px;
+  background-color: #fff;
+  padding: 24px 16px;
+  height: auto;
+  min-height: 300px;
+  margin-left: 24px;
+  margin-top: 24px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.1);
+  border: none;
+  display: flex;
+  flex-direction: column;
+
+  .profileBox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 32px;
+    margin-top: 8px;
+  }
+
+  .profileImg {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 16px;
+    border: none;
+    display: block;
+  }
+
+  .greeting {
+    text-align: center;
+    font-size: 17px;
+    font-weight: 500;
+    margin-bottom: 0;
+    margin-top: 0;
+  }
+
+  .userName {
+    color: #0085ff;
+    font-weight: 700;
+    font-size: 17px;
+    margin-right: 2px;
+  }
+
+  .menuList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #202020;
+      cursor: pointer;
+      border-bottom: 1px solid #e5e7eb;
+
+      transition: background-color 0.2s ease, color 0.2s ease;
+
+      &:hover {
+        background-color: #f9fafb;
+        color: #374151;
+      }
+
+      &.active {
+        background-color: #0085ff;
+        color: #ffffff;
+        box-shadow: 0 2px 4px rgba(74, 108, 247, 0.2);
+      }
+
+      svg {
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+      }
+
+      span {
+        white-space: nowrap;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+}
+
+:global(body.dark-mode) {
+  .sidebar {
+    background-color: #1e1e1e;
+    box-shadow: 0 8px 24px 0 rgba(255, 255, 255, 0.05);
+
+    .profileImg {
+      box-shadow: 0 0 0 2px #444;
+    }
+
+    .greeting,
+    .userName {
+      color: #f5f5f5;
+    }
+
+    .menuList {
+      .item {
+        color: #e0e0e0;
+        border-bottom: 1px solid #333;
+
+        &:hover {
+          background-color: #2a2a2a;
+          color: #ffffff;
+        }
+
+        &.active {
+          background-color: #0085ff;
+          color: #ffffff;
+          box-shadow: 0 2px 4px rgba(0, 133, 255, 0.4);
+        }
+
+        svg {
+          color: #ffffff;
+        }
+      }
+    }
+  }
+}

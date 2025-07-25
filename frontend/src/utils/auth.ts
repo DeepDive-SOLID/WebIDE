@@ -89,15 +89,23 @@ export const getCurrentUserInfo = (): {
   authId: string;
 } | null => {
   const token = getToken();
+
   if (!token) return null;
 
   const decoded = decodeToken(token);
-  if (!decoded?.memberId || !decoded?.authId) return null;
+
+  if (!decoded?.memberId) return null;
 
   return {
     memberId: decoded.memberId,
-    authId: decoded.authId,
+    authId: decoded.authId ?? "",
   };
+  // if (!decoded?.memberId || !decoded?.authId) return null;
+
+  // return {
+  //   memberId: decoded.memberId,
+  //   authId: decoded.authId,
+  // };
 };
 
 // 토큰 유효성 체크 후, 필요 시 재발급

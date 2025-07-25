@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./styles/index.css";
 import { Provider } from "react-redux";
+import { AuthProvider } from "./contexts/AuthProvider";
 import { store } from "./stores";
 import App from "./App";
 import Home from "./pages/Home";
@@ -9,6 +10,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import FindId from "./pages/FindId";
 import FindPw from "./pages/FindPw";
+import Mypage from "./pages/Mypage";
+import Info from "./pages/Info";
 
 const router = createBrowserRouter([
   {
@@ -35,12 +38,22 @@ const router = createBrowserRouter([
         path: "home",
         element: <Home />,
       },
+      {
+        path: "mypage",
+        element: <Mypage />,
+      },
+      {
+        path: "Info",
+        element: <Info />,
+      },
     ],
   },
 ]);
 
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </Provider>
 );
