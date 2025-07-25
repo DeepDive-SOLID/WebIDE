@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import styles from "../styles/Mypage.module.scss";
-import Sidebar from "../components/APP/MypageNav";
-import profileImg from "../assets/profile.svg";
+import Sidebar from "../components/APP/Sidebar/MypageSidebar";
+import { profile } from "../assets/";
 import {
   getMemberDto,
   updateMemberDto,
@@ -12,7 +12,7 @@ import type { MypageDto } from "../types/mypage";
 import { AxiosError } from "axios";
 import { AuthContext } from "../contexts/AuthProvider";
 import { useNavigate } from "react-router-dom";
-import AppNav from "../components/APP/Nav/AppNav";
+import AppNav from "../components/APP/Nav/MypageNav";
 
 const EyeIcon = ({ visible }: { visible: boolean }) =>
   visible ? (
@@ -283,7 +283,7 @@ const Mypage = () => {
               <div className={styles.profileSection}>
                 <div className={styles.profileImageBox}>
                   <img
-                    src={imagePreview || form.img || profileImg}
+                    src={imagePreview || form.img || profile}
                     alt="프로필"
                     className={styles.profileImage}
                   />

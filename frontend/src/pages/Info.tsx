@@ -1,12 +1,11 @@
 import { useEffect, useState, useContext } from "react";
 import styles from "../styles/Mypage.module.scss";
-import Sidebar from "../components/APP/MypageNav";
-import profileImg from "../assets/profile.svg";
+import Sidebar from "../components/APP/Sidebar/MypageSidebar";
 import { getMemberDto } from "../api/mypageApi";
 import type { MypageDto } from "../types/mypage";
 import { AuthContext } from "../contexts/AuthContext";
 import { Link } from "react-router-dom";
-import AppNav from "../components/APP/Nav/AppNav";
+import AppNav from "../components/APP/Nav/MypageNav";
 
 const Info = () => {
   const { userInfo } = useContext(AuthContext) || {};
@@ -46,15 +45,6 @@ const Info = () => {
             </div>
           ) : (
             <div className={styles.profileForm}>
-              <div className={styles.profileSection}>
-                <div className={styles.profileImageBox}>
-                  <img
-                    src={memberInfo.memberImg || profileImg}
-                    alt="프로필"
-                    className={styles.profileImage}
-                  />
-                </div>
-              </div>
               <div className={styles.inputGroup}>
                 <label>이름</label>
                 <div className={styles.readOnlyValue}>

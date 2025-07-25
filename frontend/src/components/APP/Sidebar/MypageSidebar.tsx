@@ -1,14 +1,14 @@
-import styles from "../../styles/MypageNav.module.scss";
+import styles from "../../../styles/MypageSidebar.module.scss";
 import { FiUser, FiLogOut } from "react-icons/fi";
 import { useEffect, useState } from "react";
-import { getProfileDto } from "../../api/mypageApi";
-import type { MypageProfileDto } from "../../types/mypage";
-import profileImg from "../../assets/profile.svg";
+import { getProfileDto } from "../../../api/mypageApi";
+import type { MypageProfileDto } from "../../../types/mypage";
+import { profile } from "../../../assets";
 import { useContext } from "react";
-import { AuthContext } from "../../contexts/AuthContext";
+import { AuthContext } from "../../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-const MypageNav = () => {
+const MypageSidebar = () => {
   const authContext = useContext(AuthContext);
 
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ const MypageNav = () => {
     <aside className={styles.sidebar}>
       <div className={styles.profileBox}>
         <img
-          src={memberProfile?.memberImg || profileImg}
+          src={memberProfile?.memberImg || profile}
           alt="프로필"
           className={styles.profileImg}
         />
@@ -71,4 +71,4 @@ const MypageNav = () => {
   );
 };
 
-export default MypageNav;
+export default MypageSidebar;
