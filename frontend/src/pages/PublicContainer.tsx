@@ -4,6 +4,7 @@ import { AiOutlineGlobal } from "react-icons/ai";
 import ContainerCard from "../components/Container/ContainerCard";
 import { getPublicContainers, getContainerMembers } from "../api/home";
 import type { ContainerResponseDto, GroupMemberResponseDto } from "../api/home";
+import emptyImg from "../assets/icons/empty.svg";
 
 const AllContainer: React.FC = () => {
   const [containers, setContainers] = useState<ContainerResponseDto[]>([]);
@@ -84,7 +85,14 @@ const AllContainer: React.FC = () => {
         ) : error ? (
           <div style={{ color: "red" }}>{error}</div>
         ) : containers.length === 0 ? (
-          <div>공개된 컨테이너가 없습니다.</div>
+          <div className={styles.emptyContainer}>
+            <img
+              src={emptyImg}
+              alt="빈 컨테이너"
+              style={{ width: 135, marginBottom: 10 }}
+            />
+            <p>공개된 컨테이너가 없습니다!</p>
+          </div>
         ) : (
           containers.map((container) => (
             <ContainerCard

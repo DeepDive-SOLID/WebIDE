@@ -11,6 +11,7 @@ import {
 import type { ContainerResponseDto, GroupMemberResponseDto } from "../api/home";
 import { useAuth } from "../hooks/useAuth";
 import ContainerCard from "../components/Container/ContainerCard";
+import emptyImg from "../assets/icons/empty.svg";
 
 const AllContainer: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -126,7 +127,14 @@ const AllContainer: React.FC = () => {
         ) : error ? (
           <div style={{ color: "red" }}>{error}</div>
         ) : containers.length === 0 ? (
-          <div>내 컨테이너가 없습니다.</div>
+          <div className={styles.emptyContainer}>
+            <img
+              src={emptyImg}
+              alt="빈 컨테이너"
+              style={{ width: 135, marginBottom: 10 }}
+            />
+            <p>내 컨테이너가 없습니다!</p>
+          </div>
         ) : (
           containers.map((container) => (
             <ContainerCard
