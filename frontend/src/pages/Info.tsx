@@ -6,6 +6,7 @@ import { getMemberDto } from "../api/mypageApi";
 import type { MypageDto } from "../types/mypage";
 import { AuthContext } from "../contexts/AuthContext";
 import { Link } from "react-router-dom";
+import AppNav from "../components/APP/Nav/AppNav";
 
 const Info = () => {
   const { userInfo } = useContext(AuthContext) || {};
@@ -35,6 +36,7 @@ const Info = () => {
 
   return (
     <div className={styles.editProfilePage}>
+      <AppNav />
       <div className={styles.mainContent}>
         <Sidebar />
         <div className={styles.profileFormContainer}>

@@ -12,6 +12,7 @@ import type { MypageDto } from "../types/mypage";
 import { AxiosError } from "axios";
 import { AuthContext } from "../contexts/AuthProvider";
 import { useNavigate } from "react-router-dom";
+import AppNav from "../components/APP/Nav/AppNav";
 
 const EyeIcon = ({ visible }: { visible: boolean }) =>
   visible ? (
@@ -269,6 +270,7 @@ const Mypage = () => {
 
   return (
     <div className={styles.editProfilePage}>
+      <AppNav />
       <div className={styles.mainContent}>
         <Sidebar />
         <div className={styles.profileFormContainer}>

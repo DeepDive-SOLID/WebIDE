@@ -1,5 +1,6 @@
 .editProfilePage {
   min-height: 100vh;
+  padding-top: 60px;
 }
 
 .profileFormContainer {
@@ -179,10 +180,11 @@
 .mainContent {
   display: flex;
   align-items: flex-start;
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  width: 100%;
-  padding-top: 70px;
+  padding-left: 80px;
+  overflow-x: hidden;
 }
 
 .modalOverlay {
