@@ -39,22 +39,12 @@ const router = createBrowserRouter([
       {
         path: "home",
         element: <Home />,
-      },
-      {
-        path: "all-container",
-        element: <AllContainer />,
-      },
-      {
-        path: "my-container",
-        element: <MyContainer />,
-      },
-      {
-        path: "shared-container",
-        element: <SharedContainer />,
-      },
-      {
-        path: "public-container",
-        element: <PublicContainer />,
+        children: [
+          { path: "all-container", element: <AllContainer /> },
+          { path: "my-container", element: <MyContainer /> },
+          { path: "shared-container", element: <SharedContainer /> },
+          { path: "public-container", element: <PublicContainer /> },
+        ],
       },
     ],
   },

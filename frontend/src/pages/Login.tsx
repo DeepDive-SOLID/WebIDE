@@ -91,7 +91,6 @@ const Login: React.FC = () => {
       });
       // 로그인 성공 시 access token 저장
       localStorage.setItem("accessToken", token);
-      alert("로그인 성공!");
       navigate("/home"); // 홈으로 이동
     } catch (error: unknown) {
       // 로그인 실패 시 처리
