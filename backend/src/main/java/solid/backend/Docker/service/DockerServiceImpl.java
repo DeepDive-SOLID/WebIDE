@@ -49,9 +49,9 @@ public class DockerServiceImpl implements DockerService {
         long beforeUsedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 
         for (TestCase testcase : testcases) {
-            String[] command = dockerRun.buildDockerCommand(filePath, extension, testcase.getCaseEx());
+            String[] command = dockerRun.buildDockerCommand(filePath, extension, testcase.getCaseEx(), question.getQuestionMem());
 
-            DockerResultDto result = dockerRun.runDockerCommand(command);
+            DockerResultDto result = dockerRun.runDockerCommand(command, question.getQuestionTime());
             String output = result.getOutput().trim();
             float execTime = result.getTime();
 
@@ -111,6 +111,8 @@ public class DockerServiceImpl implements DockerService {
     public ExecutionTestDto runTestCodeFile(Integer codeFileId, Integer questionId) {
         CodeFile codeFile = codeFileRepository.findById(String.valueOf(codeFileId))
                 .orElseThrow(() -> new IllegalArgumentException("코드 파일이 존재하지 않습니다."));
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 문제가 존재하지 않습니다."));
         List<TestCase> testcases = testcaseRepository.findByQuestion_QuestionId(questionId);
 
         String filePath = codeFile.getCodeFilePath();
@@ -124,9 +126,9 @@ public class DockerServiceImpl implements DockerService {
         for (TestCase testcase : testcases) {
             if (!Boolean.TRUE.equals(testcase.getCaseCheck())) continue;
 
-            String[] command = dockerRun.buildDockerCommand(filePath, extension, testcase.getCaseEx());
+            String[] command = dockerRun.buildDockerCommand(filePath, extension, testcase.getCaseEx(), question.getQuestionMem());
 
-            DockerResultDto result = dockerRun.runDockerCommand(command);
+            DockerResultDto result = dockerRun.runDockerCommand(command, question.getQuestionTime());
             String output = result.getOutput().trim();
             float execTime = result.getTime();
 
@@ -175,8 +177,8 @@ public class DockerServiceImpl implements DockerService {
         String extension = dockerRun.getFileExtension(filePath);
 
         // 입력값으로 실행
-        String[] command = dockerRun.buildDockerCommand(filePath, extension, customInputDto.getInput());
-        DockerResultDto result = dockerRun.runDockerCommand(command);
+        String[] command = dockerRun.buildDockerCommand(filePath, extension, customInputDto.getInput(), 256);
+        DockerResultDto result = dockerRun.runDockerCommand(command, 2f);
 
         // 결과 반환
         return new CustomInputResultDto(

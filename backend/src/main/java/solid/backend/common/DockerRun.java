@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Component
@@ -18,24 +19,25 @@ public class DockerRun {
      * @param extension
      * @return String[]
      */
-    public String[] buildDockerCommand(String filePath, String extension, String input) {
+    public String[] buildDockerCommand(String filePath, String extension, String input, int mem) {
         Path path = Path.of(filePath);
         String dir = path.getParent().toString();
         String fileName = path.getFileName().toString();
+        String memoryLimit = mem + "m";
 
         return switch (extension) {
             case "py" -> new String[]{
-                    "docker", "run", "--rm", "-v", dir + ":/app", "-i",
+                    "docker", "run", "--memory=" + memoryLimit, "--rm", "-v", dir + ":/app", "-i",
                     "python:3.11", "sh", "-c",
                     "echo \"" + input + "\" | python /app/" + fileName
             };
             case "java" -> new String[]{
-                    "docker", "run", "--rm", "-v", dir + ":/app", "-i",
+                    "docker", "run", "--memory=" + memoryLimit, "--rm", "-v", dir + ":/app", "-i",
                     "openjdk:21", "sh", "-c",
                     "cd /app && javac " + fileName + " && echo \"" + input + "\" | java " + fileName.replace(".java", "")
             };
             case "js" -> new String[]{
-                    "docker", "run", "--rm", "-v", dir + ":/app", "-i",
+                    "docker", "run", "--memory=" + memoryLimit, "--rm", "-v", dir + ":/app", "-i",
                     "node:20", "sh", "-c",
                     "echo \"" + input + "\" | node /app/" + fileName
             };
@@ -48,7 +50,7 @@ public class DockerRun {
      * @param command
      * @return String
      */
-    public DockerResultDto runDockerCommand(String[] command) {
+    public DockerResultDto runDockerCommand(String[] command, float timeoutSeconds) {
         try {
             long startTime = System.nanoTime();
             // 명령어 가져와서 도커 실행
@@ -56,12 +58,21 @@ public class DockerRun {
             pb.redirectErrorStream(true);
             Process process = pb.start();
 
+            long timeoutMillis = (long) (timeoutSeconds * 1000);
+
+            boolean finished = process.waitFor(timeoutMillis, TimeUnit.MILLISECONDS);
+            long endTime = System.nanoTime();
+            float elapsedTime = (endTime - startTime) / 1_000_000_000.0f;
+
+            if (!finished) {
+                process.destroyForcibly(); // 타임아웃이면 강제 종료
+                return new DockerResultDto("Time Out", elapsedTime);
+            }
+
             String output; //실행 결과
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 output = reader.lines().collect(Collectors.joining("\n"));
             }
-            long endTime = System.nanoTime();
-            float elapsedTime = (endTime - startTime) / 1_000_000_000.0f;
 
             // 결과 출력 조건 처리
             if (output.contains("error:") || output.contains("Exception")) {
@@ -71,6 +82,8 @@ public class DockerRun {
             return new DockerResultDto(output, elapsedTime);
         } catch (IOException e) {
             throw new RuntimeException("도커 실행 실패: " + e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
