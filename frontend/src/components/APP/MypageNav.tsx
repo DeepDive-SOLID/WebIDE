@@ -44,16 +44,6 @@ const MypageNav = () => {
     console.log("authContext:", authContext);
   }, [authContext]);
 
-  if (loading) {
-    return (
-      <aside className={styles.sidebar}>
-        <div className={styles.profileBox}>
-          <div className={styles.greeting}>로딩 중...</div>
-        </div>
-      </aside>
-    );
-  }
-
   return (
     <aside className={styles.sidebar}>
       <div className={styles.profileBox}>
