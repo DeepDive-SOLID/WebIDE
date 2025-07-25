@@ -1,4 +1,10 @@
+import AlgorithmNav from "../components/APP/Nav/AlgorithmNav";
+
 const Home = () => {
-  return <div>홈화면 입니다</div>;
+  return (
+    <div>
+      <AlgorithmNav />
+    </div>
+  );
 };
 export default Home;
