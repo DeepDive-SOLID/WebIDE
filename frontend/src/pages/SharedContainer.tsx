@@ -4,7 +4,7 @@ import folderImg from "../assets/icons/folder.svg";
 import CreateContainer from "../components/Modal/CreateContainer";
 import OwnerSetting from "../components/Modal/OwnerSetting";
 import {
-  getContainers,
+  getSharedContainers,
   getContainerMembers,
   leaveContainer,
 } from "../api/home";
@@ -44,7 +44,7 @@ const AllContainer: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getContainers();
+      const data = await getSharedContainers();
       setContainers(data);
     } catch {
       setError("컨테이너 목록을 불러오지 못했습니다.");
@@ -111,7 +111,7 @@ const AllContainer: React.FC = () => {
               marginBottom: 3,
             }}
           />
-          모든 컨테이너
+          공유받은 컨테이너
         </h2>
         <button
           className={styles.createBtn}
@@ -126,7 +126,7 @@ const AllContainer: React.FC = () => {
         ) : error ? (
           <div style={{ color: "red" }}>{error}</div>
         ) : containers.length === 0 ? (
-          <div>컨테이너가 없습니다.</div>
+          <div>공유받은 컨테이너가 없습니다.</div>
         ) : (
           containers.map((container) => (
             <ContainerCard

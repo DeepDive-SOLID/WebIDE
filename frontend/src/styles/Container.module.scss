@@ -38,8 +38,8 @@
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
   padding: 24px 20px 20px 20px;
-  min-width: 320px;
-  max-width: 340px;
+  min-width: 360px;
+  max-width: 360px;
   flex: 1 1 320px;
   display: flex;
   flex-direction: column;
@@ -64,7 +64,6 @@
 .containerName {
   font-size: 1.2rem;
   font-weight: 700;
-  margin-right: 4px;
 }
 
 .memberCount {
@@ -87,7 +86,7 @@
 }
 
 .memberList {
-  margin: 10px 0 16px 0;
+  margin: 10px 0 16px 12px;
   display: flex;
   flex-direction: column;
   gap: 6px;

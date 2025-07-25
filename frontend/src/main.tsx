@@ -4,12 +4,15 @@ import "./styles/index.css";
 import { Provider } from "react-redux";
 import { store } from "./stores";
 import App from "./App";
+import { AuthProvider } from "./contexts/AuthContext.tsx";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import FindId from "./pages/FindId";
 import FindPw from "./pages/FindPw";
 import AllContainer from "./pages/AllContainer";
+import MyContainer from "./pages/MyContainer";
+import SharedContainer from "./pages/SharedContainer";
 import PublicContainer from "./pages/PublicContainer";
 
 const router = createBrowserRouter([
@@ -42,6 +45,14 @@ const router = createBrowserRouter([
         element: <AllContainer />,
       },
       {
+        path: "my-container",
+        element: <MyContainer />,
+      },
+      {
+        path: "shared-container",
+        element: <SharedContainer />,
+      },
+      {
         path: "public-container",
         element: <PublicContainer />,
       },
@@ -51,6 +62,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </Provider>
 );

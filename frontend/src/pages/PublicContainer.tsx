@@ -1,36 +1,68 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "../styles/Container.module.scss";
-import { FaCrown, FaUser, FaPlay } from "react-icons/fa";
 import { AiOutlineGlobal } from "react-icons/ai";
-
-// 더미 데이터
-const containers = [
-  {
-    id: 1,
-    name: "SOLID 컨테이너",
-    members: [
-      { name: "이나영", active: true, isOwner: true },
-      { name: "user1", active: false, isOwner: false },
-      { name: "user2", active: true, isOwner: false },
-      { name: "user3", active: true, isOwner: false },
-    ],
-    maxMembers: 5,
-  },
-  {
-    id: 2,
-    name: "나영이의 컨테이너",
-    members: [
-      { name: "이나영", active: true, isOwner: true },
-      { name: "user1", active: false, isOwner: false },
-      { name: "user2", active: true, isOwner: false },
-      { name: "user3", active: true, isOwner: false },
-      { name: "user4", active: true, isOwner: false },
-    ],
-    maxMembers: 5,
-  },
-];
+import ContainerCard from "../components/Container/ContainerCard";
+import { getPublicContainers, getContainerMembers } from "../api/home";
+import type { ContainerResponseDto, GroupMemberResponseDto } from "../api/home";
 
 const AllContainer: React.FC = () => {
+  const [containers, setContainers] = useState<ContainerResponseDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // containerId별 멤버 리스트 상태
+  const [membersMap, setMembersMap] = useState<{
+    [containerId: number]: GroupMemberResponseDto[];
+  }>({});
+  const [membersLoading, setMembersLoading] = useState<{
+    [containerId: number]: boolean;
+  }>({});
+  const [membersError, setMembersError] = useState<{
+    [containerId: number]: string | null;
+  }>({});
+
+  const fetchContainers = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getPublicContainers();
+      setContainers(data);
+    } catch {
+      setError("공개 컨테이너 목록을 불러오지 못했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 컨테이너별 멤버 불러오기
+  const fetchMembers = async (containerId: number) => {
+    setMembersLoading((prev) => ({ ...prev, [containerId]: true }));
+    setMembersError((prev) => ({ ...prev, [containerId]: null }));
+    try {
+      const members = await getContainerMembers(containerId);
+      setMembersMap((prev) => ({ ...prev, [containerId]: members }));
+    } catch {
+      setMembersError((prev) => ({
+        ...prev,
+        [containerId]: "멤버 정보를 불러오지 못했습니다.",
+      }));
+    } finally {
+      setMembersLoading((prev) => ({ ...prev, [containerId]: false }));
+    }
+  };
+
+  React.useEffect(() => {
+    fetchContainers();
+  }, []);
+
+  // 컨테이너 목록이 바뀔 때마다 각 컨테이너 멤버 fetch
+  React.useEffect(() => {
+    containers.forEach((container) => {
+      fetchMembers(container.containerId);
+    });
+    // eslint-disable-next-line
+  }, [containers]);
+
   return (
     <div className={styles.allContainerWrap}>
       <div className={styles.header}>
@@ -47,41 +79,24 @@ const AllContainer: React.FC = () => {
         </h2>
       </div>
       <div className={styles.containerList}>
-        {containers.map((container) => (
-          <div className={styles.containerCard} key={container.id}>
-            <div className={styles.cardHeader}>
-              <span
-                className={styles.statusDot}
-                style={{ background: "#34C759" }}
-              />
-              <span className={styles.containerName}>{container.name}</span>
-              <span className={styles.memberCount}>
-                ({container.members.length}/{container.maxMembers})
-              </span>
-            </div>
-            <div className={styles.memberList}>
-              {container.members.map((member) => (
-                <div className={styles.member} key={member.name}>
-                  <span
-                    className={styles.statusDot}
-                    style={{
-                      background: member.active ? "#34C759" : "#F44336",
-                    }}
-                  />
-                  <span className={styles.memberName}>{member.name}</span>
-                  {member.isOwner ? (
-                    <FaCrown className={styles.crownIcon} />
-                  ) : (
-                    <FaUser className={styles.userIcon} />
-                  )}
-                </div>
-              ))}
-            </div>
-            <button className={styles.joinBtn}>
-              <FaPlay /> 참가하기
-            </button>
-          </div>
-        ))}
+        {loading ? (
+          <div>로딩 중...</div>
+        ) : error ? (
+          <div style={{ color: "red" }}>{error}</div>
+        ) : containers.length === 0 ? (
+          <div>공개된 컨테이너가 없습니다.</div>
+        ) : (
+          containers.map((container) => (
+            <ContainerCard
+              key={container.containerId}
+              container={container}
+              members={membersMap[container.containerId]}
+              membersLoading={membersLoading[container.containerId]}
+              membersError={membersError[container.containerId]}
+              showJoinBtn={true}
+            />
+          ))
+        )}
       </div>
     </div>
   );
