@@ -16,7 +16,6 @@ const MypageNav = () => {
   const [memberProfile, setMemberProfile] = useState<MypageProfileDto | null>(
     null
   );
-  const [loading, setLoading] = useState(true);
 
   const currentMemberId = authContext?.userInfo?.memberId;
   const isAuthLoading = authContext?.isLoading;
@@ -26,23 +25,16 @@ const MypageNav = () => {
 
     const fetchProfile = async () => {
       try {
-        console.log("요청 보냄:", currentMemberId);
         const profile = await getProfileDto(currentMemberId);
-        console.log("응답 도착:", profile);
+
         setMemberProfile(profile);
       } catch (err) {
         console.error("프로필 정보를 불러오는 데 실패했습니다:", err);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchProfile();
   }, [currentMemberId, isAuthLoading]);
-
-  useEffect(() => {
-    console.log("authContext:", authContext);
-  }, [authContext]);
 
   return (
     <aside className={styles.sidebar}>
@@ -65,7 +57,12 @@ const MypageNav = () => {
           <FiUser />
           <span>회원 정보 수정</span>
         </li>
-        <li className={styles.item} onClick={() => navigate("/")}>
+        <li
+          className={styles.item}
+          onClick={() => {
+            authContext?.logout?.();
+          }}
+        >
           <FiLogOut />
           <span>로그아웃</span>
         </li>

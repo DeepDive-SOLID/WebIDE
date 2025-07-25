@@ -11,6 +11,7 @@ import {
 import type { MypageDto } from "../types/mypage";
 import { AxiosError } from "axios";
 import { AuthContext } from "../contexts/AuthProvider";
+import { useNavigate } from "react-router-dom";
 
 const EyeIcon = ({ visible }: { visible: boolean }) =>
   visible ? (
@@ -48,6 +49,7 @@ const Mypage = () => {
   const authContext = useContext(AuthContext);
   const { userInfo, logout } = authContext || {};
   const memberId = userInfo?.memberId;
+  const navigate = useNavigate();
 
   const [form, setForm] = useState({
     name: "",
@@ -410,7 +412,11 @@ const Mypage = () => {
                   <span className={styles.errorMessage}>{errors.birth}</span>
                 )}
               </div>
-              <button className={styles.saveButton} type="submit">
+              <button
+                className={styles.saveButton}
+                type="submit"
+                onClick={() => navigate("/info")}
+              >
                 저장하기
               </button>
               <button
@@ -433,9 +439,7 @@ const Mypage = () => {
             <p>정말로 회원 탈퇴를 하시겠습니까?</p>
             <p>
               탈퇴 시{" "}
-              <span className={styles.warningText}>
-                모든 개인정보와 주문 내역이 삭제
-              </span>
+              <span className={styles.warningText}>모든 개인정보가 삭제</span>
               되며,{" "}
               <span className={styles.warningText}>복구할 수 없습니다.</span>
             </p>

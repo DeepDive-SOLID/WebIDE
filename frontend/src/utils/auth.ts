@@ -89,11 +89,11 @@ export const getCurrentUserInfo = (): {
   authId: string;
 } | null => {
   const token = getToken();
-  console.log("[auth] token:", token);
+
   if (!token) return null;
 
   const decoded = decodeToken(token);
-  console.log("[auth] decoded:", decoded);
+
   if (!decoded?.memberId) return null;
 
   return {

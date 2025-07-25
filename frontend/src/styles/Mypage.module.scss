@@ -75,6 +75,10 @@
   flex-direction: column;
   margin-bottom: 22px;
 }
+.inputGroup input[type="date"] {
+  font-family: inherit;
+}
+
 .inputGroup label {
   font-size: 17px;
   font-weight: 700;
@@ -141,7 +145,7 @@
 
 .saveButton {
   width: 100%;
-  background: #4a6cf7;
+  background: #0085ff;
   color: #fff;
   font-size: 18px;
   font-weight: 600;
@@ -154,7 +158,7 @@
   transition: background 0.2s;
 }
 .saveButton:hover {
-  background: #3a5ce7;
+  background: #0074d9;
 }
 
 .withdrawButton {
@@ -307,7 +311,7 @@
 }
 
 .fileInput input[type="file"]:hover {
-  border-color: #4a6cf7;
+  border-color: #0074d9;
 }
 
 .changePictureButton {
@@ -324,8 +328,8 @@
 
 .changePictureButton:hover {
   background: #f8fafc;
-  border-color: #4a6cf7;
-  color: #4a6cf7;
+  border-color: #0085ff;
+  color: #0074d9;
 }
 
 .emailInputWrapper {
@@ -396,10 +400,42 @@
   padding-right: 110px;
 }
 
+// Info 부분
 .readOnlyValue {
-  padding: 12px;
-  border: 1px solid #ddd;
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: #f9fafb;
   font-size: 15px;
+  color: #374151;
+  font-weight: 500;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.inputGroup {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.saveButton {
+  width: 100%;
+  text-align: center;
+  background: #0085ff;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 0;
+  margin-top: 16px;
+  text-decoration: none;
+  display: block;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #0074d9;
+  }
 }

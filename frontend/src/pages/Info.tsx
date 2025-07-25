@@ -23,7 +23,7 @@ const Info = () => {
       try {
         const data = await getMemberDto(memberId);
         setMemberInfo(data);
-      } catch (error) {
+      } catch {
         alert("회원 정보를 불러오는 데 실패했습니다.");
       } finally {
         setIsLoading(false);
@@ -78,7 +78,7 @@ const Info = () => {
                 </div>
               </div>
 
-              <Link to="/mypage/edit-profile" className={styles.saveButton}>
+              <Link to="/mypage" className={styles.saveButton}>
                 회원정보 수정
               </Link>
             </div>
