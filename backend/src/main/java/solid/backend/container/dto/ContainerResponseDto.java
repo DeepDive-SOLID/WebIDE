@@ -56,9 +56,15 @@ public class ContainerResponseDto {
         if (container == null) {
             throw new IllegalArgumentException("Container cannot be null");
         }
-        if (container.getOwner() == null) {
-            throw new IllegalArgumentException("Container must have an owner");
-        }
+        
+        // Find owner from TeamUser with ROOT authority
+        var owner = container.getTeam().getTeamUsers().stream()
+                .filter(tu -> "ROOT".equals(tu.getTeamAuth().getAuthId()))
+                .findFirst()
+                .orElse(null);
+        
+        String ownerName = owner != null ? owner.getMember().getMemberName() : "Unknown";
+        String ownerId = owner != null ? owner.getMember().getMemberId() : null;
         
         return ContainerResponseDto.builder()
                 .containerId(container.getContainerId())
@@ -66,8 +72,8 @@ public class ContainerResponseDto {
                 .containerContent(container.getContainerContent())
                 .isPublic(container.getContainerAuth())
                 .containerDate(container.getContainerDate())
-                .ownerName(container.getOwner().getMemberName())
-                .ownerId(container.getOwner().getMemberId())
+                .ownerName(ownerName)
+                .ownerId(ownerId)
                 .memberCount(memberCount)
                 .userAuthority(userAuthority)
                 .build();

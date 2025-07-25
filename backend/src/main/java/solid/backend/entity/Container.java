@@ -59,11 +59,4 @@ public class Container {
      */
     @Column(name = "container_content", length = 200)
     private String containerContent;
-    
-    /**
-     * 컨테이너 소유자 (ROOT 권한을 가진 생성자)
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private Member owner;
 }

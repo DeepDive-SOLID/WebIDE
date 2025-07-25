@@ -50,8 +50,8 @@ public class ContainerServiceImpl implements ContainerService {
         // null 체크
         validateMemberId(memberId, ERROR_MEMBER_ID_REQUIRED);
         
-        // 컨테이너 소유자 확인
-        Member owner = getMemberOrThrow(memberId);
+        // 컨테이너 생성자 확인
+        Member creator = getMemberOrThrow(memberId);
         
         // 팀 생성
         Team team = new Team();
@@ -62,17 +62,16 @@ public class ContainerServiceImpl implements ContainerService {
                 .containerName(createDto.getContainerName())
                 .containerContent(createDto.getContainerContent())
                 .containerAuth(createDto.getIsPublic())
-                .owner(owner)
                 .team(team)
                 .build();
         
         Container savedContainer = containerRepository.save(container);
         
-        // 소유자를 팀에 ROOT 권한으로 추가
+        // 생성자를 팀에 ROOT 권한으로 추가
         Auth rootAuth = getOrCreateAuth(AUTHORITY_ROOT, "관리자");
         
-        TeamUser ownerMember = createTeamUser(team, owner, rootAuth);
-        team.getTeamUsers().add(ownerMember);
+        TeamUser creatorMember = createTeamUser(team, creator, rootAuth);
+        team.getTeamUsers().add(creatorMember);
         
         // 초대 멤버 처리
         if (createDto.getInvitedMemberIds() != null && !createDto.getInvitedMemberIds().isEmpty()) {
@@ -104,10 +103,9 @@ public class ContainerServiceImpl implements ContainerService {
             
             Member member = getMemberOrThrow(memberId);
             
-            // 소유자이거나 팀 멤버인 경우만 접근 가능
-            boolean hasAccess = container.getOwner().equals(member) ||
-                    container.getTeam().getTeamUsers().stream()
-                            .anyMatch(tu -> tu.getMember().equals(member));
+            // 팀 멤버인 경우만 접근 가능
+            boolean hasAccess = container.getTeam().getTeamUsers().stream()
+                    .anyMatch(tu -> tu.getMember().equals(member));
             
             if (!hasAccess) {
                 throw new IllegalArgumentException(ERROR_NO_ACCESS_PERMISSION);
@@ -199,7 +197,14 @@ public class ContainerServiceImpl implements ContainerService {
     public List<ContainerResponseDto> getMyContainers(String memberId) {
         Member member = getMemberOrThrow(memberId);
         
-        return convertToResponseDtoList(containerRepository.findByOwnerOrderByContainerDateDesc(member), memberId);
+        // Get containers where member has ROOT authority
+        List<Container> ownedContainers = containerQueryRepository.findContainersByMemberWithAuthority(member)
+                .stream()
+                .filter(container -> container.getTeam().getTeamUsers().stream()
+                        .anyMatch(tu -> tu.getMember().equals(member) && AUTHORITY_ROOT.equals(tu.getTeamAuth().getAuthId())))
+                .toList();
+                
+        return convertToResponseDtoList(ownedContainers, memberId);
     }
     
     /**
@@ -333,8 +338,8 @@ public class ContainerServiceImpl implements ContainerService {
         // ROOT 권한 확인
         requireRootAuthority(container, requesterId, ERROR_ROOT_AUTHORITY_REQUIRED);
         
-        // 소유자는 제거 불가
-        if (container.getOwner().getMemberId().equals(targetMemberId)) {
+        // ROOT 권한자는 제거 불가
+        if (isContainerOwner(container, getMemberOrThrow(targetMemberId))) {
             throw new IllegalArgumentException(ERROR_OWNER_CANNOT_BE_REMOVED);
         }
         
@@ -353,8 +358,8 @@ public class ContainerServiceImpl implements ContainerService {
     public void leaveContainer(Long containerId, String memberId) {
         Container container = getContainerWithTeamOrThrow(containerId);
         
-        // 소유자는 탈퇴 불가
-        if (container.getOwner().getMemberId().equals(memberId)) {
+        // ROOT 권한자는 탈퇴 불가
+        if (isContainerOwner(container, getMemberOrThrow(memberId))) {
             throw new IllegalArgumentException(ERROR_OWNER_CANNOT_LEAVE);
         }
         
@@ -391,9 +396,8 @@ public class ContainerServiceImpl implements ContainerService {
     private boolean hasAccess(Container container, String memberId) {
         Member member = getMemberOrThrow(memberId);
         
-        return container.getOwner().equals(member) ||
-                container.getTeam().getTeamUsers().stream()
-                        .anyMatch(tu -> tu.getMember().equals(member));
+        return container.getTeam().getTeamUsers().stream()
+                .anyMatch(tu -> tu.getMember().equals(member));
     }
     
     /**
@@ -403,10 +407,6 @@ public class ContainerServiceImpl implements ContainerService {
      * @return ROOT 권한 보유 여부
      */
     private boolean hasRootAuthority(Container container, String memberId) {
-        if (container.getOwner().getMemberId().equals(memberId)) {
-            return true;
-        }
-        
         return container.getTeam().getTeamUsers().stream()
                 .filter(tu -> tu.getMember().getMemberId().equals(memberId))
                 .anyMatch(tu -> AUTHORITY_ROOT.equals(tu.getTeamAuth().getAuthId()));
@@ -419,9 +419,6 @@ public class ContainerServiceImpl implements ContainerService {
      * @return 권한 문자열 (ROOT/USER) 또는 null
      */
     private String getUserAuthority(Container container, String memberId) {
-        if (container.getOwner().getMemberId().equals(memberId)) {
-            return AUTHORITY_ROOT;
-        }
         
         return container.getTeam().getTeamUsers().stream()
                 .filter(tu -> tu.getMember().getMemberId().equals(memberId))
@@ -448,8 +445,8 @@ public class ContainerServiceImpl implements ContainerService {
         containerRepository.findAll().forEach(container -> {
             List<TeamUser> toRemove = container.getTeam().getTeamUsers().stream()
                     .filter(tu -> {
-                        // 소유자는 제거하지 않음
-                        if (container.getOwner().getMemberId().equals(tu.getMember().getMemberId())) {
+                        // ROOT 권한자는 제거하지 않음
+                        if (AUTHORITY_ROOT.equals(tu.getTeamAuth().getAuthId())) {
                             return false;
                         }
                         // 활동 시간이 null이거나 기준일 이상 된 경우
@@ -507,11 +504,15 @@ public class ContainerServiceImpl implements ContainerService {
         Member member = getMemberOrThrow(memberId);
         
         // 권한별 통계 계산
-        List<Container> ownedContainers = containerRepository.findByOwnerOrderByContainerDateDesc(member);
+        List<Container> allContainers = containerQueryRepository.findContainersByMemberWithAuthority(member);
+        long ownedCount = allContainers.stream()
+                .filter(container -> container.getTeam().getTeamUsers().stream()
+                        .anyMatch(tu -> tu.getMember().equals(member) && AUTHORITY_ROOT.equals(tu.getTeamAuth().getAuthId())))
+                .count();
         List<Container> sharedContainers = containerQueryRepository.findSharedContainers(member);
         
         Map<String, Long> result = new HashMap<>();
-        result.put(AUTHORITY_ROOT, (long) ownedContainers.size());
+        result.put(AUTHORITY_ROOT, ownedCount);
         result.put(AUTHORITY_USER, (long) sharedContainers.size());
         
         return result;
@@ -820,6 +821,18 @@ public class ContainerServiceImpl implements ContainerService {
             team.getTeamUsers().remove(toRemove);
             toRemove.setTeam(null);
         }
+    }
+    
+    /**
+     * 사용자가 컨테이너의 소유자(ROOT 권한)인지 확인
+     * @param container 대상 컨테이너
+     * @param member 확인할 멤버
+     * @return 소유자 여부
+     */
+    private boolean isContainerOwner(Container container, Member member) {
+        return container.getTeam().getTeamUsers().stream()
+                .anyMatch(tu -> tu.getMember().equals(member) 
+                        && AUTHORITY_ROOT.equals(tu.getTeamAuth().getAuthId()));
     }
     
 }

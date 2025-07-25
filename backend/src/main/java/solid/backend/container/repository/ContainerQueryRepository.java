@@ -70,7 +70,7 @@ public class ContainerQueryRepository {
                 .leftJoin(team.teamUsers, teamUser)
                 .where(
                     teamUser.member.eq(member)
-                    .and(container.owner.ne(member))
+                    .and(teamUser.teamAuth.authId.ne("ROOT"))
                 )
                 .orderBy(container.containerDate.desc())
                 .distinct()
@@ -183,8 +183,7 @@ public class ContainerQueryRepository {
                 .leftJoin(container.team, team).fetchJoin()
                 .leftJoin(team.teamUsers, teamUser).fetchJoin()
                 .where(
-                    container.owner.eq(member)
-                    .or(teamUser.member.eq(member))
+                    teamUser.member.eq(member)
                 )
                 .orderBy(container.containerDate.desc())
                 .distinct()
@@ -215,10 +214,12 @@ public class ContainerQueryRepository {
     }
     
     /**
-     * 소유자 ID 필터 조건
+     * 소유자 ID 필터 조건 (ROOT 권한을 가진 멤버)
      */
     private BooleanExpression ownerIdEq(String ownerId) {
-        return ownerId != null ? container.owner.memberId.eq(ownerId) : null;
+        if (ownerId == null) return null;
+        return teamUser.member.memberId.eq(ownerId)
+                .and(teamUser.teamAuth.authId.eq("ROOT"));
     }
     
     /**
@@ -232,7 +233,6 @@ public class ContainerQueryRepository {
             return container.containerAuth.isTrue();
         }
         return container.containerAuth.isTrue()
-                .or(container.owner.eq(member))
                 .or(teamUser.member.eq(member));
     }
 }

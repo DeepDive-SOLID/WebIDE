@@ -19,24 +19,6 @@ import java.util.List;
 @Repository
 public interface ContainerJpaRepository extends JpaRepository<Container, Long> {
     
-    /**
-     * 특정 사용자가 소유한 모든 컨테이너를 조회합니다.
-     * Spring Data JPA의 메서드 이름 규칙에 따라 자동으로 SQL이 생성됩니다:
-     * SELECT * FROM container WHERE owner_id = ? ORDER BY container_date DESC
-     * @param owner 조회할 컨테이너의 소유자 (Member 엔티티)
-     * @return 해당 사용자가 소유한 컨테이너 목록 (생성일 기준 내림차순 정렬)
-     */
-    List<Container> findByOwnerOrderByContainerDateDesc(Member owner);
-    
-    /**
-     * 특정 이름과 소유자로 컨테이너의 존재 여부를 확인합니다.
-     * 중복된 컨테이너 이름 방지를 위해 사용됩니다.
-     * SQL: SELECT EXISTS(SELECT 1 FROM container WHERE container_name = ? AND owner_id = ?)
-     * @param containerName 확인할 컨테이너 이름
-     * @param owner 컨테이너 소유자
-     * @return 해당 이름의 컨테이너가 존재하면 true, 없으면 false
-     */
-    boolean existsByContainerNameAndOwner(String containerName, Member owner);
     
     /**
      * 공개 여부에 따라 컨테이너 목록을 조회합니다.

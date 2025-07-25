@@ -63,4 +63,7 @@ public final class ContainerConstants {
     
     /** 컨테이너 멤버가 아님 */
     public static final String ERROR_NOT_CONTAINER_MEMBER = "컨테이너 멤버가 아닙니다.";
+    
+    /** 멤버가 팀에 속해있지 않음 */
+    public static final String ERROR_MEMBER_NOT_IN_TEAM = "해당 멤버는 팀에 속해있지 않습니다.";
 }
