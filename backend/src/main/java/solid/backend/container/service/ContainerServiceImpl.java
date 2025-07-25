@@ -811,8 +811,15 @@ public class ContainerServiceImpl implements ContainerService {
      * @param memberId 제거할 멤버 ID
      */
     private void removeTeamMember(Team team, String memberId) {
-        team.getTeamUsers().removeIf(tu -> 
-            tu.getMember().getMemberId().equals(memberId));
+        TeamUser toRemove = team.getTeamUsers().stream()
+            .filter(tu -> tu.getMember().getMemberId().equals(memberId))
+            .findFirst()
+            .orElse(null);
+            
+        if (toRemove != null) {
+            team.getTeamUsers().remove(toRemove);
+            toRemove.setTeam(null);
+        }
     }
     
 }
