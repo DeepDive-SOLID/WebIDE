@@ -1,11 +1,16 @@
 import { useTreeManager } from "./useTreeManager";
-
 import TreeView from "./TreeView";
 import ContextMenu from "../ContextMenu";
 import Bargraph from "../../UI/Bargraph";
 import { FaUsers } from "react-icons/fa";
 import styles from "../../../styles/AppSidebar.module.scss";
 import { useState, useEffect } from "react";
+import {
+  getDirectoryList,
+  createDirectory,
+  renameDirectory,
+  deleteDirectory,
+} from "../../../api/directoryApi";
 
 const AlgorithmSidebar = () => {
   const {
@@ -17,13 +22,34 @@ const AlgorithmSidebar = () => {
     create,
     remove,
     rename,
+    setBoxList,
   } = useTreeManager();
 
-  // 우클릭 메뉴 위치와 현재 활성 항목
+  useEffect(() => {
+    const fetchDirectory = async () => {
+      const list = await getDirectoryList({ containerId: 1 });
+      const mapped = list.map((item) => ({
+        id: `folder-${item.directoryId}`,
+        directoryId: item.directoryId,
+        title: item.directoryName,
+        type: "folder" as const,
+        parentId:
+          item.directoryRoot === "root"
+            ? null
+            : `folder-${
+                list.find((x) => x.directoryName === item.directoryRoot)
+                  ?.directoryId ?? "unknown"
+              }`,
+      }));
+      setBoxList(mapped);
+    };
+
+    fetchDirectory();
+  }, []);
+
   const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  // 우클릭 메뉴 열기
   const handleContextMenu = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -31,14 +57,12 @@ const AlgorithmSidebar = () => {
     setMenuPos({ x: e.clientX, y: e.clientY });
   };
 
-  // 폴더 열기/닫기 토글
   const toggleOpen = (id: string) => {
     setOpenIds((prev) =>
       prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]
     );
   };
 
-  // 우클릭 메뉴 외부 클릭 시 닫기
   useEffect(() => {
     const close = () => {
       setMenuPos(null);
@@ -61,15 +85,65 @@ const AlgorithmSidebar = () => {
               x={menuPos.x}
               y={menuPos.y}
               onClose={() => setMenuPos(null)}
-              onCreate={(type) => {
+              onCreate={async (type) => {
                 const title = prompt(`${type} 이름을 입력하세요`);
-                if (title) create(type, title);
+                if (!title) return;
+
+                const parent = boxList.find((b) => b.id === selectedId);
+
+                if (type === "folder") {
+                  try {
+                    const res = await createDirectory({
+                      containerId: 1,
+                      teamId: 1,
+                      directoryName: title,
+                      directoryRoot: parent ? parent.title : "root",
+                      directoryId: 0,
+                    });
+
+                    create("folder", res.directoryName, res.directoryId);
+                  } catch (err) {
+                    console.error("디렉터리 생성 실패:", err);
+                  }
+                } else {
+                  // 파일은 백엔드 연동 없이 프론트 상태만 추가
+                  create("file", title);
+                }
               }}
-              onRename={(id) => {
-                const title = prompt("새 이름을 입력하세요");
-                if (title) rename(id, title);
+              onRename={async (id) => {
+                const item = boxList.find((b) => b.id === id);
+                if (!item) return;
+
+                const title = prompt("새 이름을 입력하세요", item.title);
+                if (!title) return;
+
+                try {
+                  await renameDirectory({
+                    directoryId: item.directoryId,
+                    oldDirectoryName: item.title,
+                    directoryName: title,
+                  });
+                  rename(id, title);
+                } catch (err) {
+                  console.error("디렉터리 이름 변경 실패:", err);
+                }
               }}
-              onDelete={(id) => remove(id)}
+              onDelete={async (id) => {
+                const item = boxList.find((b) => b.id === id);
+                if (!item) return;
+
+                try {
+                  await deleteDirectory({
+                    directoryId: item.directoryId,
+                    containerId: 1,
+                    directoryRoot: item.parentId ?? "root",
+                    directoryName: item.title,
+                  });
+                  remove(id);
+                } catch (err) {
+                  console.error("디렉터리 삭제 실패:", err);
+                }
+              }}
               selectedId={selectedId}
             />
           )}

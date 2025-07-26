@@ -10,8 +10,10 @@ const Home = () => {
 
   return (
     <div>
-      <button onClick={openModal}>모달창 열기</button>
-      {isModalOpen && <AddFileModal onClose={closeModal} />}
+      {/* <button onClick={openModal}>모달창 열기</button>
+      {isModalOpen && <AddFileModal onClose={closeModal} />} */}
+
+      <AlgorithmNav />
     </div>
   );
 };
