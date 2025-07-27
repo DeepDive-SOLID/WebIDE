@@ -12,7 +12,7 @@
     - ProgressServiceImpl.java
 
 ### API 목록
-[문제 리스트 조회]
+[문제 진행률 계산]
 - HTTP method : POST
 - HTTP request URL : progress/update
 - param : progressDto
