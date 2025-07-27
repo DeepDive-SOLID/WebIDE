@@ -261,3 +261,102 @@
 .roleBtn:hover {
   background: #bfc4ce;
 }
+
+/* 다크모드 스타일 */
+:global(body.dark-mode) {
+  .modalContent {
+    background: #1e1e1e;
+    box-shadow: 0 2px 16px rgba(255, 255, 255, 0.1);
+  }
+
+  .closeBtn {
+    color: #aaaaaa;
+    &:hover {
+      color: #2196f3;
+    }
+  }
+
+  .containerNameInput,
+  .inviteInput,
+  .textarea {
+    background: #2c2c2c;
+    border-color: #444444;
+    color: #ffffff;
+    &:focus {
+      border-color: #2196f3;
+    }
+    &::placeholder {
+      color: #888888;
+    }
+  }
+
+  .primaryBtn {
+    background: #0085ff;
+    &:hover {
+      background: #0074d9;
+    }
+  }
+
+  .secondaryBtn {
+    background: #444444;
+    color: #ffffff;
+    &:hover {
+      background: #555555;
+    }
+  }
+
+  .inviteBtn {
+    background: #0085ff;
+    &:hover {
+      background: #0074d9;
+    }
+  }
+
+  .memberBadge {
+    background: #0085ff;
+  }
+
+  .memberList {
+    background: #2c2c2c;
+  }
+
+  .memberItem {
+    color: #ffffff;
+  }
+
+  .roleBadge {
+    &.owner {
+      background: #d13131;
+    }
+    &.member {
+      background: #34c759;
+    }
+  }
+
+  .memberActivity {
+    color: #cccccc;
+  }
+
+  .addBtn {
+    background: #0085ff;
+    &:hover {
+      background: #0074d9;
+    }
+  }
+
+  .removeBtn {
+    color: #aaaaaa;
+    &:hover {
+      background: #444444;
+      color: #f44336;
+    }
+  }
+
+  .roleBtn {
+    background: #444444;
+    color: #ffffff;
+    &:hover {
+      background: #555555;
+    }
+  }
+}

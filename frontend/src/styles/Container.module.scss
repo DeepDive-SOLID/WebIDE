@@ -169,3 +169,63 @@
     letter-spacing: -0.5px;
   }
 }
+
+/* 다크모드 스타일 */
+:global(body.dark-mode) {
+  .header {
+    border-bottom: #333333 1px solid;
+  }
+
+  .createBtn {
+    background: #0085ff;
+    &:hover {
+      background: #0074d9;
+    }
+  }
+
+  .containerCard {
+    background: #1e1e1e;
+    box-shadow: 0 2px 12px rgba(255, 255, 255, 0.05);
+  }
+
+  .containerName {
+    color: #ffffff;
+  }
+
+  .memberCount {
+    color: #cccccc;
+  }
+
+  .settingBtn {
+    color: #aaaaaa;
+    &:hover {
+      color: #0085ff;
+    }
+  }
+
+  .memberName {
+    color: #ffffff;
+  }
+
+  .userIcon {
+    color: #aaaaaa;
+  }
+
+  .leaveBtn {
+    background: #d13131;
+    &:hover {
+      background: #a32020;
+    }
+  }
+
+  .joinBtn {
+    background: #0085ff;
+    &:hover {
+      background: #0074d9;
+    }
+  }
+
+  .emptyContainer {
+    color: #aaaaaa;
+  }
+}

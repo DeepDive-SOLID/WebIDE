@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styles from "../styles/Container.module.scss";
 import folderImg from "../assets/icons/folder.svg";
+import folderDarkImg from "../assets/icons/folder_darkmode.svg";
 import CreateContainer from "../components/Modal/CreateContainer";
 import OwnerSetting from "../components/Modal/OwnerSetting";
 import {
@@ -12,8 +13,11 @@ import type { ContainerResponseDto, GroupMemberResponseDto } from "../api/home";
 import { useAuth } from "../hooks/useAuth";
 import ContainerCard from "../components/Container/ContainerCard";
 import emptyImg from "../assets/icons/empty.svg";
+import { useSelector } from "react-redux";
+import type { RootState } from "../stores";
 
 const AllContainer: React.FC = () => {
+  const isDark = useSelector((state: RootState) => state.theme.isDark);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSettingOpen, setIsSettingOpen] = useState(false);
   const [selectedContainerName, setSelectedContainerName] =
@@ -101,7 +105,7 @@ const AllContainer: React.FC = () => {
       <div className={styles.header}>
         <h2>
           <img
-            src={folderImg}
+            src={isDark ? folderDarkImg : folderImg}
             alt="folder"
             style={{
               width: 28,
