@@ -10,8 +10,10 @@ const Home = () => {
   const location = useLocation();
   const isContainerSidebarOpen = sidebarOpen && sidebarType === "container";
   const needDynamicMargin = [
+    "/home/all-container",
     "/home/my-container",
     "/home/shared-container",
+    "/home/public-container",
   ].includes(location.pathname);
 
   return (
