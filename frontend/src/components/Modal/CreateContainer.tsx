@@ -27,13 +27,12 @@ const CreateContainer: React.FC<CreateContainerProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // userInfo가 바뀔 때마다 Owner가 리스트에 반드시 포함되도록 보장
+  // userInfo가 바뀔 때마다 Owner가 리스트에서 제거되도록 보장 (백엔드에서 자동 추가)
   React.useEffect(() => {
     if (userInfo?.memberId) {
-      setInvitedMemberIds((prev) => {
-        if (prev.includes(userInfo.memberId)) return prev;
-        return [userInfo.memberId, ...prev];
-      });
+      setInvitedMemberIds((prev) =>
+        prev.filter((id) => id !== userInfo.memberId)
+      );
     }
   }, [userInfo]);
 
@@ -163,10 +162,26 @@ const CreateContainer: React.FC<CreateContainerProps> = ({
         <div>
           <div style={{ marginBottom: 8 }}>
             <span className={styles.memberBadge}>
-              초대 멤버 ({invitedMemberIds.length})
+              초대 멤버 (
+              {invitedMemberIds.length + (userInfo?.memberId ? 1 : 0)})
             </span>
           </div>
           <div className={styles.memberList}>
+            {/* Owner (로그인한 사용자) 표시 */}
+            {userInfo?.memberId && (
+              <div className={styles.memberItem}>
+                <img
+                  src={profileImg}
+                  alt="user"
+                  className={styles.memberAvatar}
+                />
+                {userInfo.memberId}
+                <span className={`${styles.roleBadge} ${styles.owner}`}>
+                  Owner
+                </span>
+              </div>
+            )}
+            {/* 초대된 멤버들 표시 */}
             {invitedMemberIds.map((id) => (
               <div className={styles.memberItem} key={id}>
                 <img
@@ -175,21 +190,15 @@ const CreateContainer: React.FC<CreateContainerProps> = ({
                   className={styles.memberAvatar}
                 />
                 {id}
-                <span
-                  className={`${styles.roleBadge} ${
-                    id === userInfo?.memberId ? styles.owner : styles.member
-                  }`}
-                >
-                  {id === userInfo?.memberId ? "Owner" : "Member"}
+                <span className={`${styles.roleBadge} ${styles.member}`}>
+                  Member
                 </span>
-                {id !== userInfo?.memberId && (
-                  <button
-                    className={styles.removeBtn}
-                    onClick={() => handleRemoveInvite(id)}
-                  >
-                    ×
-                  </button>
-                )}
+                <button
+                  className={styles.removeBtn}
+                  onClick={() => handleRemoveInvite(id)}
+                >
+                  ×
+                </button>
               </div>
             ))}
           </div>
