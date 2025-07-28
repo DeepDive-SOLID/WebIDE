@@ -5,6 +5,7 @@ import { Provider } from "react-redux";
 import { store } from "./stores";
 import App from "./App";
 import Home from "./pages/Home";
+import Test from "./pages/Test";
 
 const router = createBrowserRouter([
   {
@@ -14,6 +15,10 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <Home />,
+      },
+      {
+        path: "/container/:containerId",
+        element: <Test />,
       },
     ],
   },

@@ -1,20 +1,20 @@
-import AlgorithmNav from "../components/APP/Nav/AlgorithmNav";
-import AddFileModal from "../components/APP/AddFileModal";
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const handleContainerClick = (id: number) => {
+    navigate(`/container/${id}`);
+  };
 
   return (
-    <div>
-      {/* <button onClick={openModal}>모달창 열기</button>
-      {isModalOpen && <AddFileModal onClose={closeModal} />} */}
-
-      <AlgorithmNav />
+    <div style={{ padding: "2rem" }}>
+      <h2>컨테이너 선택</h2>
+      <button onClick={() => handleContainerClick(1)}>컨테이너 1번</button>
+      <button onClick={() => handleContainerClick(2)}>컨테이너 2번</button>
+      <button onClick={() => handleContainerClick(3)}>컨테이너 3번</button>
     </div>
   );
 };
+
 export default Home;

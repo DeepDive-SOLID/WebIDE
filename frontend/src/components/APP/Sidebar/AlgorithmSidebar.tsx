@@ -14,6 +14,10 @@ import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
 import { CiFileOn } from "react-icons/ci";
 import AddFileModal from "../AddFileModal";
 
+interface AlgorithmSidebarProps {
+  containerId: number;
+}
+
 // 타입 정의: 각 박스 아이템은 폴더 혹은 파일이며, 뷰 렌더링 및 식별을 위한 id를 가짐
 export type BoxItemType = {
   id: string;
@@ -23,7 +27,7 @@ export type BoxItemType = {
   parentId: string | null;
 };
 
-const AlgorithmSidebar = () => {
+const AlgorithmSidebar = ({ containerId }: AlgorithmSidebarProps) => {
   // 상태 관리 변수들 정의
   const [boxList, setBoxList] = useState<BoxItemType[]>([]); // 전체 트리 데이터
   const [openIds, setOpenIds] = useState<string[]>([]); // 열려있는 폴더 id 목록
@@ -40,7 +44,7 @@ const AlgorithmSidebar = () => {
   // 마운트 시 디렉터리 목록 불러오기
   useEffect(() => {
     const fetchDirectory = async () => {
-      const list = await getDirectoryList({ containerId: 1 });
+      const list = await getDirectoryList({ containerId }); // ← 여기서 props 사용
       const mapped = list.map((item) => ({
         id: `folder-${item.directoryId}`,
         directoryId: item.directoryId,
@@ -58,7 +62,7 @@ const AlgorithmSidebar = () => {
     };
 
     fetchDirectory();
-  }, []);
+  }, [containerId]);
 
   // 새 항목(파일/폴더) 추가 함수
   const create = (
@@ -271,7 +275,11 @@ const AlgorithmSidebar = () => {
                   await deleteDirectory({
                     directoryId: item.directoryId,
                     containerId: 1,
-                    directoryRoot: item.parentId ?? "root",
+                    directoryRoot: item.parentId
+                      ? boxList.find((b) => b.id === item.parentId)?.title ??
+                        "root"
+                      : "root",
+
                     directoryName: item.title,
                   });
                   remove(id);
@@ -300,7 +308,7 @@ const AlgorithmSidebar = () => {
           <FaUsers className={styles.containerIcon} />
           <div className={styles.containerTexts}>
             <p className={styles.label}>현재 컨테이너</p>
-            <p className={styles.name}>SOLID 컨테이너</p>
+            <p className={styles.name}>SOLID</p>
           </div>
         </div>
       </div>
