@@ -1,15 +1,17 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 export interface TerminalState {
-    input: string;
-    output: string | null;
+    runInput: string;
+    runOutput: string;
+    submitOutput: string;
     restart: boolean;
   }
   
   // 초기 상태 정의
   const initialState: TerminalState = {
-    input: '',
-    output: null,
+    runInput: '',
+    runOutput: '',
+    submitOutput: '',
     restart: false,
   };
 
@@ -17,11 +19,14 @@ export const terminalSlice = createSlice({
     name: 'terminal',
     initialState,
     reducers: {
-        setInput: (state, action: PayloadAction<string>) => {
-            state.input = action.payload;
+        setRunInput: (state, action: PayloadAction<string>) => {
+            state.runInput = action.payload;
         },
-        setOutput: (state, action: PayloadAction<string | null>) => {
-            state.output = action.payload;
+        setRunOutput: (state, action: PayloadAction<string>) => {
+            state.runOutput = action.payload;
+        },
+        setSubmitOutput: (state, action: PayloadAction<string>) => {
+            state.submitOutput = action.payload;
         },
         setRestart: (state) => {
             state.restart = !state.restart
@@ -29,5 +34,5 @@ export const terminalSlice = createSlice({
     }
 })
 
-export const { setInput, setOutput, setRestart } = terminalSlice.actions;
+export const { setRunInput, setRunOutput, setRestart, setSubmitOutput } = terminalSlice.actions;
 export default terminalSlice.reducer;
