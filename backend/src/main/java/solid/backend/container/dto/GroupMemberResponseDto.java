@@ -48,13 +48,16 @@ public class GroupMemberResponseDto {
         if (teamUser.getTeamAuth() == null) {
             throw new IllegalArgumentException("TeamUser must have an authority");
         }
+        if (teamUser.getTeamUserId() == null) {
+            throw new IllegalArgumentException("TeamUser must have a teamUserId");
+        }
         
         return GroupMemberResponseDto.builder()
                 .teamUserId(teamUser.getTeamUserId().longValue())
                 .memberId(teamUser.getMember().getMemberId())
                 .memberName(teamUser.getMember().getMemberName())
                 .memberEmail(teamUser.getMember().getMemberEmail())
-                .authority(teamUser.getTeamAuth().getAuthId())
+                .authority(teamUser.getTeamAuth() != null ? teamUser.getTeamAuth().getAuthId() : null)
                 .joinedDate(teamUser.getJoinedDate())
                 .lastActivityDate(teamUser.getLastActivityDate())
                 .build();

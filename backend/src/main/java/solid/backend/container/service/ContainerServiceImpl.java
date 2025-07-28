@@ -5,11 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
+import jakarta.persistence.OptimisticLockException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import solid.backend.container.dto.*;
 import solid.backend.entity.*;
 import solid.backend.jpaRepository.ContainerJpaRepository;
 import solid.backend.jpaRepository.MemberRepository;
 import solid.backend.jpaRepository.AuthRepository;
+import solid.backend.jpaRepository.TeamUserRepository;
 import solid.backend.container.repository.ContainerQueryRepository;
 import solid.backend.container.exception.*;
 
@@ -35,6 +39,8 @@ public class ContainerServiceImpl implements ContainerService {
     private final MemberRepository memberRepository;
     /** 권한 데이터 접근 레포지토리 */
     private final AuthRepository authRepository;
+    /** 팀 멤버 데이터 접근 레포지토리 */
+    private final TeamUserRepository teamUserRepository;
     
     /**
      * 컨테이너 생성
@@ -440,7 +446,7 @@ public class ContainerServiceImpl implements ContainerService {
      * @throws IllegalStateException 이미 멤버인 경우
      */
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
     public synchronized GroupMemberResponseDto joinContainer(Integer containerId, String memberId) {
         // 컨테이너 조회
         Container container = getContainerWithTeamOrThrow(containerId);
@@ -471,8 +477,26 @@ public class ContainerServiceImpl implements ContainerService {
         teamUser.setTeamAuth(userAuth);
         teamUser.setJoinedDate(LocalDateTime.now());
         teamUser.setLastActivityDate(LocalDateTime.now());
-                
-        container.getTeam().getTeamUsers().add(teamUser);
+        
+        // TeamUser를 직접 저장하는 것이 더 안전함
+        try {
+            teamUser = teamUserRepository.save(teamUser);
+            
+            // 저장된 TeamUser를 컬렉션에 추가
+            container.getTeam().getTeamUsers().add(teamUser);
+        } catch (OptimisticLockException | OptimisticLockingFailureException e) {
+            log.warn("동시성 충돌 발생: 다른 사용자가 동시에 컨테이너에 참여하려고 시도했습니다. containerId: {}, memberId: {}", containerId, memberId);
+            throw new IllegalStateException("다른 사용자가 동시에 작업 중입니다. 잠시 후 다시 시도해주세요.", e);
+        }
+        
+        // Lazy Loading 문제를 해결하기 위해 fetch join으로 다시 조회
+        try {
+            teamUser = teamUserRepository.findByIdWithFetch(teamUser.getTeamUserId())
+                    .orElseThrow(() -> new IllegalStateException("저장된 TeamUser를 찾을 수 없습니다"));
+        } catch (Exception e) {
+            log.error("TeamUser 조회 중 오류 발생: {}", e.getMessage(), e);
+            throw new RuntimeException("팀 멤버 정보 조회 중 오류가 발생했습니다", e);
+        }
         
         log.info("Member {} joined public container {}", memberId, containerId);
         
