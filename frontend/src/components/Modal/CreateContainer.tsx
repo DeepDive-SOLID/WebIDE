@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import styles from "../../styles/Modal.module.scss";
 import profileImg from "../../assets/images/profile_img.png";
 import { createContainer } from "../../api/home";
 import type { CreateContainerDto } from "../../api/home";
-import { useAuth } from "../../hooks/useAuth";
 
 interface CreateContainerProps {
   onClose: () => void;
@@ -14,7 +13,12 @@ const CreateContainer: React.FC<CreateContainerProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { userInfo } = useAuth();
+  // 토큰에서 사용자 ID 직접 추출
+  const userInfo = useMemo(() => {
+    const token = localStorage.getItem("accessToken");
+    const decodedToken = token ? JSON.parse(atob(token.split(".")[1])) : null;
+    return decodedToken ? { memberId: decodedToken.memberId } : null;
+  }, []);
   const [containerName, setContainerName] = useState("");
   const [containerContent, setContainerContent] = useState("");
   const [isPublic, setIsPublic] = useState(true);
@@ -67,15 +71,12 @@ const CreateContainer: React.FC<CreateContainerProps> = ({
       return;
     }
     setLoading(true);
-    const filteredInvited = invitedMemberIds.filter(
-      (id) => id !== userInfo?.memberId
-    );
     const body: CreateContainerDto = {
       containerName,
       containerContent,
       isPublic,
       invitedMemberIds:
-        filteredInvited.length > 0 ? filteredInvited : undefined,
+        invitedMemberIds.length > 0 ? invitedMemberIds : undefined,
     };
     try {
       await createContainer(body);
