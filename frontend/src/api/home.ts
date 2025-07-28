@@ -1,14 +1,16 @@
 import axios from "./axios";
+import type {
+  CreateContainerDto,
+  ContainerResponseDto,
+  GroupMemberResponseDto,
+  ApiResponse,
+  UpdateContainerDto,
+  InviteMemberDto,
+} from "../types/home";
 
 // 컨테이너 생성 API
-export interface CreateContainerDto {
-  containerName: string;
-  containerContent?: string;
-  isPublic: boolean;
-  invitedMemberIds?: string[];
-}
 
-export const createContainer = async (data: unknown) => {
+export const createContainer = async (data: CreateContainerDto) => {
   const response = await axios.post("/containers", data);
   return response.data;
 };
@@ -18,30 +20,19 @@ export const inviteMember = async (
   containerId: number,
   memberId: string
 ): Promise<GroupMemberResponseDto> => {
-  const response = await axios.post<{
-    success: boolean;
-    data: GroupMemberResponseDto;
-  }>(`/containers/${containerId}/members`, { memberId });
+  const response = await axios.post<ApiResponse<GroupMemberResponseDto>>(
+    `/containers/${containerId}/members`,
+    { memberId } as InviteMemberDto
+  );
   return response.data.data;
 };
 
 // 컨테이너 전체 조회 API
-export interface ContainerResponseDto {
-  containerId: number;
-  containerName: string;
-  containerContent: string;
-  isPublic: boolean;
-  ownerId: string;
-  authority: "ROOT" | "USER";
-  memberCount: number;
-  createdDate: string;
-}
 
 export const getContainers = async (): Promise<ContainerResponseDto[]> => {
-  const response = await axios.get<{
-    success: boolean;
-    data: ContainerResponseDto[];
-  }>("/containers");
+  const response = await axios.get<ApiResponse<ContainerResponseDto[]>>(
+    "/containers"
+  );
   return response.data.data;
 };
 
@@ -49,45 +40,45 @@ export const getContainers = async (): Promise<ContainerResponseDto[]> => {
 export const getContainerDetail = async (
   containerId: number
 ): Promise<ContainerResponseDto> => {
-  const response = await axios.get<{
-    success: boolean;
-    data: ContainerResponseDto;
-  }>(`/containers/${containerId}`);
+  const response = await axios.get<ApiResponse<ContainerResponseDto>>(
+    `/containers/${containerId}`
+  );
   return response.data.data;
 };
 
 // 컨테이너 정보 수정 API (isPublic만 보낼 수 있음)
 export const updateContainer = async (
   containerId: number,
-  body: { isPublic: boolean }
+  body: UpdateContainerDto
 ): Promise<ContainerResponseDto> => {
-  const response = await axios.put<{
-    success: boolean;
-    data: ContainerResponseDto;
-  }>(`/containers/${containerId}`, body);
+  const response = await axios.put<ApiResponse<ContainerResponseDto>>(
+    `/containers/${containerId}`,
+    body
+  );
   return response.data.data;
 };
-
-// 컨테이너 멤버 응답 타입
-export interface GroupMemberResponseDto {
-  teamUserId: number;
-  memberId: string;
-  memberName: string;
-  memberEmail: string;
-  authority: "ROOT" | "USER";
-  joinedDate: string;
-  lastActivityDate: string;
-}
 
 // 컨테이너 멤버 조회 API
 export const getContainerMembers = async (
   containerId: number
 ): Promise<GroupMemberResponseDto[]> => {
-  const response = await axios.get<{
-    success: boolean;
-    data: GroupMemberResponseDto[];
-  }>(`/containers/${containerId}/members`);
+  const response = await axios.get<ApiResponse<GroupMemberResponseDto[]>>(
+    `/containers/${containerId}/members`
+  );
   return response.data.data;
+};
+
+// 컨테이너 참가 API
+export const joinContainer = async (
+  containerId: number
+): Promise<{ success: boolean; message: string }> => {
+  const response = await axios.post<ApiResponse<null>>(
+    `/containers/${containerId}/join`
+  );
+  return {
+    success: response.data.success,
+    message: response.data.message || "",
+  };
 };
 
 // 컨테이너 멤버 삭제 API
@@ -95,34 +86,33 @@ export const deleteMember = async (
   containerId: number,
   targetMemberId: string
 ): Promise<{ success: boolean; message: string }> => {
-  const response = await axios.delete<{
-    success: boolean;
-    data: null;
-    message: string;
-    timestamp: string;
-  }>(`/containers/${containerId}/members/${targetMemberId}`);
-  return { success: response.data.success, message: response.data.message };
+  const response = await axios.delete<ApiResponse<null>>(
+    `/containers/${containerId}/members/${targetMemberId}`
+  );
+  return {
+    success: response.data.success,
+    message: response.data.message || "",
+  };
 };
 
 // 컨테이너 탈퇴 API
 export const leaveContainer = async (
   containerId: number
 ): Promise<{ success: boolean; message: string }> => {
-  const response = await axios.delete<{
-    success: boolean;
-    data: null;
-    message: string;
-    timestamp: string;
-  }>(`/containers/${containerId}/members/me`);
-  return { success: response.data.success, message: response.data.message };
+  const response = await axios.delete<ApiResponse<null>>(
+    `/containers/${containerId}/members/me`
+  );
+  return {
+    success: response.data.success,
+    message: response.data.message || "",
+  };
 };
 
 // 내가 속한 컨테이너 목록 조회 API
 export const getMyContainers = async (): Promise<ContainerResponseDto[]> => {
-  const response = await axios.get<{
-    success: boolean;
-    data: ContainerResponseDto[];
-  }>("/containers/my");
+  const response = await axios.get<ApiResponse<ContainerResponseDto[]>>(
+    "/containers/my"
+  );
   return response.data.data;
 };
 
@@ -130,10 +120,9 @@ export const getMyContainers = async (): Promise<ContainerResponseDto[]> => {
 export const getSharedContainers = async (): Promise<
   ContainerResponseDto[]
 > => {
-  const response = await axios.get<{
-    success: boolean;
-    data: ContainerResponseDto[];
-  }>("/containers/shared");
+  const response = await axios.get<ApiResponse<ContainerResponseDto[]>>(
+    "/containers/shared"
+  );
   return response.data.data;
 };
 
@@ -141,9 +130,8 @@ export const getSharedContainers = async (): Promise<
 export const getPublicContainers = async (): Promise<
   ContainerResponseDto[]
 > => {
-  const response = await axios.get<{
-    success: boolean;
-    data: ContainerResponseDto[];
-  }>("/containers/public");
+  const response = await axios.get<ApiResponse<ContainerResponseDto[]>>(
+    "/containers/public"
+  );
   return response.data.data;
 };

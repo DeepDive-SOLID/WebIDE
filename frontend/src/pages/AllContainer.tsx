@@ -9,7 +9,10 @@ import {
   getContainerMembers,
   leaveContainer,
 } from "../api/home";
-import type { ContainerResponseDto, GroupMemberResponseDto } from "../api/home";
+import type {
+  ContainerResponseDto,
+  GroupMemberResponseDto,
+} from "../types/home";
 
 import ContainerCard from "../components/Container/ContainerCard";
 import emptyImg from "../assets/icons/empty.svg";

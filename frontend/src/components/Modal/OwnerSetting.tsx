@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getContainerMembers, inviteMember } from "../../api/home";
-import type { GroupMemberResponseDto } from "../../api/home";
+import type { GroupMemberResponseDto } from "../../types/home";
 import { getContainerDetail } from "../../api/home";
 import { deleteMember } from "../../api/home";
 import { updateContainer } from "../../api/home";

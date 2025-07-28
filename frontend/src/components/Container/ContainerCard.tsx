@@ -5,7 +5,7 @@ import { FaCog, FaPlay, FaCrown, FaUser } from "react-icons/fa";
 import type {
   ContainerResponseDto,
   GroupMemberResponseDto,
-} from "../../api/home";
+} from "../../types/home";
 
 interface ContainerCardProps {
   container: ContainerResponseDto;

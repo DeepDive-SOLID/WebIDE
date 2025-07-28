@@ -2,8 +2,15 @@ import React, { useState } from "react";
 import styles from "../styles/Container.module.scss";
 import { AiOutlineGlobal } from "react-icons/ai";
 import ContainerCard from "../components/Container/ContainerCard";
-import { getPublicContainers, getContainerMembers } from "../api/home";
-import type { ContainerResponseDto, GroupMemberResponseDto } from "../api/home";
+import {
+  getPublicContainers,
+  getContainerMembers,
+  joinContainer,
+} from "../api/home";
+import type {
+  ContainerResponseDto,
+  GroupMemberResponseDto,
+} from "../types/home";
 import emptyImg from "../assets/icons/empty.svg";
 
 const AllContainer: React.FC = () => {
@@ -21,6 +28,17 @@ const AllContainer: React.FC = () => {
   const [membersError, setMembersError] = useState<{
     [containerId: number]: string | null;
   }>({});
+
+  // 참가하기 버튼 핸들러
+  const handleJoin = async (containerId: number) => {
+    try {
+      await joinContainer(containerId);
+      // 참가 성공 시 컨테이너 목록 새로고침
+      fetchContainers();
+    } catch (error) {
+      console.error("컨테이너 참가 실패:", error);
+    }
+  };
 
   const fetchContainers = async () => {
     setLoading(true);
@@ -101,6 +119,7 @@ const AllContainer: React.FC = () => {
               membersLoading={membersLoading[container.containerId]}
               membersError={membersError[container.containerId]}
               showJoinBtn={true}
+              onJoinClick={() => handleJoin(container.containerId)}
             />
           ))
         )}
