@@ -11,7 +11,7 @@ interface AddFileModalProps {
 }
 
 interface FormValues {
-  filename: string;
+  questionTitle: string;
   problem: string;
   inputDesc: string;
   outputDesc: string;
@@ -24,11 +24,7 @@ interface FormValues {
   }[];
 }
 
-const AddFileModal = ({
-  onClose,
-  directoryId,
-  onCreateComplete,
-}: AddFileModalProps) => {
+const AddFileModal = ({ onClose }: AddFileModalProps) => {
   const {
     register,
     handleSubmit,
@@ -37,7 +33,7 @@ const AddFileModal = ({
     watch,
   } = useForm<FormValues>({
     defaultValues: {
-      filename: "",
+      questionTitle: "",
       problem: "",
       inputDesc: "",
       outputDesc: "",
@@ -70,7 +66,7 @@ const AddFileModal = ({
       await createQuestion({
         containerId: 1, // 실제 값으로 교체
         teamId: 1,
-        questionTitle: data.filename,
+        questionTitle: data.questionTitle,
         questionDescription: "",
         question: data.problem,
         questionInput: data.inputDesc,
@@ -83,8 +79,9 @@ const AddFileModal = ({
           caseCheck: tc.checked,
         })),
       });
+
       alert("문제 생성 성공!");
-      onCreateComplete?.({ title: data.filename, directoryId });
+
       onClose();
     } catch (e) {
       console.error(e);
@@ -99,16 +96,16 @@ const AddFileModal = ({
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className={styles.inputGroup}>
           <div className={styles.formControl}>
-            <label htmlFor="filename" className={styles.title}>
-              파일명
+            <label htmlFor="questionTitle" className={styles.title}>
+              문제 제목
             </label>
             <input
-              id="filename"
-              {...register("filename", { required: true })}
-              placeholder="파일명을 입력하세요"
+              id="questionTitle"
+              {...register("questionTitle", { required: true })}
+              placeholder="예: A + B 문제"
             />
-            {errors.filename && (
-              <p className={styles.warning}>⚠ 파일명을 입력해주세요.</p>
+            {errors.problem && (
+              <p className={styles.warning}>⚠ 문제 제목을 작성해주세요.</p>
             )}
           </div>
 
