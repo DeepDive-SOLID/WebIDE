@@ -1,6 +1,6 @@
 {
     "java": {
-        "value": "import java.io.*;\n\nclass Main { \n  public static void main(String[] args) { \n     System.out.println('hi'); \n  }\n}"
+        "value": "import java.io.*;\nimport java.util.*;\n\nclass Main { \n  public static void main(String[] args) { \n     System.out.println('hi'); \n  }\n}"
     },
     "python": {
         "value": "def hi():\n  print('hi')\n\nif __name__=='__main__':\n  hi()"
