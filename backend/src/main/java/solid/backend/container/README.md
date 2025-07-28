@@ -7,7 +7,6 @@
     - ContainerMemberDto.java
     - ContainerResponseDto.java
     - ContainerSearchDto.java
-    - ContainerSearchResponseDto.java
     - ContainerStatisticsDto.java
     - ContainerUpdateDto.java
     - GroupMemberResponseDto.java
@@ -19,7 +18,7 @@
     - ContainerService.java
     - ContainerServiceImpl.java
 - exception(예외처리)
-    - ContainerException.java
+    - ContainerExceptionHandler.java
     - ContainerNotFoundException.java
     - DuplicateMemberException.java
     - InvalidMemberException.java
@@ -55,54 +54,55 @@
 
 [내 컨테이너 목록 조회]
 - HTTP method : GET
-- HTTP request URL : /api/containers/my
+- HTTP request URL : /api/containers/my-container
 - return : ApiResponse<List<ContainerResponseDto>>
 
-[컨테이너 검색]
+[참여중인 컨테이너 목록 조회]
 - HTTP method : GET
-- HTTP request URL : /api/containers/search
-- param : containerName, isPublic, ownerId (Query Params)
-- return : ApiResponse<List<ContainerSearchResponseDto>>
+- HTTP request URL : /api/containers/shared-container
+- return : ApiResponse<List<ContainerResponseDto>>
 
-[컨테이너 고급 검색]
-- HTTP method : POST
-- HTTP request URL : /api/containers/search/advanced
-- param : ContainerSearchDto
-- return : ApiResponse<List<ContainerSearchResponseDto>>
-
-[컨테이너 통계 조회]
+[공개 컨테이너 목록 조회]
 - HTTP method : GET
-- HTTP request URL : /api/containers/{containerId}/statistics
-- return : ApiResponse<ContainerStatisticsDto>
+- HTTP request URL : /api/containers/public-container
+- return : ApiResponse<List<ContainerResponseDto>>
 
-[권한별 컨테이너 수 통계]
+[접근 가능한 모든 컨테이너 목록 조회]
 - HTTP method : GET
-- HTTP request URL : /api/containers/stats/authority
-- return : ApiResponse<Map<String, Integer>>
+- HTTP request URL : /api/containers/all-container
+- return : ApiResponse<List<ContainerResponseDto>>
 
 [멤버 초대]
 - HTTP method : POST
 - HTTP request URL : /api/containers/{containerId}/members
 - param : MemberInviteDto
+- return : ApiResponse<GroupMemberResponseDto>
+
+[멤버 목록 조회]
+- HTTP method : GET
+- HTTP request URL : /api/containers/{containerId}/members
 - return : ApiResponse<List<GroupMemberResponseDto>>
 
 [멤버 제거]
 - HTTP method : DELETE
-- HTTP request URL : /api/containers/{containerId}/members/{memberId}
+- HTTP request URL : /api/containers/{containerId}/members/{targetMemberId}
 - return : ApiResponse<Void>
 
-[멤버 권한 변경] - 미구현
-- HTTP method : PUT
-- HTTP request URL : /api/containers/{containerId}/members/{memberId}/authority
-- param : authority (Query Param)
-- return : ApiResponse<GroupMemberResponseDto>
-- 현재 구현되지 않음
+[컨테이너 탈퇴]
+- HTTP method : DELETE
+- HTTP request URL : /api/containers/{containerId}/members/me
+- return : ApiResponse<Void>
 
-[컨테이너 공개 상태 일괄 변경]
+[멤버 활동 시간 업데이트]
 - HTTP method : PUT
-- HTTP request URL : /api/containers/batch/visibility
-- param : BatchContainerVisibilityDto
-- return : ApiResponse<List<ContainerResponseDto>>
+- HTTP request URL : /api/containers/{containerId}/members/me/activity
+- return : ApiResponse<Void>
+
+[공개 컨테이너 참여]
+- HTTP method : POST
+- HTTP request URL : /api/containers/{containerId}/join
+- return : ApiResponse<GroupMemberResponseDto>
+
 
 ### 주요 기능
 
@@ -115,11 +115,10 @@
 - 활동 시간 추적 : 컨테이너 접근 시 자동으로 lastActivityDate 업데이트
 
 #### 추가 구현 기능
-- **컨테이너 검색** : 이름, 공개여부, 소유자로 검색
-- **고급 검색** : 멤버 수, 생성일 범위, 정렬 옵션 포함
-- **통계 조회** : 멤버 목록, 접속 상태, 가입일, 활동 시간 표시
-- **권한별 통계** : 사용자가 ROOT/USER 권한을 가진 컨테이너 수 집계
-- **배치 공개 상태 변경** : 소유한 여러 컨테이너를 선택하여 한 번에 공개/비공개로 변경
+- **공개 컨테이너 참여** : 공개 컨테이너에 초대 없이 자유롭게 참여 가능
+- **참여 컨테이너 필터링** : 이미 참여중인 컨테이너는 공개 목록에서 자동 제외
+- **다양한 목록 조회** : 내 컨테이너, 참여중인 컨테이너, 공개 컨테이너, 전체 접근 가능 컨테이너
+- **멤버 관리** : 초대, 제거, 탈퇴, 활동 시간 추적
 
 ### 권한 시스템
 - **ROOT (소유자 권한)**
