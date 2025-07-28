@@ -35,7 +35,7 @@ public interface ContainerService {
      * @param memberId 조회하는 사용자 ID
      * @return 컨테이너 정보
      */
-    ContainerResponseDto getContainer(Long containerId, String memberId);
+    ContainerResponseDto getContainer(Integer containerId, String memberId);
     
     /**
      * 소유한 컨테이너 목록 조회
@@ -72,14 +72,14 @@ public interface ContainerService {
      * @param updateDto 수정할 정보
      * @return 수정된 컨테이너 정보
      */
-    ContainerResponseDto updateContainer(Long containerId, String memberId, ContainerUpdateDto updateDto);
+    ContainerResponseDto updateContainer(Integer containerId, String memberId, ContainerUpdateDto updateDto);
     
     /**
      * 컨테이너 삭제
      * @param containerId 컨테이너 ID
      * @param memberId 삭제하는 사용자 ID
      */
-    void deleteContainer(Long containerId, String memberId);
+    void deleteContainer(Integer containerId, String memberId);
     
     /**
      * 컨테이너에 멤버 초대
@@ -88,7 +88,7 @@ public interface ContainerService {
      * @param inviteDto 초대 정보
      * @return 초대된 멤버 정보
      */
-    GroupMemberResponseDto inviteMember(Long containerId, String requesterId, MemberInviteDto inviteDto);
+    GroupMemberResponseDto inviteMember(Integer containerId, String requesterId, MemberInviteDto inviteDto);
     
     /**
      * 컨테이너 멤버 목록 조회
@@ -98,7 +98,7 @@ public interface ContainerService {
      * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
      * @throws IllegalArgumentException 접근 권한이 없는 경우
      */
-    List<GroupMemberResponseDto> getContainerMembers(Long containerId, String memberId);
+    List<GroupMemberResponseDto> getContainerMembers(Integer containerId, String memberId);
     
     /**
      * 멤버 제거
@@ -106,51 +106,42 @@ public interface ContainerService {
      * @param requesterId 요청하는 사용자 ID
      * @param targetMemberId 제거할 멤버 ID
      */
-    void removeMember(Long containerId, String requesterId, String targetMemberId);
+    void removeMember(Integer containerId, String requesterId, String targetMemberId);
     
     /**
      * 컨테이너 탈퇴
      * @param containerId 컨테이너 ID
      * @param memberId 탈퇴하는 사용자 ID
      */
-    void leaveContainer(Long containerId, String memberId);
+    void leaveContainer(Integer containerId, String memberId);
     
     /**
      * 멤버 활동 시간 업데이트
      * @param containerId 컨테이너 ID
      * @param memberId 사용자 ID
      */
-    void updateMemberActivity(Long containerId, String memberId);
+    void updateMemberActivity(Integer containerId, String memberId);
     
     /**
      * 미활동 멤버 자동 제거
      */
     void removeInactiveMembers();
     
-    /**
-     * 컨테이너 검색
-     * @param name 컨테이너 이름
-     * @param isPublic 공개 여부
-     * @param ownerId 소유자 ID
-     * @param memberId 참여 멤버 ID
-     * @return 검색 결과
-     */
+    /*
+    // 컨테이너 검색
     List<ContainerResponseDto> searchContainers(String name, Boolean isPublic, 
                                                String ownerId, String memberId);
+    */
     
-    /**
-     * 권한별 컨테이너 통계 조회
-     * @param memberId 사용자 ID
-     * @return 권한별 컨테이너 개수
-     */
+    /*
+    // 권한별 컨테이너 통계 조회
     Map<String, Long> getContainerStatsByAuthority(String memberId);
+    */
     
-    /**
-     * 컨테이너 통계 정보 조회
-     * @param containerId 컨테이너 ID
-     * @return 컨테이너 통계 정보
-     */
-    ContainerStatisticsDto getContainerStatistics(Long containerId);
+    /*
+    // 컨테이너 통계 정보 조회
+    ContainerStatisticsDto getContainerStatistics(Integer containerId);
+    */
     
     /**
      * 여러 컨테이너의 공개 상태 변경
@@ -159,13 +150,10 @@ public interface ContainerService {
      * @param requesterId 요청자 ID
      * @return 업데이트된 컨테이너 수
      */
-    long batchUpdateVisibility(List<Long> containerIds, Boolean isPublic, String requesterId);
+    long batchUpdateVisibility(List<Integer> containerIds, Boolean isPublic, String requesterId);
     
-    /**
-     * 컨테이너 고급 검색
-     * @param searchDto 검색 조건
-     * @param memberId 조회하는 사용자 ID
-     * @return 검색 결과
-     */
+    /*
+    // 컨테이너 고급 검색
     List<ContainerResponseDto> advancedSearch(ContainerSearchDto searchDto, String memberId);
+    */
 }

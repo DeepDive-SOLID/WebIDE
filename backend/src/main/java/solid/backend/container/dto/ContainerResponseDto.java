@@ -19,7 +19,7 @@ import java.time.LocalDate;
 public class ContainerResponseDto {
     
     /** 컨테이너 고유 식별자 */
-    private Long containerId;
+    private Integer containerId;
     /** 컨테이너 이름 */
     private String containerName;
     /** 컨테이너 설명 */

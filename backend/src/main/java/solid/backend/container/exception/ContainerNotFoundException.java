@@ -17,7 +17,7 @@ public class ContainerNotFoundException extends RuntimeException {
      * 컨테이너 ID를 포함한 예외 생성
      * @param containerId 찾을 수 없는 컨테이너 ID
      */
-    public ContainerNotFoundException(Long containerId) {
+    public ContainerNotFoundException(Integer containerId) {
         super("컨테이너를 찾을 수 없습니다. ID: " + containerId);
     }
 }

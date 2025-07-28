@@ -91,7 +91,7 @@ public class ContainerServiceImpl implements ContainerService {
      */
     @Override
     @Transactional(readOnly = true)
-    public ContainerResponseDto getContainer(Long containerId, String memberId) {
+    public ContainerResponseDto getContainer(Integer containerId, String memberId) {
         // QueryDSL을 사용하여 연관 데이터를 한번에 조회
         Container container = containerQueryRepository.findByIdWithTeam(containerId)
                 .orElseThrow(() -> new ContainerNotFoundException(ERROR_CONTAINER_NOT_FOUND + containerId));
@@ -127,7 +127,7 @@ public class ContainerServiceImpl implements ContainerService {
      */
     @Override
     @Transactional
-    public ContainerResponseDto updateContainer(Long containerId, String memberId, ContainerUpdateDto updateDto) {
+    public ContainerResponseDto updateContainer(Integer containerId, String memberId, ContainerUpdateDto updateDto) {
         Container container = getContainerWithTeamOrThrow(containerId);
         
         // 수정 권한 확인
@@ -165,7 +165,7 @@ public class ContainerServiceImpl implements ContainerService {
      */
     @Override
     @Transactional
-    public void deleteContainer(Long containerId, String memberId) {
+    public void deleteContainer(Integer containerId, String memberId) {
         Container container = getContainerWithTeamOrThrow(containerId);
         
         // ROOT 권한 확인
@@ -257,7 +257,7 @@ public class ContainerServiceImpl implements ContainerService {
      */
     @Override
     @Transactional
-    public GroupMemberResponseDto inviteMember(Long containerId, String requesterId, MemberInviteDto inviteDto) {
+    public GroupMemberResponseDto inviteMember(Integer containerId, String requesterId, MemberInviteDto inviteDto) {
         Container container = getContainerWithTeamOrThrow(containerId);
         
         // ROOT 권한 확인
@@ -300,7 +300,7 @@ public class ContainerServiceImpl implements ContainerService {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<GroupMemberResponseDto> getContainerMembers(Long containerId, String memberId) {
+    public List<GroupMemberResponseDto> getContainerMembers(Integer containerId, String memberId) {
         Container container = getContainerWithTeamOrThrow(containerId);
         
         // 접근 권한 확인 (비공개 컨테이너인 경우)
@@ -332,7 +332,7 @@ public class ContainerServiceImpl implements ContainerService {
      */
     @Override
     @Transactional
-    public void removeMember(Long containerId, String requesterId, String targetMemberId) {
+    public void removeMember(Integer containerId, String requesterId, String targetMemberId) {
         Container container = getContainerWithTeamOrThrow(containerId);
         
         // ROOT 권한 확인
@@ -355,7 +355,7 @@ public class ContainerServiceImpl implements ContainerService {
      */
     @Override
     @Transactional
-    public void leaveContainer(Long containerId, String memberId) {
+    public void leaveContainer(Integer containerId, String memberId) {
         Container container = getContainerWithTeamOrThrow(containerId);
         
         // ROOT 권한자는 탈퇴 불가
@@ -375,7 +375,7 @@ public class ContainerServiceImpl implements ContainerService {
      */
     @Override
     @Transactional
-    public void updateMemberActivity(Long containerId, String memberId) {
+    public void updateMemberActivity(Integer containerId, String memberId) {
         Container container = getContainerWithTeamOrThrow(containerId);
         
         TeamUser teamUser = getTeamUserOrThrow(container, memberId);
@@ -476,14 +476,8 @@ public class ContainerServiceImpl implements ContainerService {
         }
     }
     
-    /**
-     * 컨테이너 검색
-     * @param name 컨테이너 이름
-     * @param isPublic 공개 여부
-     * @param ownerId 소유자 ID
-     * @param memberId 사용자 ID
-     * @return 검색된 컨테이너 목록
-     */
+    /*
+    // 컨테이너 검색
     @Override
     @Transactional(readOnly = true)
     public List<ContainerResponseDto> searchContainers(String name, Boolean isPublic, 
@@ -492,12 +486,10 @@ public class ContainerServiceImpl implements ContainerService {
         List<Container> containers = containerQueryRepository.searchContainers(name, isPublic, ownerId, member);
         return convertToResponseDtoList(containers, memberId);
     }
+    */
     
-    /**
-     * 사용자의 권한별 컨테이너 통계 조회
-     * @param memberId 사용자 ID
-     * @return 권한별 컨테이너 개수
-     */
+    /*
+    // 사용자의 권한별 컨테이너 통계 조회
     @Override
     @Transactional(readOnly = true)
     public Map<String, Long> getContainerStatsByAuthority(String memberId) {
@@ -517,16 +509,13 @@ public class ContainerServiceImpl implements ContainerService {
         
         return result;
     }
+    */
     
-    /**
-     * 컨테이너 상세 통계 정보 조회
-     * @param containerId 컨테이너 ID
-     * @return 컨테이너 통계 정보
-     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
-     */
+    /*
+    // 컨테이너 상세 통계 정보 조회
     @Override
     @Transactional(readOnly = true)
-    public ContainerStatisticsDto getContainerStatistics(Long containerId) {
+    public ContainerStatisticsDto getContainerStatistics(Integer containerId) {
         Container container = containerQueryRepository.findByIdWithTeam(containerId)
                 .orElseThrow(() -> new ContainerNotFoundException(ERROR_CONTAINER_NOT_FOUND + containerId));
         
@@ -596,6 +585,7 @@ public class ContainerServiceImpl implements ContainerService {
                 .members(memberList)
                 .build();
     }
+    */
     
     // 추가 헬퍼 메서드들
     
@@ -616,7 +606,7 @@ public class ContainerServiceImpl implements ContainerService {
      * @return 조회된 컨테이너 엔티티
      * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
      */
-    private Container getContainerOrThrow(Long containerId) {
+    private Container getContainerOrThrow(Integer containerId) {
         return containerRepository.findById(containerId)
                 .orElseThrow(() -> new ContainerNotFoundException(ERROR_CONTAINER_NOT_FOUND + containerId));
     }
@@ -627,7 +617,7 @@ public class ContainerServiceImpl implements ContainerService {
      * @return 조회된 컨테이너 엔티티 (팀 정보 포함)
      * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
      */
-    private Container getContainerWithTeamOrThrow(Long containerId) {
+    private Container getContainerWithTeamOrThrow(Integer containerId) {
         return containerQueryRepository.findByIdWithTeam(containerId)
                 .orElseThrow(() -> new ContainerNotFoundException(ERROR_CONTAINER_NOT_FOUND + containerId));
     }
@@ -675,12 +665,8 @@ public class ContainerServiceImpl implements ContainerService {
     
     // 페이징 지원 메서드 구현
     
-    /**
-     * 컨테이너 고급 검색
-     * @param searchDto 검색 조건
-     * @param memberId 사용자 ID
-     * @return 검색 결과
-     */
+    /*
+    // 컨테이너 고급 검색
     @Override
     @Transactional(readOnly = true)
     public List<ContainerResponseDto> advancedSearch(ContainerSearchDto searchDto, String memberId) {
@@ -697,6 +683,7 @@ public class ContainerServiceImpl implements ContainerService {
         
         return convertToResponseDtoList(containers, memberId);
     }
+    */
     
     /**
      * 배치 작업 - 여러 컨테이너의 공개 상태 변경
@@ -708,15 +695,15 @@ public class ContainerServiceImpl implements ContainerService {
      */
     @Override
     @Transactional
-    public long batchUpdateVisibility(List<Long> containerIds, Boolean isPublic, String requesterId) {
+    public long batchUpdateVisibility(List<Integer> containerIds, Boolean isPublic, String requesterId) {
         if (containerIds == null || containerIds.isEmpty()) {
             return 0;
         }
         
         // 각 컨테이너에 대한 권한 확인
-        List<Long> authorizedContainerIds = new ArrayList<>();
+        List<Integer> authorizedContainerIds = new ArrayList<>();
         
-        for (Long containerId : containerIds) {
+        for (Integer containerId : containerIds) {
             try {
                 Container container = getContainerWithTeamOrThrow(containerId);
                 if (hasRootAuthority(container, requesterId)) {

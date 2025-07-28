@@ -65,7 +65,7 @@ public class ContainerController {
      */
     @GetMapping("/{containerId}")
     public ResponseEntity<ApiResponse<ContainerResponseDto>> getContainer(
-            @PathVariable Long containerId) {
+            @PathVariable Integer containerId) {
         String memberId = getCurrentMemberId();
         ContainerResponseDto response = containerService.getContainer(containerId, memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -123,7 +123,7 @@ public class ContainerController {
      */
     @PutMapping("/{containerId}")
     public ResponseEntity<ApiResponse<ContainerResponseDto>> updateContainer(
-            @PathVariable Long containerId,
+            @PathVariable Integer containerId,
             @RequestBody @Valid ContainerUpdateDto updateDto) {
         String memberId = getCurrentMemberId();
         ContainerResponseDto response = containerService.updateContainer(containerId, memberId, updateDto);
@@ -137,7 +137,7 @@ public class ContainerController {
      */
     @DeleteMapping("/{containerId}")
     public ResponseEntity<ApiResponse<Void>> deleteContainer(
-            @PathVariable Long containerId) {
+            @PathVariable Integer containerId) {
         String memberId = getCurrentMemberId();
         containerService.deleteContainer(containerId, memberId);
         return ResponseEntity.ok(ApiResponse.successMessage("컨테이너가 삭제되었습니다"));
@@ -151,7 +151,7 @@ public class ContainerController {
      */
     @PostMapping("/{containerId}/members")
     public ResponseEntity<ApiResponse<GroupMemberResponseDto>> inviteMember(
-            @PathVariable Long containerId,
+            @PathVariable Integer containerId,
             @RequestBody @Valid MemberInviteDto inviteDto) {
         String requesterId = getCurrentMemberId();
         GroupMemberResponseDto response = containerService.inviteMember(containerId, requesterId, inviteDto);
@@ -166,7 +166,7 @@ public class ContainerController {
      */
     @GetMapping("/{containerId}/members")
     public ResponseEntity<ApiResponse<List<GroupMemberResponseDto>>> getContainerMembers(
-            @PathVariable Long containerId) {
+            @PathVariable Integer containerId) {
         String memberId = getCurrentMemberId();
         List<GroupMemberResponseDto> response = containerService.getContainerMembers(containerId, memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -180,7 +180,7 @@ public class ContainerController {
      */
     @DeleteMapping("/{containerId}/members/{targetMemberId}")
     public ResponseEntity<ApiResponse<Void>> removeMember(
-            @PathVariable Long containerId,
+            @PathVariable Integer containerId,
             @PathVariable String targetMemberId) {
         String requesterId = getCurrentMemberId();
         containerService.removeMember(containerId, requesterId, targetMemberId);
@@ -194,7 +194,7 @@ public class ContainerController {
      */
     @DeleteMapping("/{containerId}/members/me")
     public ResponseEntity<ApiResponse<Void>> leaveContainer(
-            @PathVariable Long containerId) {
+            @PathVariable Integer containerId) {
         String memberId = getCurrentMemberId();
         containerService.leaveContainer(containerId, memberId);
         return ResponseEntity.ok(ApiResponse.successMessage("컨테이너에서 탈퇴했습니다"));
@@ -207,34 +207,34 @@ public class ContainerController {
      */
     @PutMapping("/{containerId}/members/me/activity")
     public ResponseEntity<ApiResponse<Void>> updateActivity(
-            @PathVariable Long containerId) {
+            @PathVariable Integer containerId) {
         String memberId = getCurrentMemberId();
         containerService.updateMemberActivity(containerId, memberId);
         return ResponseEntity.ok(ApiResponse.successMessage("활동 시간이 업데이트되었습니다"));
     }
     
-    /**
-     * 컨테이너 검색 (QueryDSL 활용)
-     * @param name 컨테이너 이름 (선택)
-     * @param isPublic 공개 여부 (선택)
-     * @param ownerId 소유자 ID (선택)
-     * @return 검색 결과
-     */
+    /*
+    // 컨테이너 검색 (QueryDSL 활용)
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<ContainerResponseDto>>> searchContainers(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Boolean isPublic,
-            @RequestParam(required = false) String ownerId) {
+            @RequestParam(required = false) String ownerId,
+            @RequestParam(required = false) String tag,
+            @RequestParam(required = false) String createdAfter,
+            @RequestParam(required = false) String createdBefore,
+            @RequestParam(required = false) Integer minMembers,
+            @RequestParam(required = false) Integer maxMembers,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "20") int size) {
         String memberId = getCurrentMemberId();
         List<ContainerResponseDto> response = containerService.searchContainers(name, isPublic, ownerId, memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+    */
     
-    /**
-     * 컨테이너 고급 검색
-     * @param searchDto 검색 조건
-     * @return 검색 결과
-     */
+    /*
+    // 컨테이너 고급 검색
     @PostMapping("/search")
     public ResponseEntity<ApiResponse<List<ContainerResponseDto>>> advancedSearch(
             @RequestBody @Valid ContainerSearchDto searchDto) {
@@ -245,32 +245,34 @@ public class ContainerController {
             "검색이 완료되었습니다"
         ));
     }
+    */
     
-    /**
-     * 사용자의 권한별 컨테이너 통계
-     * @return 권한별 컨테이너 개수
-     */
+    /*
+    // 사용자의 권한별 컨테이너 통계
     @GetMapping("/stats/authority")
-    public ResponseEntity<ApiResponse<Map<String, Long>>> getContainerStatsByAuthority() {
+    public ResponseEntity<ApiResponse<Map<String, Long>>> getContainerStatsByAuthority(
+            @RequestParam(required = false, defaultValue = "false") boolean includePublic,
+            @RequestParam(required = false, defaultValue = "false") boolean activeOnly) {
         String memberId = getCurrentMemberId();
         Map<String, Long> response = containerService.getContainerStatsByAuthority(memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+    */
     
-    /**
-     * 컨테이너 상세 통계 정보
-     * @param containerId 컨테이너 ID
-     * @return 컨테이너 통계 정보
-     */
+    /*
+    // 컨테이너 상세 통계 정보
     @GetMapping("/{containerId}/statistics")
     public ResponseEntity<ApiResponse<ContainerStatisticsDto>> getContainerStatistics(
-            @PathVariable Long containerId) {
+            @PathVariable Integer containerId,
+            @RequestParam(required = false, defaultValue = "weekly") String period,
+            @RequestParam(required = false, defaultValue = "true") boolean includeInactive) {
         String memberId = getCurrentMemberId();
         // 접근 권한 확인
         containerService.getContainer(containerId, memberId);
         ContainerStatisticsDto response = containerService.getContainerStatistics(containerId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+    */
     
     /**
      * 여러 컨테이너의 공개 상태 변경

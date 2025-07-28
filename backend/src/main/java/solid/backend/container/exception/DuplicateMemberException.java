@@ -9,7 +9,7 @@ public class DuplicateMemberException extends RuntimeException {
         super(message);
     }
     
-    public DuplicateMemberException(String memberId, Long containerId) {
+    public DuplicateMemberException(String memberId, Integer containerId) {
         super(String.format("회원 %s는 이미 컨테이너 %d에 속해있습니다", memberId, containerId));
     }
 }

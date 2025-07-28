@@ -19,7 +19,7 @@ import java.util.List;
 public class ContainerStatisticsDto {
     
     /** 컨테이너 고유 식별자 */
-    private Long containerId;
+    private Integer containerId;
     /** 컨테이너 이름 */
     private String containerName;
     /** 전체 멤버 수 */

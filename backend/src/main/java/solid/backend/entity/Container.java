@@ -25,7 +25,7 @@ public class Container {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "container_id")
-    private Long containerId;
+    private Integer containerId;
     
     /**
      * 컨테이너가 속한 팀 (멤버 관리를 위한 그룹)

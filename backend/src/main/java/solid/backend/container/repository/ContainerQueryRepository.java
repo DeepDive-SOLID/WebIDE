@@ -43,7 +43,7 @@ public class ContainerQueryRepository {
      * - OneToMany 관계에서 Fetch Join 사용 시 발생하는 중복 제거
      * - 컨테이너 1개 - 팀원 N명 관계에서 컨테이너가 N번 조회되는 것 방지
      */
-        public Optional<Container> findByIdWithTeam(Long containerId) {
+        public Optional<Container> findByIdWithTeam(Integer containerId) {
         Container result = queryFactory
                 .selectFrom(container)
                 .leftJoin(container.team, team).fetchJoin()
@@ -109,7 +109,7 @@ public class ContainerQueryRepository {
      * teamUser -> team -> container 순서로 조인하여
      * 특정 컨테이너의 팀에 특정 멤버가 존재하는지 확인
      */
-        public boolean isTeamMember(Long containerId, String memberId) {
+        public boolean isTeamMember(Integer containerId, String memberId) {
         Integer count = queryFactory
                 .selectOne()
                 .from(teamUser)
@@ -132,7 +132,7 @@ public class ContainerQueryRepository {
      * - 필요 시 @Modifying(clearAutomatically = true) 사용 고려
      * @return 업데이트된 레코드 수
      */
-        public long updateContainerVisibility(List<Long> containerIds, boolean isPublic) {
+        public long updateContainerVisibility(List<Integer> containerIds, boolean isPublic) {
         return queryFactory
                 .update(container)
                 .set(container.containerAuth, isPublic)
@@ -140,19 +140,9 @@ public class ContainerQueryRepository {
                 .execute();
     }
     
-    /**
-     * 동적 조건에 따라 컨테이너를 검색합니다.
-     * 동적 쿼리 구성:
-     * - BooleanExpression을 반환하는 메서드를 사용하여 조건 구성
-     * - null 값은 자동으로 무시됨 (QueryDSL의 null 처리 기능)
-     * - 조건이 없으면 모든 데이터 조회
-     * 하단에 정의된 헬퍼 메서드:
-     * - nameContains: 컨테이너 이름 부분 일치 검색
-     * - isPublicEq: 공개 여부 필터
-     * - ownerIdEq: 소유자 ID 필터
-     * - memberAccessible: 사용자 접근 권한 확인
-     */
-        public List<Container> searchContainers(String name, Boolean isPublic, String ownerId, Member member) {
+    /*
+    // 동적 조건에 따라 컨테이너를 검색합니다.
+    public List<Container> searchContainers(String name, Boolean isPublic, String ownerId, Member member) {
         return queryFactory
                 .selectFrom(container)
                 .leftJoin(container.team, team)
@@ -167,6 +157,7 @@ public class ContainerQueryRepository {
                 .distinct()
                 .fetch();
     }
+    */
     
     /**
      * 사용자의 컨테이너별 권한 정보를 포함하여 조회합니다.

@@ -17,7 +17,7 @@ import java.util.List;
  * @see Container - 컨테이너 엔티티
  */
 @Repository
-public interface ContainerJpaRepository extends JpaRepository<Container, Long> {
+public interface ContainerJpaRepository extends JpaRepository<Container, Integer> {
     
     
     /**
@@ -43,6 +43,6 @@ public interface ContainerJpaRepository extends JpaRepository<Container, Long> {
            "JOIN TeamUser tu ON tu.team = t " +
            "WHERE c.containerId = :containerId " +
            "AND tu.member.memberId = :memberId")
-    boolean isTeamMember(@Param("containerId") Long containerId, @Param("memberId") String memberId);
+    boolean isTeamMember(@Param("containerId") Integer containerId, @Param("memberId") String memberId);
     
 }
