@@ -9,7 +9,7 @@ import {
   renameDirectory,
   deleteDirectory,
 } from "../../../api/directoryApi";
-import { createCodeFile } from "../../../api/codefileApi";
+import { createCodeFile, getCodeFileList } from "../../../api/codefileApi";
 import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
 import { CiFileOn } from "react-icons/ci";
 import AddFileModal from "../AddFileModal";
@@ -44,21 +44,62 @@ const AlgorithmSidebar = ({ containerId }: AlgorithmSidebarProps) => {
   // 마운트 시 디렉터리 목록 불러오기
   useEffect(() => {
     const fetchDirectory = async () => {
-      const list = await getDirectoryList({ containerId }); // ← 여기서 props 사용
-      const mapped = list.map((item) => ({
-        id: `folder-${item.directoryId}`,
-        directoryId: item.directoryId,
-        title: item.directoryName,
-        type: "folder" as const,
-        parentId:
-          item.directoryRoot === "root"
+      let list = await getDirectoryList({ containerId });
+
+      if (list.length === 0) {
+        await createDirectory({
+          containerId,
+          teamId: myTeamId,
+          directoryName: "root",
+          directoryRoot: "/",
+          directoryId: 0,
+        });
+
+        list = await getDirectoryList({ containerId });
+      }
+
+      const filtered = list.filter((item) => item.containerId === containerId);
+
+      const mappedFolders = filtered.map((item) => {
+        const fullParentPath =
+          item.directoryRoot === "/" || item.directoryRoot === "root"
             ? null
-            : `folder-${
-                list.find((x) => x.directoryName === item.directoryRoot)
-                  ?.directoryId ?? "unknown"
-              }`,
-      }));
-      setBoxList(mapped);
+            : filtered.find(
+                (x) =>
+                  `${
+                    x.directoryRoot === "/" || x.directoryRoot === "root"
+                      ? ""
+                      : x.directoryRoot
+                  }/${x.directoryName}`.replaceAll("//", "/") ===
+                  item.directoryRoot
+              )?.directoryId;
+
+        return {
+          id: `folder-${item.directoryId}`,
+          directoryId: item.directoryId,
+          title: item.directoryName,
+          type: "folder" as const,
+          parentId: fullParentPath ? `folder-${fullParentPath}` : null,
+          teamId: item.teamId,
+        };
+      });
+
+      // 코드 파일 불러오기
+      const codeFileList = await getCodeFileList();
+
+      const mappedFiles = codeFileList
+        .filter((file) =>
+          filtered.find((dir) => dir.directoryId === file.directoryId)
+        )
+        .map((file) => ({
+          id: `file-${file.codeFileId}`,
+          directoryId: file.directoryId,
+          title: file.codeFileName,
+          type: "file" as const,
+          parentId: `folder-${file.directoryId}`,
+        }));
+
+      setBoxList([...mappedFolders, ...mappedFiles]);
     };
 
     fetchDirectory();
@@ -194,6 +235,9 @@ const AlgorithmSidebar = ({ containerId }: AlgorithmSidebarProps) => {
               onClose={() => setMenuPos(null)}
               onCreate={async (type) => {
                 const parent = boxList.find((b) => b.id === selectedId);
+                const directoryRoot = parent ? `${parent.title}` : "/";
+                const teamId = parent?.teamId ?? boxList[0]?.teamId ?? 0;
+                const parentId = parent?.id ?? null;
 
                 if (type === "folder") {
                   const title = prompt(`${type} 이름을 입력하세요`);
@@ -201,14 +245,19 @@ const AlgorithmSidebar = ({ containerId }: AlgorithmSidebarProps) => {
 
                   try {
                     const res = await createDirectory({
-                      containerId: 1,
-                      teamId: 1,
+                      containerId,
+                      teamId,
                       directoryName: title,
-                      directoryRoot: parent ? parent.title : "root",
+                      directoryRoot,
                       directoryId: 0,
                     });
 
-                    create("folder", res.directoryName, res.directoryId);
+                    create(
+                      "folder",
+                      res.directoryName,
+                      res.directoryId,
+                      parentId
+                    );
                   } catch (err) {
                     console.error("디렉터리 생성 실패:", err);
                   }
