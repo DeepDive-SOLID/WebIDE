@@ -10,7 +10,7 @@ import {
   leaveContainer,
 } from "../api/home";
 import type { ContainerResponseDto, GroupMemberResponseDto } from "../api/home";
-import { useAuth } from "../hooks/useAuth";
+
 import ContainerCard from "../components/Container/ContainerCard";
 import emptyImg from "../assets/icons/empty.svg";
 import { useSelector } from "react-redux";
@@ -42,8 +42,6 @@ const AllContainer: React.FC = () => {
 
   const [leaveLoading, setLeaveLoading] = useState<number | null>(null);
   const [leaveError, setLeaveError] = useState<string>("");
-
-  const { userInfo } = useAuth();
 
   const fetchContainers = async () => {
     setLoading(true);
@@ -138,35 +136,52 @@ const AllContainer: React.FC = () => {
             />
             <p>내 컨테이너가 없습니다!</p>
           </div>
-        ) : (
+        ) : // 모든 컨테이너의 멤버 정보가 로딩 완료되었는지 확인
+        containers.every(
+            (container) => membersLoading[container.containerId] === false
+          ) ? (
           containers.map((container) => (
             <ContainerCard
               key={container.containerId}
               container={container}
               members={membersMap[container.containerId]}
-              membersLoading={membersLoading[container.containerId]}
+              membersLoading={false}
               membersError={membersError[container.containerId]}
-              showSettingBtn={membersMap[container.containerId]?.some(
-                (member) =>
-                  member.authority === "ROOT" &&
-                  member.memberId === userInfo?.memberId
-              )}
+              showSettingBtn={(() => {
+                const token = localStorage.getItem("accessToken");
+                const decodedToken = token
+                  ? JSON.parse(atob(token.split(".")[1]))
+                  : null;
+                return membersMap[container.containerId]?.some(
+                  (member) =>
+                    member.authority === "ROOT" &&
+                    member.memberId === decodedToken?.memberId
+                );
+              })()}
               onSettingClick={() => {
                 setSelectedContainerName(container.containerName);
                 setSelectedContainerId(container.containerId);
                 setIsSettingOpen(true);
               }}
-              showLeaveBtn={membersMap[container.containerId]?.some(
-                (member) =>
-                  member.memberId === userInfo?.memberId &&
-                  member.authority !== "ROOT"
-              )}
+              showLeaveBtn={(() => {
+                const token = localStorage.getItem("accessToken");
+                const decodedToken = token
+                  ? JSON.parse(atob(token.split(".")[1]))
+                  : null;
+                return membersMap[container.containerId]?.some(
+                  (member) =>
+                    member.memberId === decodedToken?.memberId &&
+                    member.authority !== "ROOT"
+                );
+              })()}
               onLeaveClick={() => handleLeave(container.containerId)}
               leaveLoading={leaveLoading === container.containerId}
               leaveError={leaveError}
               showJoinBtn={true}
             />
           ))
+        ) : (
+          <div>멤버 정보 로딩 중...</div>
         )}
       </div>
       {isModalOpen && (
