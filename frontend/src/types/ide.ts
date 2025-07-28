@@ -18,16 +18,16 @@ export interface CodeEditorProps {
 }
 
 export interface question {
-    questionId?: number;
+    questionId: number;
     containerId?: number;
     teamId?: number;
-    questionTitle?: string;
-    questionDescroption?: string;
-    question?: string;
-    questionInput?:string;
+    questionTitle: string;
+    questionDescription: string;
+    question: string;
+    questionInput:string;
     questionOutput?:string;
-    questionTime?: number;
-    questionMem?: number;
+    questionTime: number;
+    questionMem: number;
 }
 export interface QusetionProp {
     question: question | undefined;
@@ -54,11 +54,27 @@ export interface XtermProps {
     setIsInputDisabled: (check: boolean) => void
     codeId: number | undefined,
     height: number,
+    terminalToggle: string;
 }
 
 export interface codeFileList {
     codeFileId: number;
     codeFileName: string;
     directoryId: number;
+}
+
+export interface testResult {
+    actual: string,
+    input: string,
+    mem: string,
+    output: string,
+    pass: boolean,
+    time: number,
+}
+
+export interface testApi {
+    isCorrect?: boolean,
+    language?: string,
+    testcaseResults?: testResult[];
 }
 export type MonacoEditor = editor.IStandaloneCodeEditor
