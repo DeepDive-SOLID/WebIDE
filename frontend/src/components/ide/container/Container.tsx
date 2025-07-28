@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import lang from "../../../assets/defaultLang.json";
 import CodeEditor from "../codeEditor/CodeEditor";
 import XtermComponent from "../terminal/XtermComponent";
-import styles from "./container.module.scss";
+import styles from "../../../styles/container.module.scss";
 import { useDispatch, useSelector } from "react-redux";
-import { setRestart } from "../../../stores/terminalSlice";
-import type { codeFileList, ContainerProp } from "../../../types/ide";
+import { setRestart, setRunInput, setRunOutput, setSubmitOutput } from "../../../stores/terminalSlice";
+import type { codeFileList, ContainerProp, testApi } from "../../../types/ide";
 import type { RootState } from "../../../stores";
 import TestResult from "../terminal/TestResult";
+import { CodeContent, CodeCreate, CodeRun, CodeTest, CodeUpdate, ContainerExistCode } from "../../../api/Ide";
 
 const Container = ({ activeMember }: ContainerProp) => {
   const [code, setCode] = useState<string | undefined>("");
@@ -18,8 +18,9 @@ const Container = ({ activeMember }: ContainerProp) => {
   const [terminalToggle, setTerminalToggle] = useState<string>("run");
   const [isInputDisabled, setIsInputDisabled] = useState<boolean>(true);
   const [selectedLanguage, setSelectedLanguage] = useState<string>("javascript");
+  const [testCase, setTestCase] = useState<testApi>({});
   const dispatch = useDispatch();
-  const output = useSelector((state: RootState) => state.terminal.output);
+  const output = useSelector((state: RootState) => state.terminal.runOutput);
 
   // 임시 더미 데이터
   const directoryId = 1;
@@ -28,9 +29,8 @@ const Container = ({ activeMember }: ContainerProp) => {
     const fetchCodeFile = async () => {
       try {
         // 디렉토리에 존재하는 제출 코드 가져오는 api
-        const res = await axios.get("http://localhost:8080/CodeFile/list");
-        const filterRes = res.data.filter((items: codeFileList) => items.directoryId === directoryId);
-        setCodeFile(filterRes);
+        const data = await ContainerExistCode(directoryId);
+        setCodeFile(data);
       } catch (e) {
         console.log(e);
       }
@@ -40,7 +40,7 @@ const Container = ({ activeMember }: ContainerProp) => {
 
   useEffect(() => {
     // codeFile이 비어있지 않을 때만 실행하도록 조건 추가
-    if (codeFile.length > 0) {
+    if (codeFile.length >= 0) {
       memberCode();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -49,8 +49,8 @@ const Container = ({ activeMember }: ContainerProp) => {
   // 코드 리스트중 코드id 를 가지고 코드내용을 가져오는 api
   const fileData = async (codeFileId: number) => {
     try {
-      const res = await axios.post("http://localhost:8080/CodeFile/content", { codeFileId: codeFileId });
-      setCode(res.data);
+      const data = await CodeContent(codeFileId);
+      setCode(data);
     } catch (e) {
       console.log(e);
     }
@@ -66,7 +66,7 @@ const Container = ({ activeMember }: ContainerProp) => {
 
     const memberCode = codeFile.find((member) => {
       const parts = member.codeFileName.split(".");
-      const fileName = parts[0];
+      const fileName = parts[0].toLocaleLowerCase();
       const fileExtension = parts[1];
 
       const fullLanguageName = languageMap[fileExtension];
@@ -80,7 +80,7 @@ const Container = ({ activeMember }: ContainerProp) => {
       if (selectedLanguage === "javascript") {
         setCode(lang.javascript.value);
       } else if (selectedLanguage === "java") {
-        setCode(lang.java.value);
+        setCode(lang.java.value.replace("Main", activeMember ? activeMember : ""));
       } else {
         setCode(lang.python.value);
       }
@@ -90,6 +90,10 @@ const Container = ({ activeMember }: ContainerProp) => {
   // 선택 언어 변경 이벤트
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedLanguage(e.target.value);
+    dispatch(setSubmitOutput(""));
+    dispatch(setRunInput(""));
+    dispatch(setRunOutput(""));
+    setTestCase({});
   };
   // 작성 코드 변경 이벤트
   const handleCodeChange = (value: string | null | undefined) => {
@@ -99,8 +103,11 @@ const Container = ({ activeMember }: ContainerProp) => {
   // 테스트 api
   const testAPI = async () => {
     try {
-      const res = axios.post("http://localhost:8080/docker/test", { codeId: codeId, questionId: 1 });
-      console.log(res);
+      if (!codeId) {
+        return;
+      }
+      const data = await CodeTest(activeMember, codeId, 1);
+      setTestCase(data);
     } catch (e) {
       console.log(e);
     }
@@ -113,16 +120,33 @@ const Container = ({ activeMember }: ContainerProp) => {
     try {
       // 로그인한 유저 id 로 파일 명 바꾸기
       const select = selectedLanguage === "javascript" ? `${activeMember}.js` : selectedLanguage === "java" ? `${activeMember}.java` : `${activeMember}.py`;
+
       const existCode = codeFile.find((itmes) => itmes.codeFileName === select);
       if (!existCode) {
-        const data = await axios.post("http://localhost:8080/CodeFile/create", { directoryId: 1, codeFileName: select, codeContent: code });
-        console.log(data);
+        const data = await CodeCreate(directoryId, select, code);
+        console.log("파일 생성" + data);
       } else {
-        const data = await axios.put("http://localhost:8080/CodeFile/update", { codeFileId: existCode.codeFileId, codeContent: code });
-        console.log(data);
+        const data = await CodeUpdate(existCode.codeFileId, code);
+        console.log("파일 업데이트" + data);
       }
     } catch (e) {
       console.log(e);
+    }
+  };
+
+  const submitAPI = async () => {
+    if (!codeId) {
+      return;
+    }
+    try {
+      const data = await CodeRun(activeMember, codeId, 1);
+      if (data.isCorrect) {
+        dispatch(setSubmitOutput("성공"));
+      } else {
+        dispatch(setSubmitOutput("실패"));
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -139,12 +163,16 @@ const Container = ({ activeMember }: ContainerProp) => {
         break;
       case "run":
         setTerminalToggle(type);
+        dispatch(setRunInput(""));
+        dispatch(setRunOutput(""));
         saveAPI();
         setIsInputDisabled((prev) => !prev);
         break;
       case "submit": {
         setTerminalToggle(type);
+        dispatch(setSubmitOutput(""));
         saveAPI();
+        submitAPI();
         break;
       }
       default:
@@ -192,7 +220,11 @@ const Container = ({ activeMember }: ContainerProp) => {
         </div>
       </div>
       <div style={{ minHeight: "300px" }}>
-        {terminalToggle === "test" ? <TestResult /> : <XtermComponent isInputDisabled={isInputDisabled} setIsInputDisabled={setIsInputDisabled} codeId={codeId} height={300} />}
+        {terminalToggle === "test" ? (
+          testCase && <TestResult isCorrect={testCase.isCorrect} testcaseResults={testCase.testcaseResults} />
+        ) : (
+          <XtermComponent isInputDisabled={isInputDisabled} setIsInputDisabled={setIsInputDisabled} codeId={codeId} height={300} terminalToggle={terminalToggle} />
+        )}
       </div>
       <div className={`${styles.resetModal} ${toggle ? styles.action : ""}`}>
         <div className={styles.resetModal_box}>

@@ -1,4 +1,4 @@
-import styles from "./question.module.scss";
+import styles from "../../../styles/question.module.scss";
 import type { QusetionProp } from "../../../types/ide";
 
 const Question = ({ question }: QusetionProp) => {
@@ -6,12 +6,13 @@ const Question = ({ question }: QusetionProp) => {
     // 중괄호에 들어간 문자열은 전부 데이터 받아와 변경
     <div className={styles.question_box}>
       <div>
+        {/* 디렉토리 명 받기 */}
         <h4>{"01. 기초 수학"}</h4>
         <h2>{question?.questionTitle}</h2>
       </div>
       <div>
         <h3>문제</h3>
-        <p className={styles.question_length}>{question?.questionDescroption}</p>
+        <p className={styles.question_length}>{question?.questionDescription}</p>
       </div>
       <div>
         <h3>입력</h3>
@@ -26,6 +27,7 @@ const Question = ({ question }: QusetionProp) => {
         <div>
           <h5>입력</h5>
           <div className={styles.question_ex_box}>
+            {/* 테스트 케이스가 나와야함 */}
             <span>{"1_2"}</span>
           </div>
         </div>

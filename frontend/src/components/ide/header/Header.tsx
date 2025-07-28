@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import styles from "./header.module.scss";
+import styles from "../../../styles/ideHeader.module.scss";
 import type { HeaderProps, member } from "../../../types/ide";
 
 const Header = ({ activeMember, handleOnClick }: HeaderProps) => {
