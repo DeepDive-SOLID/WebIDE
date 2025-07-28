@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/Login.module.scss";
-import logoImg from "../assets/CodeWith.png";
+import logoImg from "../assets/images/CodeWith.png";
 import { signApi } from "../api/signApi";
 
 // EyeIcon 컴포넌트 (비밀번호 보기/숨기기)
