@@ -13,6 +13,7 @@ import { createCodeFile, getCodeFileList } from "../../../api/codefileApi";
 import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
 import { CiFileOn } from "react-icons/ci";
 import AddFileModal from "../AddFileModal";
+import { updateProgress } from "../../../api/progressApi";
 
 interface AlgorithmSidebarProps {
   containerId: number;
