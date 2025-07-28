@@ -27,7 +27,7 @@ public class Team {
     @JsonIgnore
     private List<Container> containers = new ArrayList<>();
 
-    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<TeamUser> teamUsers = new ArrayList<>();
 }
