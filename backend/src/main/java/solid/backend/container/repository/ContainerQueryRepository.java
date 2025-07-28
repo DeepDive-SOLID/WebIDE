@@ -226,4 +226,40 @@ public class ContainerQueryRepository {
         return container.containerAuth.isTrue()
                 .or(teamUser.member.eq(member));
     }
+    
+    /**
+     * 사용자가 멤버가 아닌 공개 컨테이너 목록 조회
+     * 이미 참여 중인 컨테이너는 제외하고 조회합니다.
+     * @param memberId 사용자 ID
+     * @return 참여 가능한 공개 컨테이너 목록
+     */
+    public List<Container> findPublicContainersExcludingMember(String memberId) {
+        if (memberId == null) {
+            // 로그인하지 않은 사용자는 모든 공개 컨테이너 조회
+            return queryFactory
+                    .selectFrom(container)
+                    .where(container.containerAuth.isTrue())
+                    .orderBy(container.containerDate.desc())
+                    .fetch();
+        }
+        
+        // 서브쿼리로 사용자가 멤버인 컨테이너 ID 조회
+        List<Integer> memberContainerIds = queryFactory
+                .select(container.containerId)
+                .from(container)
+                .leftJoin(container.team, team)
+                .leftJoin(team.teamUsers, teamUser)
+                .where(teamUser.member.memberId.eq(memberId))
+                .fetch();
+        
+        // 메인 쿼리: 공개 컨테이너 중 사용자가 멤버가 아닌 것만 조회
+        return queryFactory
+                .selectFrom(container)
+                .where(
+                    container.containerAuth.isTrue(),
+                    memberContainerIds.isEmpty() ? null : container.containerId.notIn(memberContainerIds)
+                )
+                .orderBy(container.containerDate.desc())
+                .fetch();
+    }
 }

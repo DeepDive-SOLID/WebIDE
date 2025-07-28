@@ -75,7 +75,7 @@ public class ContainerController {
      * 내 컨테이너 목록 조회
      * @return 소유한 컨테이너 목록
      */
-    @GetMapping("/my")
+    @GetMapping("/my-container")
     public ResponseEntity<ApiResponse<List<ContainerResponseDto>>> getMyContainers() {
         String memberId = getCurrentMemberId();
         List<ContainerResponseDto> response = containerService.getMyContainers(memberId);
@@ -86,7 +86,7 @@ public class ContainerController {
      * 참여중인 컨테이너 목록 조회
      * @return 팀 멤버로 참여한 컨테이너 목록 (소유자 제외)
      */
-    @GetMapping("/shared")
+    @GetMapping("/shared-container")
     public ResponseEntity<ApiResponse<List<ContainerResponseDto>>> getSharedContainers() {
         String memberId = getCurrentMemberId();
         List<ContainerResponseDto> response = containerService.getSharedContainers(memberId);
@@ -97,7 +97,7 @@ public class ContainerController {
      * 공개 컨테이너 목록 조회
      * @return 모든 PUBLIC 컨테이너 목록
      */
-    @GetMapping("/public")
+    @GetMapping("/public-container")
     public ResponseEntity<ApiResponse<List<ContainerResponseDto>>> getPublicContainers() {
         String memberId = getCurrentMemberId(); // nullable
         List<ContainerResponseDto> response = containerService.getPublicContainers(memberId);
@@ -108,7 +108,7 @@ public class ContainerController {
      * 접근 가능한 모든 컨테이너 목록 조회
      * @return 소유 + 참여중인 모든 컨테이너 목록
      */
-    @GetMapping
+    @GetMapping("/all-container")
     public ResponseEntity<ApiResponse<List<ContainerResponseDto>>> getAllAccessibleContainers() {
         String memberId = getCurrentMemberId();
         List<ContainerResponseDto> response = containerService.getAllAccessibleContainers(memberId);
@@ -211,6 +211,21 @@ public class ContainerController {
         String memberId = getCurrentMemberId();
         containerService.updateMemberActivity(containerId, memberId);
         return ResponseEntity.ok(ApiResponse.successMessage("활동 시간이 업데이트되었습니다"));
+    }
+    
+    /**
+     * 공개 컨테이너 참여하기
+     * 공개된 컨테이너에 멤버로 참여합니다.
+     * @param containerId 참여할 컨테이너 ID
+     * @return 참여 결과
+     */
+    @PostMapping("/{containerId}/join")
+    public ResponseEntity<ApiResponse<GroupMemberResponseDto>> joinContainer(
+            @PathVariable("containerId") Integer containerId) {
+        String memberId = getCurrentMemberId();
+        GroupMemberResponseDto response = containerService.joinContainer(containerId, memberId);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(response, "컨테이너에 참여했습니다"));
     }
     
     /*

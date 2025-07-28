@@ -222,13 +222,16 @@ public class ContainerServiceImpl implements ContainerService {
     
     /**
      * 모든 공개 컨테이너 목록 조회
-     * @param memberId 사용자 ID
+     * 사용자가 이미 참여중인 컨테이너는 제외됩니다.
+     * @param memberId 사용자 ID (nullable)
      * @return 공개 컨테이너 목록
      */
     @Override
     @Transactional(readOnly = true)
     public List<ContainerResponseDto> getPublicContainers(String memberId) {
-        return convertToResponseDtoList(containerRepository.findByContainerAuthOrderByContainerDateDesc(true), memberId);
+        // QueryDSL을 사용하여 데이터베이스 레벨에서 필터링
+        List<Container> publicContainers = containerQueryRepository.findPublicContainersExcludingMember(memberId);
+        return convertToResponseDtoList(publicContainers, memberId);
     }
     
     /**
@@ -425,6 +428,55 @@ public class ContainerServiceImpl implements ContainerService {
                 .map(tu -> tu.getTeamAuth().getAuthId())
                 .findFirst()
                 .orElse(null);
+    }
+    
+    /**
+     * 공개 컨테이너 참여
+     * @param containerId 컨테이너 ID
+     * @param memberId 참여하는 사용자 ID
+     * @return 참여 결과 정보
+     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
+     * @throws IllegalArgumentException 비공개 컨테이너인 경우
+     * @throws IllegalStateException 이미 멤버인 경우
+     */
+    @Override
+    @Transactional
+    public synchronized GroupMemberResponseDto joinContainer(Integer containerId, String memberId) {
+        // 컨테이너 조회
+        Container container = getContainerWithTeamOrThrow(containerId);
+        
+        // 공개 여부 확인
+        if (!container.getContainerAuth()) {
+            throw new IllegalArgumentException("비공개 컨테이너에는 참여할 수 없습니다");
+        }
+        
+        // 사용자 조회
+        Member member = getMemberOrThrow(memberId);
+        
+        // 이미 멤버인지 확인
+        boolean isAlreadyMember = container.getTeam().getTeamUsers().stream()
+                .anyMatch(tu -> tu.getMember().getMemberId().equals(memberId));
+                
+        if (isAlreadyMember) {
+            throw new IllegalStateException("이미 해당 컨테이너의 멤버입니다");
+        }
+        
+        // USER 권한으로 팀에 추가
+        Auth userAuth = authRepository.findById(AUTHORITY_USER)
+                .orElseThrow(() -> new RuntimeException("USER 권한이 존재하지 않습니다"));
+                
+        TeamUser teamUser = new TeamUser();
+        teamUser.setMember(member);
+        teamUser.setTeam(container.getTeam());
+        teamUser.setTeamAuth(userAuth);
+        teamUser.setJoinedDate(LocalDateTime.now());
+        teamUser.setLastActivityDate(LocalDateTime.now());
+                
+        container.getTeam().getTeamUsers().add(teamUser);
+        
+        log.info("Member {} joined public container {}", memberId, containerId);
+        
+        return GroupMemberResponseDto.from(teamUser);
     }
     
     /**

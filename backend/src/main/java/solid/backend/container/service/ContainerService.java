@@ -123,6 +123,17 @@ public interface ContainerService {
     void updateMemberActivity(Integer containerId, String memberId);
     
     /**
+     * 공개 컨테이너 참여
+     * @param containerId 컨테이너 ID
+     * @param memberId 참여하는 사용자 ID
+     * @return 참여 결과 정보
+     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
+     * @throws IllegalArgumentException 비공개 컨테이너인 경우
+     * @throws IllegalStateException 이미 멤버인 경우
+     */
+    GroupMemberResponseDto joinContainer(Integer containerId, String memberId);
+    
+    /**
      * 미활동 멤버 자동 제거
      */
     void removeInactiveMembers();
