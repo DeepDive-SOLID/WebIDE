@@ -59,6 +59,17 @@ public class ContainerController {
     }
     
     /**
+     * 전체 컨테이너 목록 조회
+     * @return 접근 가능한 모든 컨테이너 목록
+     */
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<ContainerResponseDto>>> getContainers() {
+        String memberId = getCurrentMemberId();
+        List<ContainerResponseDto> response = containerService.getAllAccessibleContainers(memberId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+    
+    /**
      * 컨테이너 상세 조회
      * @param containerId 컨테이너 ID
      * @return 컨테이너 상세 정보
@@ -75,7 +86,7 @@ public class ContainerController {
      * 내 컨테이너 목록 조회
      * @return 소유한 컨테이너 목록
      */
-    @GetMapping("/my-container")
+    @GetMapping("/my")
     public ResponseEntity<ApiResponse<List<ContainerResponseDto>>> getMyContainers() {
         String memberId = getCurrentMemberId();
         List<ContainerResponseDto> response = containerService.getMyContainers(memberId);
@@ -86,7 +97,7 @@ public class ContainerController {
      * 참여중인 컨테이너 목록 조회
      * @return 팀 멤버로 참여한 컨테이너 목록 (소유자 제외)
      */
-    @GetMapping("/shared-container")
+    @GetMapping("/shared")
     public ResponseEntity<ApiResponse<List<ContainerResponseDto>>> getSharedContainers() {
         String memberId = getCurrentMemberId();
         List<ContainerResponseDto> response = containerService.getSharedContainers(memberId);
@@ -97,7 +108,7 @@ public class ContainerController {
      * 공개 컨테이너 목록 조회
      * @return 모든 PUBLIC 컨테이너 목록
      */
-    @GetMapping("/public-container")
+    @GetMapping("/public")
     public ResponseEntity<ApiResponse<List<ContainerResponseDto>>> getPublicContainers() {
         String memberId = getCurrentMemberId(); // nullable
         List<ContainerResponseDto> response = containerService.getPublicContainers(memberId);
@@ -108,7 +119,7 @@ public class ContainerController {
      * 접근 가능한 모든 컨테이너 목록 조회
      * @return 소유 + 참여중인 모든 컨테이너 목록
      */
-    @GetMapping("/all-container")
+    @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<ContainerResponseDto>>> getAllAccessibleContainers() {
         String memberId = getCurrentMemberId();
         List<ContainerResponseDto> response = containerService.getAllAccessibleContainers(memberId);
