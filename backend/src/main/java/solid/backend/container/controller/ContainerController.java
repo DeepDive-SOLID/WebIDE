@@ -65,7 +65,7 @@ public class ContainerController {
      */
     @GetMapping("/{containerId}")
     public ResponseEntity<ApiResponse<ContainerResponseDto>> getContainer(
-            @PathVariable Integer containerId) {
+            @PathVariable("containerId") Integer containerId) {
         String memberId = getCurrentMemberId();
         ContainerResponseDto response = containerService.getContainer(containerId, memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -123,7 +123,7 @@ public class ContainerController {
      */
     @PutMapping("/{containerId}")
     public ResponseEntity<ApiResponse<ContainerResponseDto>> updateContainer(
-            @PathVariable Integer containerId,
+            @PathVariable("containerId") Integer containerId,
             @RequestBody @Valid ContainerUpdateDto updateDto) {
         String memberId = getCurrentMemberId();
         ContainerResponseDto response = containerService.updateContainer(containerId, memberId, updateDto);
@@ -137,7 +137,7 @@ public class ContainerController {
      */
     @DeleteMapping("/{containerId}")
     public ResponseEntity<ApiResponse<Void>> deleteContainer(
-            @PathVariable Integer containerId) {
+            @PathVariable("containerId") Integer containerId) {
         String memberId = getCurrentMemberId();
         containerService.deleteContainer(containerId, memberId);
         return ResponseEntity.ok(ApiResponse.successMessage("컨테이너가 삭제되었습니다"));
@@ -151,7 +151,7 @@ public class ContainerController {
      */
     @PostMapping("/{containerId}/members")
     public ResponseEntity<ApiResponse<GroupMemberResponseDto>> inviteMember(
-            @PathVariable Integer containerId,
+            @PathVariable("containerId") Integer containerId,
             @RequestBody @Valid MemberInviteDto inviteDto) {
         String requesterId = getCurrentMemberId();
         GroupMemberResponseDto response = containerService.inviteMember(containerId, requesterId, inviteDto);
@@ -166,7 +166,7 @@ public class ContainerController {
      */
     @GetMapping("/{containerId}/members")
     public ResponseEntity<ApiResponse<List<GroupMemberResponseDto>>> getContainerMembers(
-            @PathVariable Integer containerId) {
+            @PathVariable("containerId") Integer containerId) {
         String memberId = getCurrentMemberId();
         List<GroupMemberResponseDto> response = containerService.getContainerMembers(containerId, memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -180,8 +180,8 @@ public class ContainerController {
      */
     @DeleteMapping("/{containerId}/members/{targetMemberId}")
     public ResponseEntity<ApiResponse<Void>> removeMember(
-            @PathVariable Integer containerId,
-            @PathVariable String targetMemberId) {
+            @PathVariable("containerId") Integer containerId,
+            @PathVariable("targetMemberId") String targetMemberId) {
         String requesterId = getCurrentMemberId();
         containerService.removeMember(containerId, requesterId, targetMemberId);
         return ResponseEntity.ok(ApiResponse.successMessage("멤버가 제거되었습니다"));
@@ -194,7 +194,7 @@ public class ContainerController {
      */
     @DeleteMapping("/{containerId}/members/me")
     public ResponseEntity<ApiResponse<Void>> leaveContainer(
-            @PathVariable Integer containerId) {
+            @PathVariable("containerId") Integer containerId) {
         String memberId = getCurrentMemberId();
         containerService.leaveContainer(containerId, memberId);
         return ResponseEntity.ok(ApiResponse.successMessage("컨테이너에서 탈퇴했습니다"));
@@ -207,7 +207,7 @@ public class ContainerController {
      */
     @PutMapping("/{containerId}/members/me/activity")
     public ResponseEntity<ApiResponse<Void>> updateActivity(
-            @PathVariable Integer containerId) {
+            @PathVariable("containerId") Integer containerId) {
         String memberId = getCurrentMemberId();
         containerService.updateMemberActivity(containerId, memberId);
         return ResponseEntity.ok(ApiResponse.successMessage("활동 시간이 업데이트되었습니다"));
@@ -219,14 +219,7 @@ public class ContainerController {
     public ResponseEntity<ApiResponse<List<ContainerResponseDto>>> searchContainers(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Boolean isPublic,
-            @RequestParam(required = false) String ownerId,
-            @RequestParam(required = false) String tag,
-            @RequestParam(required = false) String createdAfter,
-            @RequestParam(required = false) String createdBefore,
-            @RequestParam(required = false) Integer minMembers,
-            @RequestParam(required = false) Integer maxMembers,
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "20") int size) {
+            @RequestParam(required = false) String ownerId) {
         String memberId = getCurrentMemberId();
         List<ContainerResponseDto> response = containerService.searchContainers(name, isPublic, ownerId, memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -250,9 +243,7 @@ public class ContainerController {
     /*
     // 사용자의 권한별 컨테이너 통계
     @GetMapping("/stats/authority")
-    public ResponseEntity<ApiResponse<Map<String, Long>>> getContainerStatsByAuthority(
-            @RequestParam(required = false, defaultValue = "false") boolean includePublic,
-            @RequestParam(required = false, defaultValue = "false") boolean activeOnly) {
+    public ResponseEntity<ApiResponse<Map<String, Long>>> getContainerStatsByAuthority() {
         String memberId = getCurrentMemberId();
         Map<String, Long> response = containerService.getContainerStatsByAuthority(memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -263,9 +254,7 @@ public class ContainerController {
     // 컨테이너 상세 통계 정보
     @GetMapping("/{containerId}/statistics")
     public ResponseEntity<ApiResponse<ContainerStatisticsDto>> getContainerStatistics(
-            @PathVariable Integer containerId,
-            @RequestParam(required = false, defaultValue = "weekly") String period,
-            @RequestParam(required = false, defaultValue = "true") boolean includeInactive) {
+            @PathVariable("containerId") Integer containerId) {
         String memberId = getCurrentMemberId();
         // 접근 권한 확인
         containerService.getContainer(containerId, memberId);
