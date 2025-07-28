@@ -10,8 +10,8 @@ INSERT INTO `member` (`MEMBER_ID`, `MEMBER_NAME`, `MEMBER_PW`, `MEMBER_EMAIL`) V
 INSERT INTO team (team_name) VALUES ('Sample Project Team');
 SET @team_id = LAST_INSERT_ID();
 
-INSERT INTO container (team_id, container_auth, container_date, container_nm, container_content, owner_id) 
-VALUES (@team_id, false, CURDATE(), 'Sample Project', 'This is a sample private project', 'test001');
+INSERT INTO container (team_id, container_auth, container_date, container_nm, container_content) 
+VALUES (@team_id, false, CURDATE(), 'Sample Project', 'This is a sample private project');
 
 -- Add members to the sample container
 INSERT INTO team_user (team_id, team_auth_id, member_id, joined_date, last_activity_date) VALUES

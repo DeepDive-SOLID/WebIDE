@@ -57,10 +57,8 @@ CREATE TABLE container (
     container_date DATE NOT NULL DEFAULT (CURRENT_DATE) COMMENT '생성일',
     container_nm VARCHAR(20) NOT NULL COMMENT '컨테이너 이름',
     container_content VARCHAR(200) NULL COMMENT '컨테이너 설명',
-    owner_id VARCHAR(20) NOT NULL COMMENT '컨테이너 소유자',
     PRIMARY KEY (container_id),
-    FOREIGN KEY (team_id) REFERENCES team (team_id),
-    FOREIGN KEY (owner_id) REFERENCES `member` (MEMBER_ID)
+    FOREIGN KEY (team_id) REFERENCES team (team_id)
 );
 
 -- 5. 팀 회원 테이블
@@ -191,7 +189,6 @@ INSERT INTO `member` (`MEMBER_ID`, `MEMBER_NAME`, `MEMBER_PW`, `MEMBER_EMAIL`) V
 ('test003', 'TestUser3', 'password123', 'test3@example.com');
 
 -- 인덱스 추가 (성능 최적화)
-CREATE INDEX idx_container_owner ON container (owner_id);
 CREATE INDEX idx_container_auth ON container (container_auth);
 CREATE INDEX idx_team_user_member ON team_user (member_id);
 CREATE INDEX idx_team_user_team ON team_user (team_id);
