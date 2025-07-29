@@ -32,31 +32,19 @@ const AlgorithmNav = () => {
     <>
       <aside className={styles.appNav}>
         <div className={styles.appNavTop}>
-          <Button
-            icon={<IoHomeOutline size={30} />}
-            onClick={() => handleNavClick("home")}
-            className={styles.navBtn}
-          />
-          <Button
-            icon={<PiListMagnifyingGlass size={30} />}
-            onClick={() => handleNavClick("algorithm")}
-            className={styles.navBtn}
-          />
+          <Button icon={<IoHomeOutline size={30} />} onClick={() => handleNavClick("home")} className={styles.navBtn} />
+          <Button icon={<PiListMagnifyingGlass size={30} />} onClick={() => handleNavClick("algorithm")} className={styles.navBtn} />
         </div>
 
         <div className={styles.appNavBottom}>
           <div className={styles.themeToggleWrapper}>
             <Toggle />
           </div>
-          <Button
-            icon={<img src={profile} alt="profile" />}
-            onClick={() => handleNavClick("mypage")}
-            className={styles.profileBtn}
-          />
+          <Button icon={<img src={profile} alt='profile' />} onClick={() => handleNavClick("mypage")} className={styles.profileBtn} />
         </div>
       </aside>
 
-      <AppSidebar isOpen={sidebarOpen} type="algorithm" />
+      <AppSidebar isOpen={sidebarOpen} type='algorithm' />
     </>
   );
 };

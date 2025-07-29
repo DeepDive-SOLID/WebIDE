@@ -1,14 +1,14 @@
-.question_box{
+.question_box {
     display: flex;
     flex-direction: column;
     width: 300px;
-    border-right: 1px solid #2d2d2d;
+    border-right: 1px solid #f5f5f5;
     flex-shrink: 0;
     overflow-y: scroll;
 
     div {
-        padding:0 15px;
-        border-bottom: 1px solid #2d2d2d;
+        padding: 0 15px;
+        border-bottom: 1px solid #f5f5f5;
 
         div {
             padding: 0;
@@ -16,17 +16,16 @@
         }
 
         h5 {
-            margin-bottom:0.5rem;
+            margin-bottom: 0.5rem;
         }
     }
     div:nth-last-child(1) {
-        border:none;
+        border: none;
     }
-
 }
 
 .question_overflow {
-    margin-bottom:10px;
+    margin-bottom: 10px;
 }
 
 .question_length {
@@ -36,7 +35,7 @@
 }
 
 .question_ex_box {
-    color:white;
+    color: white;
     background-color: black;
     border: 1px solid black;
     border-radius: 0.5rem;
@@ -45,5 +44,4 @@
         padding-left: 0.5rem;
         display: block;
     }
-
 }

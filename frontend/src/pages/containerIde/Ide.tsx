@@ -36,13 +36,25 @@ const Ide = () => {
   }, []);
 
   return (
-    <>
+    <div style={{ flex: 1, minWidth: 0 }}>
       <Header activeMember={activeButtonId} handleOnClick={handleOnClick} />
-      <div style={{ display: "flex", flexDirection: "row", border: "1px solid black", margin: "0 20px 20px 20px", height: "90vh", overflow: "hidden" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          border: "1px solid #f5f5f5",
+          flexGrow: 1,
+          flexShrink: 0,
+          margin: "0 20px 20px 20px",
+          height: "90vh",
+          overflow: "hidden",
+          boxShadow: "5px 5px #f5f5f5",
+        }}
+      >
         <Question question={question} />
         <Container activeMember={activeButtonId} />
       </div>
-    </>
+    </div>
   );
 };
 
