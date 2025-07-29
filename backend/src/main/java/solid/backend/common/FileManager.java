@@ -9,9 +9,6 @@ import solid.backend.config.FileStorageConfig;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.UUID;
 
 @Slf4j
@@ -106,86 +103,5 @@ public class FileManager {
         if (fileImgUrl == null || fileImgUrl.isEmpty()) return null;
         String processedUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/solid").toUriString();
         return processedUrl + fileImgUrl;
-    }
-
-    /**
-     * 설명: 디렉터리 생성
-     * @param containerId
-     * @param directoryName
-     */
-    public void createDirectoryPath(Integer containerId, String directoryName) {
-        String directoryPath = String.format("container-%d/%s", containerId, directoryName);
-        Path fullPath = Paths.get(fileStorageConfig.getUploadDir(), directoryPath)
-                .toAbsolutePath()
-                .normalize();
-
-        try {
-            Files.createDirectories(fullPath);
-        } catch (IOException e) {
-            throw new RuntimeException("디렉터리 생성 실패: " + fullPath, e);
-        }
-    }
-
-    /**
-     * 설명: 디렉터리 메서드
-     * @param containerId
-     * @param directoryRoot
-     * @param directoryName
-     */
-    public void deleteDirectory(Integer containerId, String directoryRoot, String directoryName) {
-        if (directoryRoot == null || directoryRoot.isEmpty()) return;
-
-        String baseDir = fileStorageConfig.getUploadDir();
-        String fullPath = baseDir + File.separator + String.format("container-%d%s/%s", containerId, directoryRoot, directoryName);
-
-        File file = new File(fullPath);
-        log.info("삭제 대상 경로: " + fullPath);
-        if (file.exists()) {
-            boolean deleted = deleteRecursively(file);
-            if (!deleted) log.error("파일 삭제 실패: " + fullPath);
-        } else {
-            log.error("파일이 존재하지 않음: " + fullPath);
-        }
-    }
-
-    /**
-     * 설명: 디렉터리 이름 변경 메서드
-     * @param containerId
-     * @param directoryRoot
-     * @param oldName
-     * @param newName
-     */
-    public void renameDirectory(Integer containerId, String directoryRoot, String oldName, String newName) {
-        String baseDir = fileStorageConfig.getUploadDir();
-        String oldPathStr = baseDir + File.separator + String.format("container-%d%s/%s", containerId, directoryRoot, oldName);
-        String newPathStr = baseDir + File.separator + String.format("container-%d%s/%s", containerId, directoryRoot, newName);
-
-        File oldDir = new File(oldPathStr);
-        File newDir = new File(newPathStr);
-
-        if (!oldDir.exists()) {
-            throw new RuntimeException("기존 디렉터리가 존재하지 않습니다: " + oldPathStr);
-        }
-
-        boolean success = oldDir.renameTo(newDir);
-        if (!success) {
-            throw new RuntimeException("디렉터리 이름 변경 실패: " + oldPathStr + " → " + newPathStr);
-        }
-    }
-    /**
-     * 설명: 하위 디렉터리 삭제
-     * @param file
-     * @return file.delete()
-     */
-    private boolean deleteRecursively(File file) {
-        if (file.isDirectory()) {
-            File[] files = file.listFiles();
-            if (files != null) {
-                for (File child : files) {
-                    if (!deleteRecursively(child)) return false;
-                }
-            }
-        }
-        return file.delete();
     }
 }
