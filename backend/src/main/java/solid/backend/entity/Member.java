@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Data;
 import org.hibernate.annotations.Comment;
 
@@ -42,4 +43,8 @@ public class Member {
     @Column(name = "member_img", length = 500)
     @Comment("회원 이미지")
     private String memberImg;
+
+    @Column(name = "member_is_online", nullable = false)
+    @Comment("회원 접속 여부")
+    private boolean memberIsOnline = false;
 }
