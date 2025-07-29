@@ -9,14 +9,14 @@ import {
   renameDirectory,
   deleteDirectory,
 } from "../../../api/directoryApi";
-import { createCodeFile, getCodeFileList } from "../../../api/codefileApi";
+import { getCodeFileList } from "../../../api/codefileApi";
 import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
 import { CiFileOn } from "react-icons/ci";
 import AddFileModal from "../AddFileModal";
-import { updateProgress } from "../../../api/progressApi";
 
 interface AlgorithmSidebarProps {
   containerId: number;
+  onSelectQuestionId: (id: number) => void;
 }
 
 // 타입 정의: 각 박스 아이템은 폴더 혹은 파일이며, 뷰 렌더링 및 식별을 위한 id를 가짐
@@ -268,35 +268,12 @@ const AlgorithmSidebar = ({ containerId }: AlgorithmSidebarProps) => {
                     return;
                   }
 
-                  const fileName = prompt(
-                    "파일 이름을 확장자까지 입력하세요 (예: solution.py)"
-                  );
-                  if (!fileName || !fileName.includes(".")) {
-                    alert("파일 이름에 확장자를 포함해서 입력해주세요.");
-                    return;
-                  }
-
-                  const trimmed = fileName.trim();
-
-                  try {
-                    await createCodeFile({
-                      directoryId: parent.directoryId,
-                      codeFileName: trimmed,
-                      codeContent: "",
-                    });
-
-                    create("file", trimmed, parent.directoryId, parent.id);
-
-                    // 모달 열기 - 생성된 파일명을 전달해 추가 설정 수행
-                    setSelectedFolder({
-                      directoryId: parent.directoryId,
-                      title: trimmed,
-                    });
-                    setIsAddFileModalOpen(true);
-                  } catch (err) {
-                    console.error("파일 생성 실패:", err);
-                    alert("파일 생성에 실패했습니다.");
-                  }
+                  // 모달 열기 - 생성된 파일명을 전달해 추가 설정 수행
+                  setSelectedFolder({
+                    directoryId: parent.directoryId,
+                    title: "",
+                  });
+                  setIsAddFileModalOpen(true);
                 }
               }}
               onRename={async (id) => {

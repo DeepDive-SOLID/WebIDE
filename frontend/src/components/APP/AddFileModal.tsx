@@ -3,6 +3,7 @@ import Modal from "../UI/Modal";
 import styles from "../../styles/AddFileModal.module.scss";
 import { spacebar, enter, tab } from "../../assets";
 import { createQuestion } from "../../api/questionApi";
+import { createCodeFile } from "../../api/codefileApi";
 
 interface AddFileModalProps {
   onClose: () => void;
@@ -24,7 +25,11 @@ interface FormValues {
   }[];
 }
 
-const AddFileModal = ({ onClose }: AddFileModalProps) => {
+const AddFileModal = ({
+  onClose,
+  directoryId,
+  onCreateComplete,
+}: AddFileModalProps) => {
   const {
     register,
     handleSubmit,
@@ -63,6 +68,14 @@ const AddFileModal = ({ onClose }: AddFileModalProps) => {
     }
 
     try {
+      // 먼저 코드 파일 생성
+      await createCodeFile({
+        directoryId,
+        codeFileName: data.questionTitle,
+        codeContent: "",
+      });
+
+      // 문제 생성 API 호출
       await createQuestion({
         containerId: 1, // 실제 값으로 교체
         teamId: 1,
@@ -81,6 +94,11 @@ const AddFileModal = ({ onClose }: AddFileModalProps) => {
       });
 
       alert("문제 생성 성공!");
+
+      onCreateComplete?.({
+        title: data.questionTitle,
+        directoryId,
+      });
 
       onClose();
     } catch (e) {
