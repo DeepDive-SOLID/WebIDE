@@ -14,7 +14,7 @@ export const CodeContent = async (codeFileId: number) => {
     return res.data;
 }
 
-export const CodeTest = async (activeMember:string | null, codeId: number, questionId: number) => {
+export const CodeTest = async (activeMember:string | null, codeId: number | undefined, questionId: number) => {
     const res = await axios.post(`${baseURL}/docker/test`, { memberId: activeMember, codeFileId: codeId, questionId: questionId })
 
     return res.data;
@@ -32,7 +32,7 @@ export const CodeUpdate = async (codeFileId: number, code: string | undefined ) 
     return res.data
 }
 
-export const CodeRun = async (activeMember:string | null, codeId:number, questionId:number) => {
+export const CodeRun = async (activeMember:string | null, codeId:number | undefined, questionId:number) => {
     const res = await axios.post(`${baseURL}/docker/run`, { memberId: activeMember, codeFileId: codeId, questionId: questionId });
 
     return res.data

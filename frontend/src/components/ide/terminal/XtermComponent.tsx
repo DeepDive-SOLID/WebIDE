@@ -118,7 +118,7 @@ const XtermComponent = ({ isInputDisabled, setIsInputDisabled, codeId, height, t
       // 컴포넌트 언마운트 시 인스턴스 정리
       xterm.dispose();
     };
-  }, [restart, terminalToggle, runInput, dispatch, submitOutput]);
+  }, [restart, terminalToggle, runInput, dispatch, submitOutput, isInputDisabled]);
 
   // output이 있으면 터미널에 출력하고 상태 초기화
   useEffect(() => {

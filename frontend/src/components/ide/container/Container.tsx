@@ -21,9 +21,10 @@ const Container = ({ activeMember }: ContainerProp) => {
   const [testCase, setTestCase] = useState<testApi>({});
   const dispatch = useDispatch();
   const output = useSelector((state: RootState) => state.terminal.runOutput);
+  const [saveToggle, setSaveToggle] = useState<boolean>(false);
 
   // 임시 더미 데이터
-  const directoryId = 1;
+  const directoryId = 11;
   useEffect(() => {
     // 디렉토리 id를 받는다는 가정
     const fetchCodeFile = async () => {
@@ -44,7 +45,7 @@ const Container = ({ activeMember }: ContainerProp) => {
       memberCode();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLanguage, activeMember, codeFile]); // codeFile을 의존성 배열에 추가
+  }, [selectedLanguage, activeMember]); // codeFile을 의존성 배열에 추가
 
   // 코드 리스트중 코드id 를 가지고 코드내용을 가져오는 api
   const fileData = async (codeFileId: number) => {
@@ -100,51 +101,54 @@ const Container = ({ activeMember }: ContainerProp) => {
     setCode(value ?? "");
   };
 
-  // 테스트 api
-  const testAPI = async () => {
-    try {
-      if (!codeId) {
-        return;
-      }
-      const data = await CodeTest(activeMember, codeId, 1);
-      setTestCase(data);
-    } catch (e) {
-      console.log(e);
-    }
-  };
   // 저장과 수정 api
   const saveAPI = async () => {
     if (output !== "") {
       dispatch(setRestart());
     }
     try {
+      setSaveToggle((prev) => !prev);
       // 로그인한 유저 id 로 파일 명 바꾸기
       const select = selectedLanguage === "javascript" ? `${activeMember}.js` : selectedLanguage === "java" ? `${activeMember}.java` : `${activeMember}.py`;
 
       const existCode = codeFile.find((itmes) => itmes.codeFileName === select);
       if (!existCode) {
-        const data = await CodeCreate(directoryId, select, code);
-        console.log("파일 생성" + data);
+        await CodeCreate(directoryId, select, code);
+        const updatedList = await ContainerExistCode(directoryId);
+        setCodeFile(updatedList);
+
+        const created = updatedList.find((item) => item.codeFileName === select);
+        if (created) {
+          setCodeId(created.codeFileId);
+          return created.codeFileId;
+        }
       } else {
-        const data = await CodeUpdate(existCode.codeFileId, code);
-        console.log("파일 업데이트" + data);
+        await CodeUpdate(existCode.codeFileId, code);
+        setCodeId(existCode.codeFileId);
+        return existCode.codeFileId;
       }
     } catch (e) {
       console.log(e);
     }
+    return undefined;
   };
-
-  const submitAPI = async () => {
-    if (!codeId) {
-      return;
-    }
+  // 테스트 api
+  const testAPI = async () => {
+    const id = await saveAPI();
+    if (!id) return;
     try {
-      const data = await CodeRun(activeMember, codeId, 1);
-      if (data.isCorrect) {
-        dispatch(setSubmitOutput("성공"));
-      } else {
-        dispatch(setSubmitOutput("실패"));
-      }
+      const result = await CodeTest(activeMember, id, 1);
+      setTestCase(result);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+  const submitAPI = async () => {
+    const id = await saveAPI();
+    if (!id) return;
+    try {
+      const result = await CodeRun(activeMember, id, 1);
+      dispatch(setSubmitOutput(result.isCorrect ? "성공" : "실패"));
     } catch (e) {
       console.error(e);
     }
@@ -152,26 +156,22 @@ const Container = ({ activeMember }: ContainerProp) => {
 
   // 버튼에 따른 클릭 이벤트
   const handleClickEvent = (type: string) => {
+    setTerminalToggle(type);
+
     switch (type) {
       case "reset":
         setToggle((prev) => !prev);
         break;
       case "test":
-        setTerminalToggle(type);
-        saveAPI();
         testAPI();
         break;
       case "run":
-        setTerminalToggle(type);
         dispatch(setRunInput(""));
         dispatch(setRunOutput(""));
-        saveAPI();
-        setIsInputDisabled((prev) => !prev);
+        saveAPI().then(() => setIsInputDisabled((prev) => !prev));
         break;
       case "submit": {
-        setTerminalToggle(type);
         dispatch(setSubmitOutput(""));
-        saveAPI();
         submitAPI();
         break;
       }
