@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./styles/index.css";
 import { Provider } from "react-redux";
+import { AuthProvider } from "./contexts/AuthProvider";
 import { store } from "./stores";
 import App from "./App";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
@@ -14,6 +15,8 @@ import AllContainer from "./pages/AllContainer";
 import MyContainer from "./pages/MyContainer";
 import SharedContainer from "./pages/SharedContainer";
 import PublicContainer from "./pages/PublicContainer";
+import Mypage from "./pages/Mypage";
+import Info from "./pages/Info";
 
 const router = createBrowserRouter([
   {
@@ -45,6 +48,14 @@ const router = createBrowserRouter([
           { path: "shared-container", element: <SharedContainer /> },
           { path: "public-container", element: <PublicContainer /> },
         ],
+      },
+      {
+        path: "mypage",
+        element: <Mypage />,
+      },
+      {
+        path: "Info",
+        element: <Info />,
       },
     ],
   },

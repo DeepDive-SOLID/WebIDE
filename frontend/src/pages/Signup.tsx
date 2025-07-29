@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/Signup.module.scss";
-import logoImg from "../assets/images/CodeWith.png";
+import { logoImg } from "../assets";
 import { signApi } from "../api/signApi";
 
 const EyeIcon = ({ visible }: { visible: boolean }) =>

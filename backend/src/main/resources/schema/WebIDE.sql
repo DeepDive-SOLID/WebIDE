@@ -1,0 +1,194 @@
+
+
+CREATE DATABASE IF NOT EXISTS webide 
+CHARACTER SET utf8mb4 
+COLLATE utf8mb4_unicode_ci;
+
+USE webide;
+
+-- 기존 테이블 삭제 (순서 중요 - 외래키 제약조건 때문)
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS `테스트케이스`;
+DROP TABLE IF EXISTS `코드 파일 경로`;
+DROP TABLE IF EXISTS `결과 테이블`;
+DROP TABLE IF EXISTS `진행률`;
+DROP TABLE IF EXISTS `채팅`;
+DROP TABLE IF EXISTS `문제`;
+DROP TABLE IF EXISTS `코드 텍스트`;
+DROP TABLE IF EXISTS `디렉토리`;
+DROP TABLE IF EXISTS team_user;
+DROP TABLE IF EXISTS container;
+DROP TABLE IF EXISTS team;
+DROP TABLE IF EXISTS `member`;
+DROP TABLE IF EXISTS auth;
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- 1. 권한 테이블
+CREATE TABLE auth (
+    auth_id VARCHAR(10) NOT NULL COMMENT '권한 코드',
+    auth_name VARCHAR(20) NOT NULL COMMENT '권한 이름',
+    PRIMARY KEY (auth_id)
+);
+
+-- 2. 회원 테이블
+CREATE TABLE `member` (
+    `MEMBER_ID` VARCHAR(20) NOT NULL COMMENT '회원 ID',
+    `MEMBER_NAME` VARCHAR(10) NOT NULL COMMENT '회원명',
+    `MEMBER_PW` VARCHAR(100) NOT NULL COMMENT '회원 비밀번호',
+    `MEMBER_EMAIL` VARCHAR(30) NOT NULL COMMENT '회원 이메일',
+    `MEMBER_PHONE` VARCHAR(15) NULL COMMENT '회원 전화번호',
+    `MEMBER_BIRTH` DATE NULL COMMENT '회원 생년월일',
+    `MEMBER_IMG` VARCHAR(500) NULL COMMENT '회원 프로필 이미지',
+    PRIMARY KEY (`MEMBER_ID`)
+);
+
+-- 3. 팀 테이블
+CREATE TABLE team (
+    team_id INT NOT NULL AUTO_INCREMENT COMMENT '팀 ID',
+    team_name VARCHAR(100) NOT NULL COMMENT '팀 이름',
+    PRIMARY KEY (team_id)
+);
+
+-- 4. 컨테이너 테이블
+CREATE TABLE container (
+    container_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '컨테이너 ID',
+    team_id INT NOT NULL COMMENT '팀 ID',
+    container_auth BOOLEAN NOT NULL DEFAULT true COMMENT '컨테이너 공개 여부 (true: public / false: private)',
+    container_date DATE NOT NULL DEFAULT (CURRENT_DATE) COMMENT '생성일',
+    container_nm VARCHAR(20) NOT NULL COMMENT '컨테이너 이름',
+    container_content VARCHAR(200) NULL COMMENT '컨테이너 설명',
+    PRIMARY KEY (container_id),
+    FOREIGN KEY (team_id) REFERENCES team (team_id)
+);
+
+-- 5. 팀 회원 테이블
+CREATE TABLE team_user (
+    team_user_id INT NOT NULL AUTO_INCREMENT COMMENT '팀 유저 PK',
+    team_id INT NOT NULL COMMENT '팀 ID',
+    team_auth_id VARCHAR(10) NOT NULL COMMENT '권한 코드',
+    member_id VARCHAR(20) NOT NULL COMMENT '회원 ID',
+    joined_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입 날짜',
+    last_activity_date DATETIME NULL COMMENT '마지막 활동 시간',
+    PRIMARY KEY (team_user_id),
+    FOREIGN KEY (team_id) REFERENCES team (team_id),
+    FOREIGN KEY (member_id) REFERENCES `member` (MEMBER_ID),
+    FOREIGN KEY (team_auth_id) REFERENCES auth (auth_id)
+);
+
+-- 6. 디렉토리 테이블
+CREATE TABLE `디렉토리` (
+    `DIRECTORY_ID` INT NOT NULL AUTO_INCREMENT COMMENT '디렉토리 ID',
+    `CONTAINER_ID` BIGINT NOT NULL COMMENT '컨테이너 ID',
+    `TEAM_ID` INT NOT NULL COMMENT '팀 ID',
+    `DIRECTORY_NAME` VARCHAR(30) NOT NULL COMMENT '디렉토리 이름',
+    `DIRECTORY_ROOT` VARCHAR(30) NOT NULL COMMENT '상위 디렉토리',
+    PRIMARY KEY (`DIRECTORY_ID`),
+    FOREIGN KEY (`CONTAINER_ID`) REFERENCES container (container_id),
+    FOREIGN KEY (`TEAM_ID`) REFERENCES team (team_id)
+);
+
+-- 7. 채팅 테이블
+CREATE TABLE `채팅` (
+    `CHAT_ID` INT NOT NULL AUTO_INCREMENT COMMENT '채팅 ID',
+    `MEMBER_ID` VARCHAR(20) NOT NULL COMMENT '회원 ID',
+    `TEAM_ID` INT NOT NULL COMMENT '팀 ID',
+    `CHAT_TEXT` VARCHAR(50) NOT NULL COMMENT '채팅 내용',
+    `CHAT_DATE` DATE NOT NULL COMMENT '채팅 날짜',
+    PRIMARY KEY (`CHAT_ID`),
+    FOREIGN KEY (`MEMBER_ID`) REFERENCES `member` (`MEMBER_ID`),
+    FOREIGN KEY (`TEAM_ID`) REFERENCES team (team_id)
+);
+
+-- 8. 문제 테이블
+CREATE TABLE `문제` (
+    `QUESTION_ID` INT NOT NULL AUTO_INCREMENT COMMENT '문제 ID',
+    `CONTAINER_ID` BIGINT NOT NULL COMMENT '컨테이너 ID',
+    `TEAM_ID` INT NOT NULL COMMENT '팀 ID',
+    `QUESTION_TITLE` VARCHAR(30) NOT NULL COMMENT '제목',
+    `QUESTION_DESCRIPTION` VARCHAR(300) NOT NULL COMMENT '내용',
+    `QUESTION` VARCHAR(300) NOT NULL COMMENT '제한사항',
+    `QUESTION_INPUT` VARCHAR(100) NOT NULL COMMENT '입력 예시',
+    `QUESTION_OUTPUT` VARCHAR(100) NOT NULL COMMENT '출력 예시',
+    `QUESTION_TIME` FLOAT NOT NULL COMMENT '시간 제한',
+    `QUESTION_MEM` INT NOT NULL COMMENT '메모리 제한',
+    PRIMARY KEY (`QUESTION_ID`),
+    FOREIGN KEY (`CONTAINER_ID`) REFERENCES container (container_id),
+    FOREIGN KEY (`TEAM_ID`) REFERENCES team (team_id)
+);
+
+-- 9. 테스트케이스 테이블
+CREATE TABLE `테스트케이스` (
+    `CASE_ID` INT NOT NULL AUTO_INCREMENT COMMENT '케이스ID',
+    `QUESTION_ID` INT NOT NULL COMMENT '문제 ID',
+    `CASE_EX` VARCHAR(200) NOT NULL COMMENT '예제',
+    `CASE_ANSWER` VARCHAR(200) NOT NULL COMMENT '정답',
+    `CASE_CHECK` BOOLEAN NOT NULL DEFAULT true COMMENT 'true: 문제에 보여짐 & 채점시 적용, false : 채점시 적용',
+    PRIMARY KEY (`CASE_ID`, `QUESTION_ID`),
+    FOREIGN KEY (`QUESTION_ID`) REFERENCES `문제` (`QUESTION_ID`)
+);
+
+-- 10. 코드 파일 경로 테이블
+CREATE TABLE `코드 파일 경로` (
+    `CODE_FILE_ID` INT NOT NULL AUTO_INCREMENT COMMENT '파일 ID',
+    `DIRECTORY_ID` INT NOT NULL COMMENT '디렉토리 ID',
+    `CODE_FILE_PATH` VARCHAR(100) NOT NULL COMMENT '파일 경로',
+    `CODE_FILE_NAME` VARCHAR(20) NOT NULL COMMENT '파일 이름',
+    `CODE_FILE_UPLOAD_DT` DATE NOT NULL DEFAULT (CURRENT_DATE) COMMENT '파일 업로드일',
+    `CODE_FILE_CREATE_DT` DATE NOT NULL DEFAULT (CURRENT_DATE) COMMENT '파일 생성일',
+    PRIMARY KEY (`CODE_FILE_ID`),
+    FOREIGN KEY (`DIRECTORY_ID`) REFERENCES `디렉토리` (`DIRECTORY_ID`)
+);
+
+-- 11. 코드 텍스트 테이블
+CREATE TABLE `코드 텍스트` (
+    `CODE_ID` INT NOT NULL AUTO_INCREMENT COMMENT '코드 ID',
+    `DIRECTORY_ID` INT NOT NULL COMMENT '디렉토리 ID',
+    `CODE_NAME` VARCHAR(20) NOT NULL COMMENT '파일명',
+    `CODE_TEXT` TEXT NOT NULL COMMENT '코드 내용',
+    `CODE_UPLOAD_DT` DATE NOT NULL DEFAULT (CURRENT_DATE) COMMENT '파일 업로드일',
+    `CODE_CREATE_DT` DATE NOT NULL DEFAULT (CURRENT_DATE) COMMENT '파일 생성일',
+    PRIMARY KEY (`CODE_ID`),
+    FOREIGN KEY (`DIRECTORY_ID`) REFERENCES `디렉토리` (`DIRECTORY_ID`)
+);
+
+-- 12. 결과 테이블
+CREATE TABLE `결과 테이블` (
+    `RESULT_ID` VARCHAR(255) NOT NULL COMMENT '결과 ID',
+    `CASE_ID` INT NOT NULL COMMENT '케이스ID',
+    `QUESTION_ID` INT NOT NULL COMMENT '문제 ID',
+    `MEMBER_ID` VARCHAR(20) NOT NULL COMMENT '회원 ID',
+    `RESULT_ANSWER` VARCHAR(20) NOT NULL COMMENT '실행 결과 (정답/실패/런타임에러)',
+    `RESULT_TIME` FLOAT NOT NULL COMMENT '실행 시간',
+    `RESULT_MEMORY` INT NOT NULL COMMENT '사용 메모리양',
+    `RESULT_LANG` VARCHAR(20) NOT NULL COMMENT '사용 언어',
+    PRIMARY KEY (`RESULT_ID`),
+    FOREIGN KEY (`CASE_ID`, `QUESTION_ID`) REFERENCES `테스트케이스` (`CASE_ID`, `QUESTION_ID`),
+    FOREIGN KEY (`MEMBER_ID`) REFERENCES `member` (`MEMBER_ID`)
+);
+
+-- 13. 진행률 테이블
+CREATE TABLE `진행률` (
+    `PROGRESS_ID` INT NOT NULL AUTO_INCREMENT COMMENT '진행률ID',
+    `DIRECTORY_ID` INT NOT NULL COMMENT '디렉토리 ID',
+    `TEAM_USER_ID` INT NOT NULL COMMENT '팀 유저 PK',
+    `PROGRESS_COMPLETE` INT NOT NULL COMMENT '진행률',
+    PRIMARY KEY (`PROGRESS_ID`),
+    FOREIGN KEY (`DIRECTORY_ID`) REFERENCES `디렉토리` (`DIRECTORY_ID`),
+    FOREIGN KEY (`TEAM_USER_ID`) REFERENCES team_user (team_user_id)
+);
+
+-- 기본 데이터 삽입
+INSERT INTO auth (auth_id, auth_name) VALUES 
+('ROOT', '관리자'),
+('USER', '사용자');
+
+-- 테스트용 회원 데이터
+INSERT INTO `member` (`MEMBER_ID`, `MEMBER_NAME`, `MEMBER_PW`, `MEMBER_EMAIL`) VALUES
+('test001', 'TestUser1', 'password123', 'test1@example.com'),
+('test002', 'TestUser2', 'password123', 'test2@example.com'),
+('test003', 'TestUser3', 'password123', 'test3@example.com');
+
+-- 인덱스 추가 (성능 최적화)
+CREATE INDEX idx_container_auth ON container (container_auth);
+CREATE INDEX idx_team_user_member ON team_user (member_id);
+CREATE INDEX idx_team_user_team ON team_user (team_id);
