@@ -46,4 +46,20 @@ public interface SignService {
      * @param signUpdPwDto
      */
     void updPw(SignUpdPwDto signUpdPwDto);
+
+    /**
+     * 설명 : 카카오 로그인
+     * @param code
+     * @param request
+     * @return String
+     */
+    String loginKakao(String code, HttpServletRequest request);
+
+    /**
+     * 설명 : 구글 로그인
+     * @param code
+     * @param request
+     * @return String
+     */
+    String loginGoogle(String code, HttpServletRequest request);
 }

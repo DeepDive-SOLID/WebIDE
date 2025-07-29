@@ -66,4 +66,12 @@ public class Member {
     public boolean isMemberIsOnline() {
         return memberIsOnline != null && memberIsOnline;
     }
+
+    @Column(name = "kakao_id", length = 20, unique = true)
+    @Comment("카카오 아이디")
+    private String kakaoId;
+
+    @Column(name = "google_id", length = 20, unique = true)
+    @Comment("구글 아이디")
+    private String googleId;
 }
