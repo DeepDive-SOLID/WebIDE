@@ -21,7 +21,6 @@ const Container = ({ activeMember }: ContainerProp) => {
   const [testCase, setTestCase] = useState<testApi>({});
   const dispatch = useDispatch();
   const output = useSelector((state: RootState) => state.terminal.runOutput);
-  const [saveToggle, setSaveToggle] = useState<boolean>(false);
 
   // 임시 더미 데이터
   const directoryId = 11;
@@ -107,7 +106,6 @@ const Container = ({ activeMember }: ContainerProp) => {
       dispatch(setRestart());
     }
     try {
-      setSaveToggle((prev) => !prev);
       // 로그인한 유저 id 로 파일 명 바꾸기
       const select = selectedLanguage === "javascript" ? `${activeMember}.js` : selectedLanguage === "java" ? `${activeMember}.java` : `${activeMember}.py`;
 
@@ -117,7 +115,7 @@ const Container = ({ activeMember }: ContainerProp) => {
         const updatedList = await ContainerExistCode(directoryId);
         setCodeFile(updatedList);
 
-        const created = updatedList.find((item) => item.codeFileName === select);
+        const created = updatedList.find((item: codeFileList) => item.codeFileName === select);
         if (created) {
           setCodeId(created.codeFileId);
           return created.codeFileId;
