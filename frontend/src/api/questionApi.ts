@@ -7,7 +7,7 @@ import type {
 
 // 전체 문제 리스트 조회
 export const getQuestionList = async (): Promise<QuestionListDto[]> => {
-  const response = await axios.get("/question/list");
+  const response = await axios.get("http://localhost:8080/question/list");
   return response.data;
 };
 
@@ -15,9 +15,7 @@ export const getQuestionList = async (): Promise<QuestionListDto[]> => {
 export const getQuestionListByContainerId = async (
   containerId: number
 ): Promise<QuestionListDto[]> => {
-  const response = await axios.post("/question/list_id", containerId, {
-    headers: { "Content-Type": "text/plain" },
-  });
+  const response = await axios.post("/question/list_id", {containerId: containerId})
   return response.data;
 };
 
@@ -25,19 +23,19 @@ export const getQuestionListByContainerId = async (
 export const createQuestion = async (
   dto: QuestionCreateDto
 ): Promise<string> => {
-  const response = await axios.post("/question/create", dto);
+  const response = await axios.post("http://localhost:8080/question/create", dto);
   return response.data;
 };
 
 // 문제 및 테스트 케이스 수정
 export const updateQuestion = async (dto: QuestionUpdDto): Promise<string> => {
-  const response = await axios.put("/question/update", dto);
+  const response = await axios.put("http://localhost:8080/question/update", dto);
   return response.data;
 };
 
 // 문제 및 테스트 케이스 삭제
 export const deleteQuestion = async (questionId: number): Promise<string> => {
-  const response = await axios.delete("/question/delete", {
+  const response = await axios.delete("http://localhost:8080/question/delete", {
     data: questionId,
     headers: { "Content-Type": "text/plain" },
   });

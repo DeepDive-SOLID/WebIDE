@@ -1,29 +1,20 @@
-import Chat from "../components/UI/Chat";
-import ChatToast from "../components/UI/ChatToast";
-import AlgorithmNav from "../components/APP/Nav/AlgorithmNav";
-import AddFileModal from "../components/APP/AddFileModal";
-import { useState } from "react";
-import Ide from "./containerIde/Ide";
-const Home = () => {
-  const [showToast, setShowToast] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+import { useNavigate } from "react-router-dom";
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+const Home = () => {
+  const navigate = useNavigate();
+
+  const handleContainerClick = (id: number) => {
+    navigate(`/container/${id}`);
+  };
+
   return (
-    <div style={{ display: "flex", flexDirection: "row", overflow: "hidden" }}>
-      <AlgorithmNav />
-      <Ide />
-      <Chat />
-      {showToast && (
-        <ChatToast
-          message='토스트 나왔다!'
-          onClose={() => {
-            setShowToast(false);
-          }}
-        />
-      )}
+    <div style={{ padding: "2rem" }}>
+      <h2>컨테이너 선택</h2>
+      <button onClick={() => handleContainerClick(1)}>컨테이너 1번</button>
+      <button onClick={() => handleContainerClick(2)}>컨테이너 2번</button>
+      <button onClick={() => handleContainerClick(3)}>컨테이너 3번</button>
     </div>
   );
 };
+
 export default Home;

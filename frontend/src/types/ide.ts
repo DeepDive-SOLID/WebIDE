@@ -17,21 +17,6 @@ export interface CodeEditorProps {
     onChange: (value?: string | null | undefined, ev?: editor.IModelContentChangedEvent | undefined) => void;
 }
 
-export interface question {
-    questionId: number;
-    containerId?: number;
-    teamId?: number;
-    questionTitle: string;
-    questionDescription: string;
-    question: string;
-    questionInput:string;
-    questionOutput?:string;
-    questionTime: number;
-    questionMem: number;
-}
-export interface QusetionProp {
-    question: question | undefined;
-}
 
 export interface ContainerMemberCode {
     memberId: string;

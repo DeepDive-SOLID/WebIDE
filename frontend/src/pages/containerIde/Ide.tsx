@@ -2,14 +2,17 @@ import { useEffect, useState } from "react";
 import Question from "../../components/ide/question/Question";
 import Header from "../../components/ide/header/Header";
 import Container from "../../components/ide/container/Container";
-import type { question } from "../../types/ide";
-import axios from "axios";
+import { getQuestionListByContainerId } from "../../api/questionApi";
+import type { QuestionListDto } from "../../types/question";
 
-const Ide = () => {
+interface IdeProps {
+  containerId: number;
+}
+const Ide = ({ containerId }: IdeProps) => {
   // 로그인한 유저의 id 가져오기
   const [loginId, setLoginId] = useState<string | null>("");
   const [activeButtonId, setActiveButtonId] = useState<string | null>("");
-  const [question, setQuestion] = useState<question>();
+  const [question, setQuestion] = useState<QuestionListDto[]>();
 
   // 클릭된 버튼의 ID를 인자로 받습니다.
   const handleOnClick = (id: string) => {
@@ -25,9 +28,9 @@ const Ide = () => {
 
     const fetchQuestionData = async () => {
       try {
-        const res = await axios.post("http://localhost:8080/question/list_id", { containerId: 1 });
-        console.log(res.data);
-        setQuestion(res.data);
+        const res = await getQuestionListByContainerId(containerId);
+        console.log(res);
+        setQuestion(res);
       } catch (e) {
         console.error("에러: " + e);
       }

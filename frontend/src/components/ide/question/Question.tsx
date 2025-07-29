@@ -1,7 +1,7 @@
 import styles from "../../../styles/question.module.scss";
-import type { QusetionProp } from "../../../types/ide";
+import type { QuestionListDto } from "../../../types/question";
 
-const Question = ({ question }: QusetionProp) => {
+const Question = ({ question }: QuestionListDto) => {
   return (
     // 중괄호에 들어간 문자열은 전부 데이터 받아와 변경
     <div className={styles.question_box}>
