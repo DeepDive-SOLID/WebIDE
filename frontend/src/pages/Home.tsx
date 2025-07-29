@@ -11,7 +11,7 @@ const Home = () => {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
   return (
-    <div style={{ display: "flex", flexDirection: "row" }}>
+    <div style={{ display: "flex", flexDirection: "row", overflow: "hidden" }}>
       <AlgorithmNav />
       <Ide />
       <Chat />

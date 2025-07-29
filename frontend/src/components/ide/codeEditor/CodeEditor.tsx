@@ -1,11 +1,17 @@
 import { Editor } from "@monaco-editor/react";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CodeEditorProps, MonacoEditor } from "../../../types/ide";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../../stores";
 
 const CodeEditor = ({ language, code, onChange }: CodeEditorProps) => {
   const editorRef = useRef<MonacoEditor | null>(null);
-  // 다크모드 클릭 시 state 받아오기
-  const theme = "light";
+  const isDark = useSelector((state: RootState) => state.theme.isDark);
+  const [theme, setTheme] = useState<string>("light");
+
+  useEffect(() => {
+    setTheme(isDark ? "vs-dark" : "light");
+  }, [isDark]);
 
   const handleEditorDidMount = (editor: MonacoEditor) => {
     editorRef.current = editor;
