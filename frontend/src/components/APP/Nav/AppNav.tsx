@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { IoHomeOutline, IoFolderOpenOutline } from "react-icons/io5";
 import { AiOutlineGlobal } from "react-icons/ai";
 import { profile } from "../../../assets";
@@ -8,19 +7,27 @@ import Button from "../../UI/Button";
 import AppSidebar from "../Sidebar/AppSidebar";
 import styles from "../../../styles/AppNav.module.scss";
 
-const AppNav = () => {
+interface AppNavProps {
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+  sidebarType: "container" | "algorithm" | null;
+  setSidebarType: (type: "container" | "algorithm" | null) => void;
+}
+
+const AppNav = ({
+  sidebarOpen,
+  setSidebarOpen,
+  sidebarType,
+  setSidebarType,
+}: AppNavProps) => {
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarType, setSidebarType] = useState<
-    "container" | "algorithm" | null
-  >(null);
 
   const handleNavClick = (
     target: "home" | "container" | "global" | "mypage"
   ) => {
     switch (target) {
       case "home":
-        navigate("/");
+        navigate("/home/all-container");
         setSidebarOpen(false);
         setSidebarType(null);
         break;
@@ -34,6 +41,7 @@ const AppNav = () => {
         }
         break;
       case "global":
+        navigate("/home/public-container");
         setSidebarOpen(false);
         setSidebarType(null);
         break;

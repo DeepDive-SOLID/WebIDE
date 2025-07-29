@@ -86,7 +86,7 @@ export const getCurrentMemberId = (): string | null => {
 // 현재 로그인한 사용자의 정보 가져오기
 export const getCurrentUserInfo = (): {
   memberId: string;
-  authId: string;
+  authId?: string;
 } | null => {
   const token = getToken();
 
