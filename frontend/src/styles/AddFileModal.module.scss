@@ -1,0 +1,143 @@
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    font-size: 14px;
+    font-family: inherit;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #fff;
+    color: #000;
+    resize: vertical;
+
+    &::placeholder {
+      color: #bbb;
+    }
+
+    &:focus {
+      border-color: #0085ff;
+      outline: none;
+    }
+  }
+}
+
+.testcaseSection {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.testcaseLabel {
+  font-weight: 600;
+  margin: 0;
+}
+
+.testcaseInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #333;
+
+  .icon {
+    height: 20px;
+  }
+}
+
+.testcaseList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.testcaseInput {
+  flex: 1;
+  font-size: 14px;
+  font-family: inherit;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #000;
+
+  &::placeholder {
+    color: #bbb;
+  }
+
+  &:focus {
+    border-color: #0085ff;
+    outline: none;
+  }
+}
+
+.testcaseRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  input[type="checkbox"] {
+    transform: scale(1.2);
+    accent-color: #0085ff;
+    cursor: pointer;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    font-size: 14px;
+    font-family: inherit;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #fff;
+    color: #000;
+
+    &::placeholder {
+      color: #bbb;
+    }
+
+    &:focus {
+      border-color: #0085ff;
+      outline: none;
+    }
+  }
+}
+
+.addBtn,
+.submitBtn {
+  background: #0085ff;
+  border: 1px solid #007aff;
+  color: #fff;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.addBtn {
+  margin-top: 8px;
+}
+
+.submitBtn {
+  width: 100%;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 32px;
+  padding: 14px 0;
+  border: none;
+}
