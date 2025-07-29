@@ -5,6 +5,8 @@ import { logoImg } from "../assets";
 import { signApi } from "../api/signApi";
 import { setToken } from "../utils/auth.ts";
 import { AuthContext } from "../contexts/AuthContext";
+import KakaoLogin from "../components/UI/KakaoLogin.tsx";
+import GoogleLogin from "../components/UI/GoogleLogin.tsx";
 
 // EyeIcon 컴포넌트 (비밀번호 보기/숨기기)
 const EyeIcon = ({ visible }: { visible: boolean }) =>
@@ -172,7 +174,9 @@ const Login: React.FC = () => {
           {submitError && (
             <div className={styles.submitError}>{submitError}</div>
           )}
-          <button className={styles.button} type="submit" disabled={isLoading}>
+          <KakaoLogin />
+          <GoogleLogin />
+          <button className={styles.button} disabled={isLoading}>
             {isLoading ? "로그인 중..." : "로그인"}
           </button>
         </form>
