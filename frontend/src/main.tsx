@@ -5,7 +5,6 @@ import { Provider } from "react-redux";
 import { AuthProvider } from "./contexts/AuthProvider";
 import { store } from "./stores";
 import App from "./App";
-import { AuthProvider } from "./contexts/AuthContext.tsx";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
