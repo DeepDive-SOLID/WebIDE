@@ -2,13 +2,8 @@ import ContextMenu from "../ContextMenu";
 import Bargraph from "../../UI/Bargraph";
 import { FaUsers } from "react-icons/fa";
 import styles from "../../../styles/AppSidebar.module.scss";
-import { useState, useEffect } from "react";
-import {
-  getDirectoryList,
-  createDirectory,
-  renameDirectory,
-  deleteDirectory,
-} from "../../../api/directoryApi";
+import { useState, useEffect, useRef } from "react";
+import { getDirectoryList, createDirectory, renameDirectory, deleteDirectory } from "../../../api/directoryApi";
 import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
 import { CiFileOn } from "react-icons/ci";
 import AddFileModal from "../AddFileModal";
@@ -29,10 +24,7 @@ export type BoxItemType = {
   directoryRoot: string;
 };
 
-const AlgorithmSidebar = ({
-  containerId,
-  onSelectQuestionId,
-}: AlgorithmSidebarProps) => {
+const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarProps) => {
   const [boxList, setBoxList] = useState<BoxItemType[]>([]);
   const [openIds, setOpenIds] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -45,7 +37,9 @@ const AlgorithmSidebar = ({
   } | null>(null);
 
   const normalizePath = (path: string) => path.replace(/\/+/g, "/");
-
+  useEffect(() => {
+    console.log(selectedId);
+  }, [selectedId]);
   useEffect(() => {
     const fetchDirectory = async () => {
       let list = await getDirectoryList({ containerId });
@@ -64,14 +58,7 @@ const AlgorithmSidebar = ({
       const filtered = list.filter((item) => item.containerId === containerId);
 
       const mapped = filtered.map((item) => {
-        const parent = filtered.find(
-          (x) =>
-            normalizePath(
-              `${x.directoryRoot === "/" ? "" : x.directoryRoot}/${
-                x.directoryName
-              }`
-            ) === normalizePath(item.directoryRoot)
-        );
+        const parent = filtered.find((x) => normalizePath(`${x.directoryRoot === "/" ? "" : x.directoryRoot}/${x.directoryName}`) === normalizePath(item.directoryRoot));
 
         return {
           id: `folder-${item.directoryId}`,
@@ -90,13 +77,7 @@ const AlgorithmSidebar = ({
     fetchDirectory();
   }, [containerId]);
 
-  const create = (
-    title: string,
-    directoryId: number,
-    parentId: string | null,
-    isProblem: boolean = false,
-    directoryRoot: string
-  ) => {
+  const create = (title: string, directoryId: number, parentId: string | null, isProblem: boolean = false, directoryRoot: string) => {
     const id = `folder-${directoryId}`;
 
     setBoxList((prev) => [
@@ -136,9 +117,7 @@ const AlgorithmSidebar = ({
   };
 
   const rename = (id: string, newTitle: string) => {
-    setBoxList((prev) =>
-      prev.map((box) => (box.id === id ? { ...box, title: newTitle } : box))
-    );
+    setBoxList((prev) => prev.map((box) => (box.id === id ? { ...box, title: newTitle } : box)));
   };
 
   const handleContextMenu = (id: string, e: React.MouseEvent) => {
@@ -149,9 +128,7 @@ const AlgorithmSidebar = ({
   };
 
   const toggleOpen = (id: string) => {
-    setOpenIds((prev) =>
-      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]
-    );
+    setOpenIds((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
   };
 
   useEffect(() => {
@@ -164,16 +141,13 @@ const AlgorithmSidebar = ({
   }, [menuPos]);
 
   const renderTree = (parentId: string | null): JSX.Element[] => {
+    console.log(boxList);
     return boxList
       .filter((item) => item.parentId === parentId)
       .map((item) => (
         <div key={item.id} className={styles.treeNode}>
           <div
-            className={`${styles.treeItem} ${
-              item.isProblem ? styles.file : styles.folder
-            } ${selectedId === item.id ? styles.selected : ""} ${
-              activeId === item.id ? styles.treeItemActive : ""
-            }`}
+            className={`${styles.treeItem} ${item.isProblem ? styles.file : styles.folder} ${selectedId === item.id ? styles.selected : ""} ${activeId === item.id ? styles.treeItemActive : ""}`}
             onClick={() => {
               setActiveId(item.id);
               setSelectedId(item.id);
@@ -192,9 +166,7 @@ const AlgorithmSidebar = ({
               <span className={styles.treeTitle}>{item.title}</span>
             </span>
           </div>
-          {item.type === "folder" &&
-            openIds.includes(item.id) &&
-            renderTree(item.id)}
+          {item.type === "folder" && openIds.includes(item.id) && renderTree(item.id)}
         </div>
       ));
   };
@@ -203,10 +175,7 @@ const AlgorithmSidebar = ({
     <>
       <div className={`${styles.section} ${styles.topSection}`}>
         <h2 className={styles.heading}>Algorithm</h2>
-        <div
-          className={styles.boxArea}
-          onContextMenu={(e) => handleContextMenu("", e)}
-        >
+        <div className={styles.boxArea} onContextMenu={(e) => handleContextMenu("", e)}>
           {menuPos && (
             <ContextMenu
               x={menuPos.x}
@@ -215,9 +184,7 @@ const AlgorithmSidebar = ({
               selectedId={selectedId}
               onCreate={async (type) => {
                 const parent = boxList.find((b) => b.id === selectedId);
-                const directoryRoot = parent
-                  ? normalizePath(`${parent.directoryRoot}/${parent.title}`)
-                  : "/";
+                const directoryRoot = parent ? normalizePath(`${parent.directoryRoot}/${parent.title}`) : "/";
                 const teamId = parent?.teamId ?? boxList[0]?.teamId ?? 1;
                 const parentId = parent?.id ?? null;
 
@@ -234,13 +201,7 @@ const AlgorithmSidebar = ({
                       directoryId: 0,
                     });
 
-                    create(
-                      title,
-                      res.directoryId,
-                      parentId,
-                      false,
-                      directoryRoot
-                    );
+                    create(title, res.directoryId, parentId, false, directoryRoot);
                   } catch (err) {
                     console.error("디렉터리 생성 실패:", err);
                   }
@@ -300,11 +261,11 @@ const AlgorithmSidebar = ({
       <div className={`${styles.section} ${styles.bottomSection}`}>
         <div className={styles.teamStatus}>
           <h3>팀원 현황(3 /5)</h3>
-          <Bargraph name="user1" language="JS" success={4} total={4} />
-          <Bargraph name="user2" language="JS" success={3} total={4} />
-          <Bargraph name="user3" language="JS" success={2} total={4} />
-          <Bargraph name="" language="" success={0} total={4} />
-          <Bargraph name="" language="" success={0} total={4} />
+          <Bargraph name='user1' language='JS' success={4} total={4} />
+          <Bargraph name='user2' language='JS' success={3} total={4} />
+          <Bargraph name='user3' language='JS' success={2} total={4} />
+          <Bargraph name='' language='' success={0} total={4} />
+          <Bargraph name='' language='' success={0} total={4} />
         </div>
         <div className={styles.currentContainer}>
           <FaUsers className={styles.containerIcon} />
@@ -323,18 +284,14 @@ const AlgorithmSidebar = ({
           }}
           directoryId={selectedFolder.directoryId}
           onCreateComplete={(newFile) => {
-            const parent = boxList.find((b) => b.id === selectedId);
-            const directoryRoot = parent
-              ? normalizePath(`${parent.directoryRoot}/${parent.title}`)
-              : "/";
-            create(
-              newFile.title,
-              newFile.directoryId,
-              selectedId,
-              true,
-              directoryRoot
-            );
+            const directoryRoot = parent ? normalizePath(`${parent.directoryRoot}/${parent.title}`) : "/";
+            create(newFile.title, newFile.directoryId, selectedId, true, directoryRoot);
           }}
+          selectedId={selectedId}
+          boxList={boxList}
+          create={(t, d, s, b, root) => create(t, d, s, b, root)}
+          normalizePath={normalizePath}
+          containerId={containerId}
         />
       )}
     </>
