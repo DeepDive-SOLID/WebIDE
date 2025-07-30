@@ -6,6 +6,7 @@
     - QuestionListDto.java
     - QuestionUpdDto.java
     - TestCaseDto.java
+    - TestCaseListDto.java
     - TestCaseUpd.java
 - repository(jpa)
     - QuestionRepository.java
@@ -27,6 +28,12 @@
 - HTTP request URL : question/list_id
 - param : containerId
 - return : List<QuestionListDto>
+
+[등록된 문제의 공개된 테스트케이스 리스트 반환]
+- HTTP method : POST
+- HTTP request URL : question/trueList
+- param : questionId
+- return : List<TestCaseListDto>
 
 [문제 및 테스트 케이스 등록]
 - HTTP method : POST

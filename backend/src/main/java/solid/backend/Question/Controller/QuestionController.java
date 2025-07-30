@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import solid.backend.Question.dto.QuestionCreateDto;
 import solid.backend.Question.dto.QuestionListDto;
 import solid.backend.Question.dto.QuestionUpdDto;
+import solid.backend.Question.dto.TestCaseListDto;
 import solid.backend.Question.service.QuestionService;
 
 import java.util.List;
@@ -37,6 +38,17 @@ public class QuestionController {
     @PostMapping("/list_id")
     public List<QuestionListDto> getQuestionListById(@RequestBody Integer containerId) {
         return questionService.containerInQuestionList(containerId);
+    }
+
+    /**
+     * 설명: 등록된 문제의 공개된 테스트케이스 리스트 반환
+     * @param questionId
+     * @return List<TestCaseListDto>
+     */
+    @ResponseBody
+    @PostMapping("/trueList")
+    public List<TestCaseListDto> trueQuestionList(@RequestBody Integer questionId) {
+        return questionService.trueQuestionList(questionId);
     }
 
     /**
