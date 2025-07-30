@@ -1,7 +1,6 @@
 import AppNav from "../components/APP/Nav/AppNav";
 import { Outlet, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 
 const Home = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);

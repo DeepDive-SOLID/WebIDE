@@ -3,6 +3,10 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    'process.env': {}, // 일부 라이브러리에서 필요
+    global: "window",
+  },
   server: {
     proxy: {
       "/sign": {

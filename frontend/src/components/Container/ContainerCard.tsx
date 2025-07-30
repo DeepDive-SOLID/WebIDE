@@ -1,6 +1,7 @@
 import React from "react";
 import styles from "../../styles/Container.module.scss";
 import { FaCog, FaPlay, FaCrown, FaUser } from "react-icons/fa";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import type {
   ContainerResponseDto,
@@ -36,6 +37,10 @@ const ContainerCard: React.FC<ContainerCardProps> = ({
   showJoinBtn,
   onJoinClick,
 }) => {
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
   return (
     <div className={styles.containerCard}>
       <div className={styles.cardHeader}>
@@ -90,7 +95,12 @@ const ContainerCard: React.FC<ContainerCardProps> = ({
         )}
       </div>
       {showJoinBtn && (
-        <button className={styles.joinBtn} onClick={onJoinClick}>
+        <button className={styles.joinBtn}
+                onClick={() => {
+                  onJoinClick?.();
+                  navigate(`${location.pathname}/${container.containerId}`);
+                }}
+        >
           <FaPlay /> 참가하기
         </button>
       )}
