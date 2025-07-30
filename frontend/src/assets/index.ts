@@ -1,3 +1,5 @@
+export { default as inputBtn } from "./inputBtn.svg";
+
 // 아이콘
 export { default as tab } from "./icons/tab.svg";
 export { default as enter } from "./icons/enter.svg";
