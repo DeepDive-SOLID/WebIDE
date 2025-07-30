@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import styles from "../../styles/Modal.module.scss";
 import profileImg from "../../assets/images/profile_img.png";
-import { createContainer } from "../../api/home";
+import { createContainer } from "../../api/homeApi";
 import type { CreateContainerDto } from "../../types/home";
 
 interface CreateContainerProps {

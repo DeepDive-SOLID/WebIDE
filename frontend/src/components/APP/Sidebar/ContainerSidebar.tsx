@@ -3,7 +3,7 @@ import Box from "../../UI/Box";
 import { LuBox } from "react-icons/lu";
 import styles from "../../../styles/AppSidebar.module.scss";
 import { useNavigate } from "react-router-dom";
-import { getMyContainers, getSharedContainers } from "../../../api/home";
+import { getMyContainers, getSharedContainers } from "../../../api/homeApi";
 
 const ContainerSidebar = () => {
   const navigate = useNavigate();
