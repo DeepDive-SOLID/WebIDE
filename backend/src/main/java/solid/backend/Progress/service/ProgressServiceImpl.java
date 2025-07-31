@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import solid.backend.Directory.service.DirectoryService;
 import solid.backend.Progress.dto.ProgressDto;
+import solid.backend.Progress.dto.ProgressListDto;
+import solid.backend.Progress.repository.ProgressQueryRepository;
 import solid.backend.entity.Directory;
 import solid.backend.entity.Progress;
 import solid.backend.entity.TeamUser;
@@ -13,6 +15,7 @@ import solid.backend.jpaRepository.ProgressRepository;
 import solid.backend.jpaRepository.TeamRepository;
 import solid.backend.jpaRepository.TeamUserRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -21,7 +24,18 @@ public class ProgressServiceImpl implements ProgressService{
     private final ProgressRepository progressRepository;
     private final DirectoryRepository directoryRepository;
     private final TeamUserRepository teamUserRepository;
+    private final ProgressQueryRepository progressQueryRepository;
 
+    /**
+     * 설명: 디렉터리 속 진행률 조회
+     * @param directoryId
+     * @return List<ProgressListDto>
+     */
+    @Override
+    @Transactional
+    public List<ProgressListDto> getProgressList(Integer directoryId) {
+        return progressQueryRepository.getProgressListByDirectoryId(directoryId);
+    }
 
     /**
      * 설명: 문제 진행률 계산
