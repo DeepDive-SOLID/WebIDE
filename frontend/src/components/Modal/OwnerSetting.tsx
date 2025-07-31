@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { getContainerMembers, inviteMember } from "../../api/home";
+import { getContainerMembers, inviteMember } from "../../api/homeApi";
 import type { GroupMemberResponseDto } from "../../types/home";
-import { getContainerDetail } from "../../api/home";
-import { deleteMember } from "../../api/home";
-import { updateContainer } from "../../api/home";
+import { getContainerDetail } from "../../api/homeApi";
+import { deleteMember } from "../../api/homeApi";
+import { updateContainer } from "../../api/homeApi";
 import styles from "../../styles/Modal.module.scss";
 import profileImg from "../../assets/images/profile_img.png";
 

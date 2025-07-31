@@ -46,7 +46,7 @@ const AppNav = ({
         setSidebarType(null);
         break;
       case "mypage":
-        navigate("/mypage");
+        navigate("/info");
         setSidebarOpen(false);
         setSidebarType(null);
         break;

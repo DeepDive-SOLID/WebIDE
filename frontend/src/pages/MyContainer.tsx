@@ -8,7 +8,7 @@ import {
   getMyContainers,
   getContainerMembers,
   leaveContainer,
-} from "../api/home";
+} from "../api/homeApi";
 import type {
   ContainerResponseDto,
   GroupMemberResponseDto,
