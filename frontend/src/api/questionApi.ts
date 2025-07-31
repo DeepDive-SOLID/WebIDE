@@ -3,6 +3,7 @@ import type {
   QuestionCreateDto,
   QuestionListDto,
   QuestionUpdDto,
+  test,
 } from "../types/question";
 
 // 전체 문제 리스트 조회
@@ -15,9 +16,10 @@ export const getQuestionList = async (): Promise<QuestionListDto[]> => {
 export const getQuestionListByContainerId = async (
   containerId: number
 ): Promise<QuestionListDto[]> => {
-  const response = await axios.post("/question/list_id", {
-    containerId: containerId,
-  });
+  const response = await axios.post("/question/list_id", containerId, {   
+    headers: {
+      "Content-Type": "application/json",
+    }})
   return response.data;
 };
 
@@ -43,3 +45,12 @@ export const deleteQuestion = async (questionId: number): Promise<string> => {
   });
   return response.data;
 };
+
+export const TestCaseQuestion = async (questionId: number): Promise<test[]> => {
+  const response = await axios.post("/question/trueList", questionId ,{
+    headers: {
+      "Content-Type": "application/json",
+    }
+  });
+  return response.data;
+}

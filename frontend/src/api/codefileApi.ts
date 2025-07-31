@@ -17,7 +17,7 @@ export const getCodeFileContent = async (
   codeFileId: number
 ): Promise<string> => {
   const response = await axios.post("/CodeFile/content", codeFileId, {
-    headers: { "Content-Type": "text/plain" },
+    headers: { "Content-Type": "application/json" },
   });
   return response.data;
 };
