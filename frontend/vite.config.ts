@@ -16,13 +16,17 @@ export default defineConfig({
         rewrite: (path) => path,
       },
       "/question": {
-        target: "http://localhost:8080",
+        target: "http://localhost:8080/",
         changeOrigin: true,
       },
       "/progress": {
         target: "http://localhost:8080",
         changeOrigin: true,
       },
+      "/docker": {
+        target: "http://localhost:8080",
+        changeOrigin: true
+      }
     },
   },
 });

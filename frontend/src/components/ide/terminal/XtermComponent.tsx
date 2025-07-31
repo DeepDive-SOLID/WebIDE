@@ -6,7 +6,7 @@ import { setRunInput, setRunOutput } from "../../../stores/terminalSlice";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../../stores";
 import type { XtermProps } from "../../../types/ide";
-import { CodeCustom } from "../../../api/Ide";
+import { DockerCustom } from "../../../api/dockerApi";
 
 const XtermComponent = ({ isInputDisabled, setIsInputDisabled, codeId, height, terminalToggle }: XtermProps) => {
   const terminalRef = useRef<HTMLDivElement>(null);
@@ -17,6 +17,7 @@ const XtermComponent = ({ isInputDisabled, setIsInputDisabled, codeId, height, t
   const runInput = useSelector((state: RootState) => state.terminal.runInput);
   const submitOutput = useSelector((state: RootState) => state.terminal.submitOutput);
   const restart = useSelector((state: RootState) => state.terminal.restart);
+  const questionId = useSelector((state: RootState) => state.problems.questionId);
   const isInputDisabledRef = useRef<boolean>(isInputDisabled);
   const inputBuffer = useRef<string>(""); // 입력된 문자열을 저장할 버퍼
 
@@ -27,11 +28,11 @@ const XtermComponent = ({ isInputDisabled, setIsInputDisabled, codeId, height, t
   const run = async (codeToProcess: string) => {
     setIsInputDisabled(true); // API 호출 시작 시 입력 비활성화
     try {
-      const data = await CodeCustom(codeId, 1, codeToProcess);
+      const data = await DockerCustom({ codeFileId: codeId, questionId: questionId, input: codeToProcess });
 
       if (!data) {
         // HTTP 오류 응답 처리
-        throw new Error(`Backend error: ${data.status}`);
+        throw new Error(`Backend error: ${data}`);
       }
       console.log(data);
 

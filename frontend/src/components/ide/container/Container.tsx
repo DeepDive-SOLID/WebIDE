@@ -8,11 +8,13 @@ import { setRestart, setRunInput, setRunOutput, setSubmitOutput } from "../../..
 import type { codeFileList, ContainerProp, testApi } from "../../../types/ide";
 import type { RootState } from "../../../stores";
 import TestResult from "../terminal/TestResult";
-import { CodeContent, CodeCreate, CodeRun, CodeTest, CodeUpdate, ContainerExistCode } from "../../../api/Ide";
+import { createCodeFile, getCodeFileContent, getCodeFileList, updateCodeFile } from "../../../api/codefileApi";
+import type { CodeFileListDto } from "../../../types/codefile";
+import { DockerRun, DockerTest } from "../../../api/dockerApi";
 
 const Container = ({ activeMember }: ContainerProp) => {
-  const [code, setCode] = useState<string | undefined>("");
-  const [codeFile, setCodeFile] = useState<codeFileList[]>([]);
+  const [code, setCode] = useState<string>("");
+  const [codeFile, setCodeFile] = useState<CodeFileListDto[]>([]);
   const [codeId, setCodeId] = useState<number>();
   const [toggle, setToggle] = useState<boolean>(false);
   const [terminalToggle, setTerminalToggle] = useState<string>("run");
@@ -21,35 +23,40 @@ const Container = ({ activeMember }: ContainerProp) => {
   const [testCase, setTestCase] = useState<testApi>({});
   const dispatch = useDispatch();
   const output = useSelector((state: RootState) => state.terminal.runOutput);
+  const directoryId = useSelector((state: RootState) => state.problems.directoryId);
+  const questionId = useSelector((state: RootState) => state.problems.questionId);
 
-  // 임시 더미 데이터
-  const directoryId = 11;
   useEffect(() => {
-    // 디렉토리 id를 받는다는 가정
     const fetchCodeFile = async () => {
       try {
-        // 디렉토리에 존재하는 제출 코드 가져오는 api
-        const data = await ContainerExistCode(directoryId);
-        setCodeFile(data);
+        const data = await getCodeFileList();
+        const filterRes = data.filter((items: CodeFileListDto) => items?.directoryId === Number(directoryId));
+        setCodeFile(filterRes); // codeFile 상태 업데이트
       } catch (e) {
-        console.log(e);
+        console.error("Error fetching code file list:", e);
       }
     };
-    fetchCodeFile();
-  }, []);
+
+    // directoryId가 유효할 때만 API 호출
+    if (directoryId !== undefined && directoryId !== null) {
+      fetchCodeFile();
+    } else {
+      // directoryId가 없을 경우 codeFile을 비워서 memberCode가 기본값을 설정하도록 함
+      setCodeFile([]);
+    }
+    setTestCase({});
+  }, [directoryId]); // directoryId가 변경될 때만 재실행
 
   useEffect(() => {
     // codeFile이 비어있지 않을 때만 실행하도록 조건 추가
-    if (codeFile.length >= 0) {
-      memberCode();
-    }
+    memberCode();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLanguage, activeMember]); // codeFile을 의존성 배열에 추가
+  }, [selectedLanguage, activeMember, directoryId, codeFile]); // codeFile을 의존성 배열에 추가
 
   // 코드 리스트중 코드id 를 가지고 코드내용을 가져오는 api
   const fileData = async (codeFileId: number) => {
     try {
-      const data = await CodeContent(codeFileId);
+      const data = await getCodeFileContent(codeFileId);
       setCode(data);
     } catch (e) {
       console.log(e);
@@ -57,7 +64,7 @@ const Container = ({ activeMember }: ContainerProp) => {
   };
 
   // 코드 초기화 함수
-  const memberCode = () => {
+  const memberCode = async () => {
     const languageMap: { [key: string]: string } = {
       js: "javascript",
       java: "java",
@@ -73,7 +80,7 @@ const Container = ({ activeMember }: ContainerProp) => {
       return fileName === activeMember && fullLanguageName === selectedLanguage;
     });
     if (memberCode) {
-      fileData(memberCode.codeFileId);
+      await fileData(memberCode.codeFileId);
       setCodeId(memberCode.codeFileId);
     } else {
       // 없으면 기본 코드 설정
@@ -108,12 +115,15 @@ const Container = ({ activeMember }: ContainerProp) => {
     try {
       // 로그인한 유저 id 로 파일 명 바꾸기
       const select = selectedLanguage === "javascript" ? `${activeMember}.js` : selectedLanguage === "java" ? `${activeMember}.java` : `${activeMember}.py`;
-
       const existCode = codeFile.find((itmes) => itmes.codeFileName === select);
       if (!existCode) {
-        await CodeCreate(directoryId, select, code);
-        const updatedList = await ContainerExistCode(directoryId);
-        setCodeFile(updatedList);
+        await createCodeFile({ directoryId: directoryId, codeFileName: select, codeContent: code });
+        console.log("파일 생성");
+        const data = await getCodeFileList();
+
+        const updatedList = await getCodeFileList();
+        const filterRes = data.filter((items: CodeFileListDto) => items?.directoryId === Number(directoryId));
+        setCodeFile(filterRes);
 
         const created = updatedList.find((item: codeFileList) => item.codeFileName === select);
         if (created) {
@@ -121,7 +131,8 @@ const Container = ({ activeMember }: ContainerProp) => {
           return created.codeFileId;
         }
       } else {
-        await CodeUpdate(existCode.codeFileId, code);
+        await updateCodeFile({ codeFileId: existCode.codeFileId, codeContent: code });
+        console.log("파일 업데이트");
         setCodeId(existCode.codeFileId);
         return existCode.codeFileId;
       }
@@ -133,9 +144,10 @@ const Container = ({ activeMember }: ContainerProp) => {
   // 테스트 api
   const testAPI = async () => {
     const id = await saveAPI();
+    console.log(id);
     if (!id) return;
     try {
-      const result = await CodeTest(activeMember, id, 1);
+      const result = await DockerTest({ memberId: activeMember, codeFileId: id, questionId: questionId });
       setTestCase(result);
     } catch (e) {
       console.error(e);
@@ -145,7 +157,7 @@ const Container = ({ activeMember }: ContainerProp) => {
     const id = await saveAPI();
     if (!id) return;
     try {
-      const result = await CodeRun(activeMember, id, 1);
+      const result = await DockerRun({ memberId: activeMember, codeFileId: id, questionId: questionId });
       dispatch(setSubmitOutput(result.isCorrect ? "성공" : "실패"));
     } catch (e) {
       console.error(e);

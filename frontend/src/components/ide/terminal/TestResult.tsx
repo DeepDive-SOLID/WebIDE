@@ -11,6 +11,7 @@ const TestResult = ({ isCorrect, testcaseResults }: testApi) => {
     if (count === testcaseResults?.length) {
       return;
     } else {
+      setCount(0);
       testcaseResults?.map((item) => (item.pass ? setCount((prev) => prev + 1) : ""));
     }
   }, [count, testcaseResults]);

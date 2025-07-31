@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import Question from "../../components/ide/question/Question";
 import Header from "../../components/ide/header/Header";
 import Container from "../../components/ide/container/Container";
-import { getQuestionListByContainerId } from "../../api/questionApi";
-import type { QuestionListDto } from "../../types/question";
 
 interface IdeProps {
   containerId: number;
@@ -11,8 +9,7 @@ interface IdeProps {
 const Ide = ({ containerId }: IdeProps) => {
   // 로그인한 유저의 id 가져오기
   const [loginId, setLoginId] = useState<string | null>("");
-  const [activeButtonId, setActiveButtonId] = useState<string | null>("");
-  const [question, setQuestion] = useState<QuestionListDto[]>();
+  const [activeButtonId, setActiveButtonId] = useState<string>("");
 
   // 클릭된 버튼의 ID를 인자로 받습니다.
   const handleOnClick = (id: string) => {
@@ -25,17 +22,6 @@ const Ide = ({ containerId }: IdeProps) => {
     const id = "test";
     setLoginId(id);
     setActiveButtonId(id);
-
-    const fetchQuestionData = async () => {
-      try {
-        const res = await getQuestionListByContainerId(containerId);
-        console.log(res);
-        setQuestion(res);
-      } catch (e) {
-        console.error("에러: " + e);
-      }
-    };
-    fetchQuestionData();
   }, []);
 
   return (
@@ -54,7 +40,7 @@ const Ide = ({ containerId }: IdeProps) => {
           boxShadow: "5px 5px #f5f5f5",
         }}
       >
-        <Question question={question} />
+        <Question containerId={containerId} />
         <Container activeMember={activeButtonId} />
       </div>
     </div>

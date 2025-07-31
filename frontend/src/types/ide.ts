@@ -18,26 +18,14 @@ export interface CodeEditorProps {
 }
 
 
-export interface ContainerMemberCode {
-    memberId: string;
-    questionId: number;
-    code: string ;
-}
-
 export interface ContainerProp {
-    activeMember: string | null;
-}
-
-export interface ContainerSubmit {
-    directoryId: number,
-    codeFileName: string,
-    codeContent: string | undefined
+    activeMember: string;
 }
 
 export interface XtermProps {
     isInputDisabled: boolean,
     setIsInputDisabled: (check: boolean) => void
-    codeId: number | undefined,
+    codeId: number,
     height: number,
     terminalToggle: string;
 }

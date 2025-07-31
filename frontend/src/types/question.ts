@@ -36,6 +36,11 @@ export interface QuestionUpdDto {
   testcases: TestCaseUpdDto[];
 }
 
+export interface test {
+  caseId: number;
+  caseEx: string;
+  caseAnswer: string;
+}
 export interface TestCaseDto {
   caseEx: string;
   caseAnswer: string;
