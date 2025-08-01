@@ -79,7 +79,7 @@
   display: flex;
   align-items: center;
   gap: 0;
-  padding: 0;
+  padding-top: 5px;
   border-top: 1px solid #eee;
 
   input {
@@ -93,11 +93,12 @@
   }
 
   .inputBtn {
-    width: 50px;
-    height: 50px;
+    width: 30px;
+    height: 30px;
     cursor: pointer;
     padding: 0;
-    margin: 0;
+    margin-left: 3px;
+    color: #e6e6e6;
   }
 }
 
@@ -152,5 +153,73 @@
 
   .user {
     text-align: left;
+  }
+}
+
+/* 다크모드 스타일 */
+:global(body.dark-mode) {
+  .chatWrapper {
+    background-color: #1e1e1e;
+    border-left: 1px solid #333;
+  }
+
+  .toggleButton {
+    background-color: #005fb3;
+  }
+
+  .systemMessage {
+    color: #aaaaaa;
+  }
+
+  .inputWrapper {
+    border-top: 1px solid #333;
+
+    input {
+      background-color: #2c2c2c;
+      color: #ffffff;
+      border: 1px solid #444;
+
+      &::placeholder {
+        color: #888;
+      }
+    }
+
+    .inputBtn {
+      filter: brightness(0.85);
+      color: #4ea1ff;
+    }
+  }
+
+  .chatBox {
+    .user {
+      color: #4ea1ff;
+    }
+
+    .message {
+      background-color: #2c2c2c;
+      color: #eaeaea;
+    }
+
+    .userMessage {
+      .message {
+        background-color: #006ddc;
+        color: #ffffff;
+      }
+
+      .user {
+        color: #4ea1ff;
+      }
+    }
+
+    .otherMessage {
+      .message {
+        background-color: #333333;
+        color: #eaeaea;
+      }
+
+      .user {
+        color: #bbbbbb;
+      }
+    }
   }
 }
