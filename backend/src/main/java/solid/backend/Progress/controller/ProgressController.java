@@ -53,7 +53,7 @@ public class ProgressController {
      */
     @ResponseBody
     @GetMapping("/container/{containerId}")
-    public List<ProgressListDto> getContainerProgress(@PathVariable Integer containerId) {
+    public List<ProgressListDto> getContainerProgress(@PathVariable("containerId") Integer containerId) {
         return progressService.getAllMembersProgressInContainer(containerId);
     }
 }
