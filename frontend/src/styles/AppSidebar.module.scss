@@ -1,0 +1,200 @@
+// ===== 사이드바 전체 레이아웃 =====
+.appSidebar {
+  position: fixed;
+  left: 80px;
+  top: 0;
+  width: 250px;
+  height: 100vh;
+  background-color: #fdfdfd;
+  border-right: 1px solid #e0e0e0;
+  padding: 1.5rem 1rem;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 1000;
+}
+
+// ===== 위쪽 섹션 =====
+.topSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.heading {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #101010;
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.bottomSectionOverride {
+  margin-bottom: 0;
+}
+
+// ===== 트리 뷰 박스 =====
+.boxArea {
+  flex: 1;
+  min-height: 95%;
+}
+
+.boxList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+// ===== 트리 아이템 =====
+.treeNode {
+  margin-left: 1rem;
+}
+
+.treeItem {
+  display: flex;
+  align-items: center;
+  padding: 0.2rem 0.4rem;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background-color: #e8e8e8;
+  }
+}
+
+.treeItemActive {
+  background-color: #f0f8ff;
+  border-radius: 4px;
+
+  :global(body.dark-mode) & {
+    background-color: #2a2a2a;
+  }
+}
+
+.treeLabel {
+  display: flex;
+  align-items: center;
+}
+
+.treeArrow {
+  margin-right: 4px;
+}
+
+.treeIcon {
+  margin-right: 4px;
+}
+
+.treeTitle {
+  font-size: 0.95rem;
+}
+
+// ===== 하단 영역 (팀 현황 & 컨테이너) =====
+.bottomSection {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.teamStatus h3 {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.currentContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e0e0e0;
+  background-color: #fdfdfd;
+}
+
+.containerIcon {
+  font-size: 1.5rem;
+  color: #2d2d2d;
+}
+
+.containerTexts {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.label {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0.25rem;
+}
+
+.name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0085ff;
+  margin: 0.25rem;
+}
+
+// ===== 박스 스타일 =====
+.boxPrimary {
+  background-color: #0085ff;
+  color: #fff;
+
+  &:hover {
+    background-color: #0085ff;
+  }
+
+  :global(body.dark-mode) & {
+    background-color: #005bb5;
+    color: #fff;
+  }
+}
+
+// ===== 다크모드 전역 적용 =====
+:global(body.dark-mode) {
+  .appSidebar {
+    background-color: #1e1e1e;
+    border-right: 1px solid #333;
+    box-shadow: -4px 0 12px rgba(255, 255, 255, 0.05);
+  }
+
+  .heading {
+    color: #f0f0f0;
+  }
+
+  .currentContainer {
+    background-color: #2a2a2a;
+    border-color: #444;
+  }
+
+  .label {
+    color: #ccc;
+  }
+
+  .name {
+    color: #4da6ff;
+  }
+
+  .containerIcon {
+    color: #ccc;
+  }
+
+  .treeItem:hover {
+    background-color: #2a2a2a;
+  }
+
+  .treeTitle {
+    color: #f0f0f0;
+  }
+
+  .treeIcon,
+  .treeArrow {
+    color: #aaa;
+  }
+}

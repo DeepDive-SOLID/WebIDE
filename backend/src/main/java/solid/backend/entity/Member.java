@@ -1,15 +1,22 @@
 package solid.backend.entity;
 
+import jakarta.persistence.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.*;
 import org.hibernate.annotations.Comment;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "member")
 public class Member {
@@ -42,4 +49,21 @@ public class Member {
     @Column(name = "member_img", length = 500)
     @Comment("회원 이미지")
     private String memberImg;
+
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<TeamUser> teamUsers = new ArrayList<>();
+
+    @Column(name = "member_is_online", nullable = false)
+    @Comment("회원 접속 여부")
+    @Builder.Default
+    private Boolean memberIsOnline = false;
+
+    /**
+     * 회원 접속 여부 확인
+     * @return 접속 중이면 true, 아니면 false
+     */
+    public boolean isMemberIsOnline() {
+        return memberIsOnline != null && memberIsOnline;
+    }
 }

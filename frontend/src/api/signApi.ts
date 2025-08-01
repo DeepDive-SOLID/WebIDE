@@ -83,4 +83,9 @@ export const signApi = {
     const res = await signAxios.post("/token/refresh");
     return res.data as string; // 새로운 access token 반환
   },
+
+  // 로그아웃
+  logout: async (): Promise<void> => {
+    await signAxios.post("/sign/logout");
+  },
 };
