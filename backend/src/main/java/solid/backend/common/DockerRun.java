@@ -29,17 +29,17 @@ public class DockerRun {
             case "py" -> new String[]{
                     "docker", "run", "--memory=" + memoryLimit, "--rm", "-v", dir + ":/app", "-i",
                     "python:3.11", "sh", "-c",
-                    "echo \"" + input + "\" | python /app/" + fileName
+                    "echo " + input + " | python /app/" + fileName
             };
             case "java" -> new String[]{
                     "docker", "run", "--memory=" + memoryLimit, "--rm", "-v", dir + ":/app", "-i",
                     "openjdk:21", "sh", "-c",
-                    "cd /app && javac " + fileName + " && echo \"" + input + "\" | java " + fileName.replace(".java", "")
+                    "cd /app && javac " + fileName + " && echo " + input + " | java " + fileName.replace(".java", "")
             };
             case "js" -> new String[]{
                     "docker", "run", "--memory=" + memoryLimit, "--rm", "-v", dir + ":/app", "-i",
                     "node:20", "sh", "-c",
-                    "echo \"" + input + "\" | node /app/" + fileName
+                    "echo " + input + " | node /app/" + fileName
             };
             default -> throw new UnsupportedOperationException("지원하지 않는 언어입니다: " + extension);
         };
