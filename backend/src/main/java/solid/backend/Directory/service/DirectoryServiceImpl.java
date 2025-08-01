@@ -38,8 +38,8 @@ public class DirectoryServiceImpl implements DirectoryService {
         return directories.stream()
                 .map(d -> new DirectoryDto(
                         d.getDirectoryId(),
-                        d.getTeam().getTeamId(),
                         d.getContainer().getContainerId(),
+                        d.getTeam().getTeamId(),
                         d.getDirectoryName(),
                         d.getDirectoryRoot()
                 ))
