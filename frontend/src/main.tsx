@@ -6,6 +6,7 @@ import { AuthProvider } from "./contexts/AuthProvider";
 import { store } from "./stores";
 import App from "./App";
 import Home from "./pages/Home";
+import WebIde from "./pages/WebIde";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import FindId from "./pages/FindId";
@@ -61,6 +62,10 @@ const router = createBrowserRouter([
       {
         path: "Info",
         element: <Info />,
+      },
+      {
+        path: "/container/:containerId",
+        element: <WebIde />,
       },
     ],
   },

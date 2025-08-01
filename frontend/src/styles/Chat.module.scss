@@ -1,16 +1,18 @@
 // Chat Toggle
 .chatContainer {
-  position: fixed;
+  // position: fixed;
   top: 0;
   right: 0;
   height: 100vh;
   z-index: 1000;
   display: flex;
+  flex-shrink: 0;
   align-items: flex-start;
 }
 
 .toggleButton {
-  position: fixed;
+  position: absolute;
+  flex-shrink: 0;
   top: 300px;
   right: 280px;
   width: 40px;
@@ -31,7 +33,7 @@
 }
 
 .chatWrapper {
-  position: fixed;
+  // position: fixed;
   top: 0;
   right: 0;
   width: 280px;
@@ -49,10 +51,14 @@
 
 .chatOpen {
   transform: translateX(0);
+  transition: width 0.3s ease-in-out;
+  width: 280px;
 }
 
 .chatClosed {
   transform: translateX(100%);
+  transition: width 0.3s ease-in-out;
+  width: 0;
 }
 
 // Chat

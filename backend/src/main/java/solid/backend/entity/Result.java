@@ -25,7 +25,7 @@ public class Result {
 
     @Column(name = "result_memory", nullable = false)
     @Comment("사용 메모리양")
-    private Integer resultMemory;
+    private Float resultMemory;
 
     @Column(name = "result_lang", length = 20, nullable = false)
     @Comment("사용 언어")

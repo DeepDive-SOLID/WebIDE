@@ -10,7 +10,7 @@ import jakarta.persistence.OptimisticLockException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import solid.backend.container.dto.*;
 import solid.backend.entity.*;
-import solid.backend.jpaRepository.ContainerJpaRepository;
+import solid.backend.jpaRepository.ContainerRepository;
 import solid.backend.jpaRepository.MemberRepository;
 import solid.backend.jpaRepository.AuthRepository;
 import solid.backend.jpaRepository.TeamUserRepository;
@@ -32,7 +32,7 @@ import solid.backend.container.dto.ContainerMemberDto;
 public class ContainerServiceImpl implements ContainerService {
     
     /** 컨테이너 데이터 접근 레포지토리 */
-    private final ContainerJpaRepository containerRepository;
+    private final ContainerRepository containerRepository;
     /** 컨테이너 QueryDSL 레포지토리 */
     private final ContainerQueryRepository containerQueryRepository;
     /** 멤버 데이터 접근 레포지토리 */
@@ -896,6 +896,34 @@ public class ContainerServiceImpl implements ContainerService {
         return container.getTeam().getTeamUsers().stream()
                 .anyMatch(tu -> tu.getMember().equals(member) 
                         && AUTHORITY_ROOT.equals(tu.getTeamAuth().getAuthId()));
+    }
+    
+    /**
+     * 컨테이너의 팀 ID 조회
+     * @param containerId 컨테이너 ID
+     * @param memberId 조회하는 사용자 ID
+     * @return 팀 ID
+     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
+     * @throws UnauthorizedContainerAccessException 접근 권한이 없는 경우
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Integer getContainerTeamId(Integer containerId, String memberId) {
+        // 컨테이너 조회
+        Container container = getContainerWithTeamOrThrow(containerId);
+        
+        // 공개 컨테이너이거나 멤버인 경우에만 접근 가능
+        if (!container.getContainerAuth()) {
+            // 비공개 컨테이너인 경우 멤버 확인
+            validateMemberId(memberId, ERROR_PRIVATE_CONTAINER_ACCESS_DENIED);
+            
+            if (!hasAccess(container, memberId)) {
+                throw new UnauthorizedContainerAccessException(ERROR_NO_ACCESS_PERMISSION);
+            }
+        }
+        
+        // 팀 ID 반환
+        return container.getTeam().getTeamId();
     }
     
 }

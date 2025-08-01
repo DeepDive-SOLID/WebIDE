@@ -1,7 +1,6 @@
 package solid.backend.chat.service;
 
 import lombok.AllArgsConstructor;
-import org.apache.catalina.User;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,10 +11,7 @@ import solid.backend.entity.Chat;
 import solid.backend.entity.Member;
 import solid.backend.entity.Team;
 import solid.backend.entity.TeamUser;
-import solid.backend.jpaRepository.ChatRepository;
-import solid.backend.jpaRepository.MemberRepository;
-import solid.backend.jpaRepository.TeamRepository;
-import solid.backend.jpaRepository.TeamUserRepository;
+import solid.backend.jpaRepository.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -45,7 +41,7 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public void sendChatMessage(String memberId, Integer chatRoomId, String content) {
         Member member = memberRepository.findById(memberId).orElseThrow();
-        Team team = teamRepository.findById(chatRoomId).orElseThrow();
+        Team team = teamRepository.findById(chatQueryRepository.findTeamId(chatRoomId)).orElseThrow();
         Chat chatMessage = Chat.builder()
                 .chatText(content)
                 .chatType("CHAT")
@@ -55,7 +51,7 @@ public class ChatServiceImpl implements ChatService {
                 .build();
 
         // 메시지 데이터 저장 및 전송
-        publish(chatMessage);
+        publish(chatMessage, chatRoomId);
     }
 
     /**
@@ -65,7 +61,7 @@ public class ChatServiceImpl implements ChatService {
      */
     @Override
     public List<ChatListDto> getChatList(Integer chatRoomId) {
-        return chatQueryRepository.getChatList(chatRoomId);
+        return chatQueryRepository.getChatList(chatQueryRepository.findTeamId(chatRoomId));
     }
 
     /**
@@ -77,22 +73,22 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public void joinChatRoom(String memberId, Integer chatRoomId) {
         Member member = memberRepository.findById(memberId).orElseThrow();
-        Team team = teamRepository.findById(chatRoomId).orElseThrow();
+        Team team = teamRepository.findById(chatQueryRepository.findTeamId(chatRoomId)).orElseThrow();
 
         // 채팅에 참여중인 사용자인지 확인
-        if (chatQueryRepository.isOnlineCheck(memberId, chatRoomId)) {
+        if (chatQueryRepository.isOnlineCheck(memberId, team.getTeamId())) {
             return;
         }
 
         // 채팅에 참여중인 사용자 정보 조회
-        TeamUser teamUser = chatQueryRepository.findByTeamUser(memberId, chatRoomId);
+        TeamUser teamUser = chatQueryRepository.findByTeamUser(memberId, team.getTeamId());
 
         // 채팅에 참여중인 사용자 상태 수정
         teamUser.setTeamUserIsOnline(true);
         teamUserRepository.save(teamUser);
 
         // 채팅방에 참여 했다는 메시지 전송
-        sendMessage(member, team, HAS_JOINED);
+        sendMessage(member, team, HAS_JOINED, chatRoomId);
     }
 
     /**
@@ -107,13 +103,15 @@ public class ChatServiceImpl implements ChatService {
         // 채팅에 참여중인 사용자 리스트 찾기
         List<TeamUser> teamUsers = chatQueryRepository.findByUser(userId);
         for (TeamUser teamUser : teamUsers) {
-
             // 채팅에 참여중인 사용자 상태 수정
             teamUser.setTeamUserIsOnline(false);
             teamUserRepository.save(teamUser);
 
+            // 채팅에 참여중인 컨테이너 ID 조회
+            Integer chatRoomId = chatQueryRepository.findByChatRoomId(teamUser.getTeam().getTeamId());
+
             // 채팅방에 퇴장 했다는 메시지 전송
-            sendMessage(member, teamUser.getTeam(), HAS_LEFT);
+            sendMessage(member, teamUser.getTeam(), HAS_LEFT, chatRoomId);
         }
 
         // 회원 상태 수정
@@ -130,17 +128,17 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public void unsubscribe(String memberId, Integer chatRoomId) {
         Member member = memberRepository.findById(memberId).orElseThrow();
-        Team team = teamRepository.findById(chatRoomId).orElseThrow();
+        Team team = teamRepository.findById(chatQueryRepository.findTeamId(chatRoomId)).orElseThrow();
 
         // 채팅에 참여중인 사용자 정보 조회
-        TeamUser teamUser = chatQueryRepository.findByTeamUser(memberId, chatRoomId);
+        TeamUser teamUser = chatQueryRepository.findByTeamUser(memberId, team.getTeamId());
 
         // 채팅에 참여중인 사용자 상태 수정
         teamUser.setTeamUserIsOnline(false);
         teamUserRepository.save(teamUser);
 
         // 채팅방에 퇴장 했다는 메시지 전송
-        sendMessage(member, team, HAS_LEFT);
+        sendMessage(member, team, HAS_LEFT, chatRoomId);
     }
 
     /**
@@ -149,7 +147,7 @@ public class ChatServiceImpl implements ChatService {
      * @param team 그룹 ID
      */
     @Transactional
-    public void sendMessage(Member member, Team team, String str) {
+    public void sendMessage(Member member, Team team, String str, Integer chatRoomId) {
         Chat leftMessage = Chat.builder()
                 .chatText(member.getMemberName() + str)
                 .chatType("SYSTEM")
@@ -159,7 +157,7 @@ public class ChatServiceImpl implements ChatService {
                 .build();
 
         // 메시지 데이터 저장 및 전송
-        publish(leftMessage);
+        publish(leftMessage, chatRoomId);
     }
 
     /**
@@ -167,8 +165,8 @@ public class ChatServiceImpl implements ChatService {
      * @param chat 메시지
      */
     @Transactional
-    public void publish(Chat chat) {
+    public void publish(Chat chat, Integer chatRoomId) {
         chatRepository.save(chat);
-        simpMessagingTemplate.convertAndSend(CHAT_DESTINATION_PREFIX + chat.getTeam().getTeamId(), new ChatDto(chat));
+        simpMessagingTemplate.convertAndSend(CHAT_DESTINATION_PREFIX + chatRoomId, new ChatDto(chat));
     }
 }
