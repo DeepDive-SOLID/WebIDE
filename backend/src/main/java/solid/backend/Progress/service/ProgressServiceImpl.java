@@ -15,8 +15,8 @@ import solid.backend.jpaRepository.ProgressRepository;
 import solid.backend.jpaRepository.TeamRepository;
 import solid.backend.jpaRepository.TeamUserRepository;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -68,4 +68,59 @@ public class ProgressServiceImpl implements ProgressService{
             progressRepository.save(progress);
         }
     }
+
+    /**
+     * 설명: 컨테이너 내 모든 멤버의 진행률 조회
+     * @param containerId
+     * @return List<ProgressListDto>
+     */
+    @Override
+    @Transactional
+    public List<ProgressListDto> getAllMembersProgressInContainer(Integer containerId) {
+        // 컨테이너에 속한 모든 디렉터리 조회
+        List<Directory> directories = directoryRepository.findAllByContainer_ContainerId(containerId);
+        
+        // 해당 컨테이너의 팀 ID 가져오기 (디렉터리가 있다면 첫 번째 디렉터리의 팀 ID 사용)
+        if (directories.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        Integer teamId = directories.get(0).getTeam().getTeamId();
+        
+        // 팀에 속한 모든 팀 유저 조회
+        List<TeamUser> teamUsers = teamUserRepository.findByTeam_TeamId(teamId);
+        
+        List<ProgressListDto> result = new ArrayList<>();
+        
+        for (TeamUser teamUser : teamUsers) {
+            int totalProgress = 0;
+            int problemDirectoryCount = 0;
+            
+            // 각 디렉터리에 대한 진행률 합산 (root 디렉터리 제외)
+            for (Directory directory : directories) {
+                // root 디렉터리는 제외 (이름이 "root"이고 directoryRoot가 "/" 인 경우)
+                if (!("root".equals(directory.getDirectoryName()) && "/".equals(directory.getDirectoryRoot()))) {
+                    problemDirectoryCount++;
+                    Optional<Progress> progress = progressRepository.findByDirectoryAndTeamUser(directory, teamUser);
+                    if (progress.isPresent()) {
+                        totalProgress += progress.get().getProgressComplete();
+                    }
+                }
+            }
+            
+            // 평균 진행률 계산 (문제 디렉터리당 평균)
+            int averageProgress = problemDirectoryCount > 0 ? totalProgress / problemDirectoryCount : 0;
+            
+            ProgressListDto dto = new ProgressListDto();
+            dto.setMemberId(teamUser.getMember().getMemberId());
+            dto.setMemberName(teamUser.getMember().getMemberName());
+            dto.setDirectoryCount(problemDirectoryCount);
+            dto.setAverageProgress(averageProgress);
+            
+            result.add(dto);
+        }
+        
+        return result;
+    }
+
 }

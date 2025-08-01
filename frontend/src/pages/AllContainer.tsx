@@ -41,6 +41,7 @@ const AllContainer: React.FC = () => {
     setError(null);
     try {
       const data = await getContainers();
+      console.log(data);
       setContainers(data);
     } catch {
       setError("컨테이너 목록을 불러오지 못했습니다.");

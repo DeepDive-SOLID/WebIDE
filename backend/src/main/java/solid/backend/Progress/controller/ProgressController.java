@@ -6,8 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import solid.backend.Progress.dto.ProgressDto;
 import solid.backend.Progress.dto.ProgressListDto;
 import solid.backend.Progress.service.ProgressService;
@@ -16,7 +15,7 @@ import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/progress")
+@RequestMapping("/api/progress")
 public class ProgressController {
     private final ProgressService progressService;
 
@@ -45,5 +44,16 @@ public class ProgressController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("FAIL");
         }
+    }
+
+    /**
+     * 설명: 컨테이너 내 모든 멤버의 진행률 조회
+     * @param containerId
+     * @return List<ProgressListDto>
+     */
+    @ResponseBody
+    @GetMapping("/container/{containerId}")
+    public List<ProgressListDto> getContainerProgress(@PathVariable("containerId") Integer containerId) {
+        return progressService.getAllMembersProgressInContainer(containerId);
     }
 }

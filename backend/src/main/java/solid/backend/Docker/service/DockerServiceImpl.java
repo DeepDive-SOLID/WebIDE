@@ -20,6 +20,8 @@ public class DockerServiceImpl implements DockerService {
     private final QuestionRepository questionRepository;
     private final MemberRepository memberRepository;
     private final DockerRun dockerRun;
+    private final ProgressRepository progressRepository;
+    private final TeamUserRepository teamUserRepository;
 
     /**
      * 설명: 코드 파일 도커 컨테이너에서 실행
@@ -95,6 +97,36 @@ public class DockerServiceImpl implements DockerService {
         result.setTestCase(testcases.getFirst());
 
         resultRepository.save(result);
+
+        // Progress 업데이트
+        if (allPass) {
+            // 현재 디렉토리 찾기
+            Directory directory = codeFile.getDirectory();
+            if (directory != null) {
+                // TeamUser 찾기
+                TeamUser teamUser = teamUserRepository.findByMember_MemberIdAndTeam_TeamId(
+                    memberId, 
+                    directory.getTeam().getTeamId()
+                ).orElse(null);
+                
+                if (teamUser != null) {
+                    // Progress 찾기 또는 생성
+                    Progress progressEntity = progressRepository.findByDirectoryAndTeamUser(
+                        directory, teamUser
+                    ).orElseGet(() -> {
+                        Progress newProgress = new Progress();
+                        newProgress.setDirectory(directory);
+                        newProgress.setTeamUser(teamUser);
+                        newProgress.setProgressComplete(0);
+                        return newProgress;
+                    });
+                    
+                    // 진행률 업데이트 (100으로 설정)
+                    progressEntity.setProgressComplete(100);
+                    progressRepository.save(progressEntity);
+                }
+            }
+        }
 
         return new ExecutionResultDto(
                 language,

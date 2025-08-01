@@ -17,4 +17,11 @@ public interface ProgressService {
      * @param progressDto
      */
     void updateProgress(ProgressDto progressDto);
+
+    /**
+     * 설명: 컨테이너 내 모든 멤버의 진행률 조회
+     * @param containerId
+     * @return List<ProgressListDto>
+     */
+    List<ProgressListDto> getAllMembersProgressInContainer(Integer containerId);
 }

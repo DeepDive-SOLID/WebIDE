@@ -4,12 +4,14 @@ import { FaUsers } from "react-icons/fa";
 import styles from "../../../styles/AppSidebar.module.scss";
 import { useState, useEffect } from "react";
 import { getDirectoryList, createDirectory, renameDirectory, deleteDirectory } from "../../../api/directoryApi";
+import { getContainerProgress } from "../../../api/progressApi";
+import { getContainerDetail } from "../../../api/homeApi";
+import type { ProgressData } from "../../../types/progress";
 import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
 import { CiFileOn } from "react-icons/ci";
 import AddFileModal from "../AddFileModal";
 import { useDispatch, useSelector } from "react-redux";
 import { setDirectoryId, setRoot, setTeamId, setTtile } from "../../../stores/problemSlice";
-import { getContainerDetail } from "../../../api/homeApi";
 import type { RootState } from "../../../stores";
 import { deleteQuestion } from "../../../api/questionApi";
 import { getCurrentMemberId } from "../../../utils/auth";
@@ -46,6 +48,9 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
 
   const normalizePath = (path: string) => path.replace(/\/+/g, "/");
   const dispatch = useDispatch();
+  const [progressData, setProgressData] = useState<ProgressData[]>([]);
+  const [containerTeamId, setContainerTeamId] = useState<number | null>(null);
+  const [containerName, setContainerName] = useState<string>('');
   const selectTeamId = useSelector((state: RootState) => state.problems.teamId);
   const questionId = useSelector((state: RootState) => state.problems.questionId);
 
@@ -60,12 +65,40 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
     dispatch(setTtile(problems[0]?.title));
   }, [selectedId, dispatch, boxList]);
 
+  // 컨테이너 정보 가져오기
   useEffect(() => {
+    const fetchContainerInfo = async () => {
+      try {
+        const containerInfo = await getContainerDetail(containerId);
+        setContainerTeamId(containerInfo.teamId);
+        setContainerName(containerInfo.containerName);
+      } catch (error) {
+        console.error('Failed to fetch container info:', error);
+      }
+    };
+
+    fetchContainerInfo();
+  }, [containerId]);
+
+  useEffect(() => {
+    console.log(1);
     const fetchDirectory = async () => {
-      const list = await getDirectoryList({ containerId });
+      let list = await getDirectoryList({ containerId });
       const data = await getContainerDetail(containerId);
       setContainerOwner(data.ownerId);
       dispatch(setTeamId(data.teamId));
+
+      if (list.length === 0 && containerTeamId !== null) {
+        await createDirectory({
+          containerId,
+          teamId: containerTeamId,
+          directoryName: "root",
+          directoryRoot: "/",
+          directoryId: 0,
+        });
+        list = await getDirectoryList({ containerId });
+      }
+
       const filtered = list.filter((item) => item.containerId === containerId);
 
       const mapped = filtered.map((item) => {
@@ -85,7 +118,28 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
       setBoxList(mapped);
     };
 
-    fetchDirectory();
+    if (containerTeamId !== null) {
+      fetchDirectory();
+    }
+  }, [containerId, containerTeamId]);
+
+  // 진행률 데이터 가져오기
+  useEffect(() => {
+    const fetchProgress = async () => {
+      try {
+        const progressResponse = await getContainerProgress(containerId);
+        if (progressResponse) {
+          // ProgressResponse는 ProgressData[] 타입이므로 직접 사용
+          const progressData = Array.isArray(progressResponse) ? progressResponse : [];
+          setProgressData(progressData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch progress:', error);
+        setProgressData([]);
+      }
+    };
+
+    fetchProgress();
   }, [containerId]);
 
   const create = (title: string, directoryId: number, parentId: string | null, isProblem: boolean = false, directoryRoot: string) => {
@@ -153,163 +207,180 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
 
   const renderTree = (parentId: string | null): JSX.Element[] => {
     return boxList
-      .filter((item) => item.parentId === parentId)
-      .map((item) => (
-        <div key={item.id} className={styles.treeNode}>
-          <div
-            className={`${styles.treeItem} ${item.isProblem ? styles.file : styles.folder} ${selectedId === item.id ? styles.selected : ""} ${activeId === item.id ? styles.treeItemActive : ""}`}
-            onClick={() => {
-              setActiveId(item.id);
-              setSelectedId(item.id);
-              if (!item.isProblem) toggleOpen(item.id);
-            }}
-            onContextMenu={(e) => handleContextMenu(item.id, e)}
-          >
+        .filter((item) => item.parentId === parentId)
+        .map((item) => (
+            <div key={item.id} className={styles.treeNode}>
+              <div
+                  className={`${styles.treeItem} ${item.isProblem ? styles.file : styles.folder} ${selectedId === item.id ? styles.selected : ""} ${activeId === item.id ? styles.treeItemActive : ""}`}
+                  onClick={() => {
+                    setActiveId(item.id);
+                    setSelectedId(item.id);
+                    if (!item.isProblem) toggleOpen(item.id);
+                  }}
+                  onContextMenu={(e) => handleContextMenu(item.id, e)}
+              >
             <span className={styles.treeLabel}>
               {item.isProblem ? (
-                <CiFileOn className={styles.treeIcon} />
+                  <CiFileOn className={styles.treeIcon} />
               ) : openIds.includes(item.id) ? (
-                <IoIosArrowDown className={styles.treeArrow} />
+                  <IoIosArrowDown className={styles.treeArrow} />
               ) : (
-                <IoIosArrowForward className={styles.treeArrow} />
+                  <IoIosArrowForward className={styles.treeArrow} />
               )}
               <span className={styles.treeTitle}>{item.title}</span>
             </span>
-          </div>
-          {item.type === "folder" && openIds.includes(item.id) && renderTree(item.id)}
-        </div>
-      ));
+              </div>
+              {item.type === "folder" && openIds.includes(item.id) && renderTree(item.id)}
+            </div>
+        ));
   };
 
   return (
-    <>
-      <div className={`${styles.section} ${styles.topSection}`}>
-        <h2 className={styles.heading}>Algorithm</h2>
-        <div className={styles.boxArea} onContextMenu={(e) => handleContextMenu("", e)}>
-          {menuPos && loginId === containerOwner && (
-            <ContextMenu
-              x={menuPos.x}
-              y={menuPos.y}
-              onClose={() => setMenuPos(null)}
-              selectedId={selectedId}
-              onCreate={async (type) => {
-                const parent = boxList.find((b) => b.id === selectedId);
-                const directoryRoot = parent ? normalizePath(`${parent.directoryRoot}/${parent.title}`) : "/";
-                const teamId = parent?.teamId ?? boxList[0]?.teamId ?? selectTeamId;
-                const parentId = parent?.id ?? null;
+      <>
+        <div className={`${styles.section} ${styles.topSection}`}>
+          <h2 className={styles.heading}>Algorithm</h2>
+          <div className={styles.boxArea} onContextMenu={(e) => handleContextMenu("", e)}>
+            {menuPos && loginId === containerOwner && (
+                <ContextMenu
+                    x={menuPos.x}
+                    y={menuPos.y}
+                    onClose={() => setMenuPos(null)}
+                    selectedId={selectedId}
+                    onCreate={async (type) => {
+                      const parent = boxList.find((b) => b.id === selectedId);
+                      const directoryRoot = parent ? normalizePath(`${parent.directoryRoot}/${parent.title}`) : "/";
+                      const teamId = parent?.teamId ?? boxList[0]?.teamId ?? selectTeamId ?? containerTeamId ?? 1;
+                      const parentId = parent?.id ?? null;
 
-                if (type === "folder") {
-                  const title = prompt("폴더 이름을 입력하세요");
-                  if (!title) return;
+                      if (type === "folder") {
+                        const title = prompt("폴더 이름을 입력하세요");
+                        if (!title) return;
 
-                  try {
-                    const res = await createDirectory({
-                      containerId: containerId,
-                      teamId: teamId,
-                      directoryName: title,
-                      directoryRoot,
-                      directoryId: 0,
-                    });
+                        try {
+                          const res = await createDirectory({
+                            containerId: containerId,
+                            teamId: teamId,
+                            directoryName: title,
+                            directoryRoot,
+                            directoryId: 0,
+                          });
 
-                    create(title, res.directoryId, parentId, false, directoryRoot);
-                  } catch (err) {
-                    console.error("디렉터리 생성 실패:", err);
-                  }
-                } else {
-                  if (!parent) {
-                    alert("파일을 생성할 폴더를 먼저 선택해주세요.");
-                    return;
-                  }
+                          create(title, res.directoryId, parentId, false, directoryRoot);
+                        } catch (err) {
+                          console.error("디렉터리 생성 실패:", err);
+                        }
+                      } else {
+                        if (!parent) {
+                          alert("파일을 생성할 폴더를 먼저 선택해주세요.");
+                          return;
+                        }
 
-                  setSelectedFolder({
-                    directoryId: parent.directoryId,
-                    title: "",
-                  });
-                  setIsAddFileModalOpen(true);
-                }
-              }}
-              onRename={async (id) => {
-                const item = boxList.find((b) => b.id === id);
-                if (!item) return;
+                        setSelectedFolder({
+                          directoryId: parent.directoryId,
+                          title: "",
+                        });
+                        setIsAddFileModalOpen(true);
+                      }
+                    }}
+                    onRename={async (id) => {
+                      const item = boxList.find((b) => b.id === id);
+                      if (!item) return;
 
-                const title = prompt("새 이름을 입력하세요", item.title);
-                if (!title) return;
+                      const title = prompt("새 이름을 입력하세요", item.title);
+                      if (!title) return;
 
-                try {
-                  await renameDirectory({
-                    directoryId: item.directoryId,
-                    oldDirectoryName: item.title,
-                    directoryName: title,
-                  });
-                  rename(id, title);
-                } catch (err) {
-                  console.error("디렉터리 이름 변경 실패:", err);
-                }
-              }}
-              onDelete={async (id) => {
-                const item = boxList.find((b) => b.id === id);
-                if (!item) return;
-                try {
-                  await deleteQuestion(questionId);
-                } catch (e) {
-                  console.error(e);
-                }
-                try {
-                  await deleteDirectory({
-                    directoryId: item.directoryId,
-                    containerId,
-                    directoryRoot: item.directoryRoot,
-                    directoryName: item.title,
-                  });
+                      try {
+                        await renameDirectory({
+                          directoryId: item.directoryId,
+                          oldDirectoryName: item.title,
+                          directoryName: title,
+                        });
+                        rename(id, title);
+                      } catch (err) {
+                        console.error("디렉터리 이름 변경 실패:", err);
+                      }
+                    }}
+                    onDelete={async (id) => {
+                      const item = boxList.find((b) => b.id === id);
+                      if (!item) return;
 
-                  remove(id);
-                } catch (err) {
-                  console.error("디렉터리 삭제 실패:", err);
-                }
-              }}
-            />
-          )}
-          <div className={styles.boxList}>{renderTree(null)}</div>
-        </div>
-      </div>
+                      try {
+                        // questionId가 있을 때만 deleteQuestion 호출
+                        if (questionId) {
+                          console.log("Deleting question:", questionId);
+                          await deleteQuestion(questionId);
+                        }
 
-      <div className={`${styles.section} ${styles.bottomSection}`}>
-        <div className={styles.teamStatus}>
-          <h3>팀원 현황(3 /5)</h3>
-          <Bargraph name='user1' language='JS' success={4} total={4} />
-          <Bargraph name='user2' language='JS' success={3} total={4} />
-          <Bargraph name='user3' language='JS' success={2} total={4} />
-          <Bargraph name='' language='' success={0} total={4} />
-          <Bargraph name='' language='' success={0} total={4} />
-        </div>
-        <div className={styles.currentContainer}>
-          <FaUsers className={styles.containerIcon} />
-          <div className={styles.containerTexts}>
-            <p className={styles.label}>현재 컨테이너</p>
-            <p className={styles.name}>SOLID</p>
+                        await deleteDirectory({
+                          directoryId: item.directoryId,
+                          containerId,
+                          directoryRoot: item.directoryRoot,
+                          directoryName: item.title,
+                        });
+
+                        remove(id);
+                      } catch (err) {
+                        console.error("디렉터리 삭제 실패:", err);
+                      }
+                    }}
+                />
+            )}
+            <div className={styles.boxList}>{renderTree(null)}</div>
           </div>
         </div>
-      </div>
 
-      {isAddFileModalOpen && selectedFolder && (
-        <AddFileModal
-          onClose={() => {
-            setIsAddFileModalOpen(false);
-            setSelectedFolder(null);
-          }}
-          directoryId={selectedFolder.directoryId}
-          onCreateComplete={(newFile) => {
-            const directoryRoot = parent ? normalizePath(`${parent.directoryRoot}/${parent.title}`) : "/";
-            create(newFile.title, newFile.directoryId, selectedId, true, directoryRoot);
-          }}
-          selectedId={selectedId}
-          boxList={boxList}
-          create={(t, d, s, b, root) => create(t, d, s, b, root)}
-          normalizePath={normalizePath}
-          containerId={containerId}
-        />
-      )}
-    </>
+        <div className={`${styles.section} ${styles.bottomSection}`}>
+          <div className={styles.teamStatus}>
+            <h3>팀원 현황({progressData.length} / 5)</h3>
+            {progressData.map((member, index) => (
+                <Bargraph
+                    key={member.memberId || index}
+                    name={member.memberName || member.memberId || ''}
+                    language='JS'
+                    success={member.averageProgress || 0}
+                    total={100}
+                />
+            ))}
+            {/* 빈 슬롯 채우기 */}
+            {[...Array(Math.max(0, 5 - progressData.length))].map((_, index) => (
+                <Bargraph
+                    key={`empty-${index}`}
+                    name=''
+                    language=''
+                    success={0}
+                    total={100}
+                />
+            ))}
+          </div>
+          <div className={styles.currentContainer}>
+            <FaUsers className={styles.containerIcon} />
+            <div className={styles.containerTexts}>
+              <p className={styles.label}>현재 컨테이너</p>
+              <p className={styles.name}>{containerName}</p>
+            </div>
+          </div>
+        </div>
+
+        {isAddFileModalOpen && selectedFolder && (
+            <AddFileModal
+                onClose={() => {
+                  setIsAddFileModalOpen(false);
+                  setSelectedFolder(null);
+                }}
+                directoryId={selectedFolder.directoryId}
+                onCreateComplete={(newFile) => {
+                  const parent = boxList.find((b) => b.id === selectedId);
+                  const directoryRoot = parent ? normalizePath(`${parent.directoryRoot}/${parent.title}`) : "/";
+                  create(newFile.title, newFile.directoryId, selectedId, true, directoryRoot);
+                }}
+                selectedId={selectedId}
+                boxList={boxList}
+                create={(t, d, s, b, root) => create(t, d, s, b, root)}
+                normalizePath={normalizePath}
+                containerId={containerId}
+            />
+        )}
+      </>
   );
 };
 

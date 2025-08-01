@@ -3,7 +3,7 @@ import Modal from "../UI/Modal";
 import styles from "../../styles/AddFileModal.module.scss";
 import { spacebar, enter, tab } from "../../assets";
 import { createQuestion } from "../../api/questionApi";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createDirectory } from "../../api/directoryApi";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../stores";
