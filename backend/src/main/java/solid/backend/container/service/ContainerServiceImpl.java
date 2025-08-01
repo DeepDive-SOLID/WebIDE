@@ -296,6 +296,7 @@ public class ContainerServiceImpl implements ContainerService {
                 .authority(AUTHORITY_USER)
                 .joinedDate(LocalDateTime.now())
                 .lastActivityDate(LocalDateTime.now())
+                .isOnline(invitedMember.getMemberIsOnline())
                 .build();
     }
     
@@ -326,6 +327,7 @@ public class ContainerServiceImpl implements ContainerService {
                         .authority(tu.getTeamAuth() != null ? tu.getTeamAuth().getAuthId() : AUTHORITY_USER)
                         .joinedDate(tu.getJoinedDate())
                         .lastActivityDate(tu.getLastActivityDate())
+                        .isOnline(tu.getMember().getMemberIsOnline())
                         .build())
                 .collect(Collectors.toList());
     }
