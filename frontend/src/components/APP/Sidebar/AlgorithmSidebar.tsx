@@ -7,8 +7,11 @@ import { getDirectoryList, createDirectory, renameDirectory, deleteDirectory } f
 import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
 import { CiFileOn } from "react-icons/ci";
 import AddFileModal from "../AddFileModal";
-import { useDispatch } from "react-redux";
-import { setDirectoryId, setRoot, setTtile } from "../../../stores/problemSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { setDirectoryId, setRoot, setTeamId, setTtile } from "../../../stores/problemSlice";
+import { getContainerDetail } from "../../../api/homeApi";
+import type { RootState } from "../../../stores";
+import { deleteQuestion } from "../../../api/questionApi";
 
 interface AlgorithmSidebarProps {
   containerId: number;
@@ -40,8 +43,11 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
 
   const normalizePath = (path: string) => path.replace(/\/+/g, "/");
   const dispatch = useDispatch();
+  const selectTeamId = useSelector((state: RootState) => state.problems.teamId);
+  const questionId = useSelector((state: RootState) => state.problems.questionId);
 
   useEffect(() => {
+    console.log(boxList);
     if (!boxList?.length) return;
 
     const problems = boxList.filter((item) => item.id === selectedId);
@@ -52,20 +58,11 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
   }, [selectedId, dispatch, boxList]);
 
   useEffect(() => {
+    console.log(1);
     const fetchDirectory = async () => {
-      let list = await getDirectoryList({ containerId });
-
-      if (list.length === 0) {
-        await createDirectory({
-          containerId,
-          teamId: 1,
-          directoryName: "root",
-          directoryRoot: "/",
-          directoryId: 0,
-        });
-        list = await getDirectoryList({ containerId });
-      }
-
+      const list = await getDirectoryList({ containerId });
+      const data = await getContainerDetail(containerId);
+      dispatch(setTeamId(data.teamId));
       const filtered = list.filter((item) => item.containerId === containerId);
 
       const mapped = filtered.map((item) => {
@@ -100,7 +97,7 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
         title,
         parentId,
         isProblem,
-        teamId: 1,
+        teamId: selectTeamId,
         directoryRoot,
       },
     ]);
@@ -195,7 +192,7 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
               onCreate={async (type) => {
                 const parent = boxList.find((b) => b.id === selectedId);
                 const directoryRoot = parent ? normalizePath(`${parent.directoryRoot}/${parent.title}`) : "/";
-                const teamId = parent?.teamId ?? boxList[0]?.teamId ?? 1;
+                const teamId = parent?.teamId ?? boxList[0]?.teamId ?? selectTeamId;
                 const parentId = parent?.id ?? null;
 
                 if (type === "folder") {
@@ -204,8 +201,8 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
 
                   try {
                     const res = await createDirectory({
-                      containerId,
-                      teamId,
+                      containerId: containerId,
+                      teamId: teamId,
                       directoryName: title,
                       directoryRoot,
                       directoryId: 0,
@@ -249,7 +246,8 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
               onDelete={async (id) => {
                 const item = boxList.find((b) => b.id === id);
                 if (!item) return;
-
+                console.log(questionId);
+                await deleteQuestion(questionId);
                 try {
                   await deleteDirectory({
                     directoryId: item.directoryId,
@@ -257,6 +255,7 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
                     directoryRoot: item.directoryRoot,
                     directoryName: item.title,
                   });
+
                   remove(id);
                 } catch (err) {
                   console.error("디렉터리 삭제 실패:", err);
