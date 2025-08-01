@@ -8,7 +8,11 @@ import { useNavigate } from "react-router-dom";
 import AppSidebar from "../Sidebar/AppSidebar";
 import styles from "../../../styles/AppNav.module.scss";
 
-const AlgorithmNav = () => {
+interface AlgorithmNavProps {
+  containerId: number;
+}
+
+const AlgorithmNav = ({ containerId }: AlgorithmNavProps) => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -32,31 +36,23 @@ const AlgorithmNav = () => {
     <>
       <aside className={styles.appNav}>
         <div className={styles.appNavTop}>
-          <Button
-            icon={<IoHomeOutline size={30} />}
-            onClick={() => handleNavClick("home")}
-            className={styles.navBtn}
-          />
-          <Button
-            icon={<PiListMagnifyingGlass size={30} />}
-            onClick={() => handleNavClick("algorithm")}
-            className={styles.navBtn}
-          />
+          <Button icon={<IoHomeOutline size={30} />} onClick={() => handleNavClick("home")} className={styles.navBtn} />
+          <Button icon={<PiListMagnifyingGlass size={30} />} onClick={() => handleNavClick("algorithm")} className={styles.navBtn} />
         </div>
 
         <div className={styles.appNavBottom}>
           <div className={styles.themeToggleWrapper}>
             <Toggle />
           </div>
-          <Button
-            icon={<img src={profile} alt="profile" />}
-            onClick={() => handleNavClick("mypage")}
-            className={styles.profileBtn}
-          />
+          <Button icon={<img src={profile} alt='profile' />} onClick={() => handleNavClick("mypage")} className={styles.profileBtn} />
         </div>
       </aside>
 
-      <AppSidebar isOpen={sidebarOpen} type="algorithm" />
+      <AppSidebar
+        isOpen={sidebarOpen}
+        type="algorithm"
+        containerId={containerId}
+      />
     </>
   );
 };

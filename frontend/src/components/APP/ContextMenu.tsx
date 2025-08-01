@@ -37,7 +37,7 @@ const ContextMenu = ({
     <ul className={styles.contextMenu} style={{ left: x, top: y }}>
       <li onClick={() => onCreate("file")}>새 파일</li>
       <li onClick={() => onCreate("folder")}>새 폴더</li>
-      <li onClick={() => {}}>문제 수정</li>
+
       <li onClick={handleRename}>이름 수정</li>
       <li onClick={handleDelete}>파일 삭제</li>
     </ul>

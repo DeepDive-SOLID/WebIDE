@@ -1,0 +1,18 @@
+.header {
+    display: flex;
+    flex-direction: row;
+}
+
+.button {
+    width: 150px;
+    height: 40px;
+    border: none;
+    background-color: #f5f5f5;
+    margin: 1rem 0 0 1.5rem;
+    clip-path: polygon(10% 0, 90% 0, 100% 100%, 0% 100%);
+    cursor: pointer;
+}
+
+.button.action {
+    background-color: #0085ff;
+}
