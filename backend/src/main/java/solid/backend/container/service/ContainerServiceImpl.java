@@ -296,6 +296,7 @@ public class ContainerServiceImpl implements ContainerService {
                 .authority(AUTHORITY_USER)
                 .joinedDate(LocalDateTime.now())
                 .lastActivityDate(LocalDateTime.now())
+                .isOnline(invitedMember.getMemberIsOnline())
                 .build();
     }
     
