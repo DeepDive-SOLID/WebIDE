@@ -5,7 +5,8 @@ import { spacebar, enter, tab } from "../../assets";
 import { createQuestion } from "../../api/questionApi";
 import { useState } from "react";
 import { createDirectory } from "../../api/directoryApi";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../../stores";
 // import { setProblemEntries } from "../../stores/problemSlice";
 
 interface AddFileModalProps {
@@ -42,6 +43,7 @@ interface FormValues {
 
 const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxList, create, normalizePath, containerId }: AddFileModalProps) => {
   const dispatch = useDispatch();
+  const selectTeamId = useSelector((state: RootState) => state.problems.teamId);
 
   const {
     register,
@@ -69,7 +71,7 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
 
   const parent = boxList?.find((b) => b?.id === select);
   const directoryRoot = parent ? normalizePath(`${parent?.directoryRoot}/${parent?.title}`) : "/";
-  const teamId = parent?.teamId ?? boxList[0]?.teamId ?? 1;
+  const teamId = parent?.teamId ?? boxList[0]?.teamId ?? selectTeamId;
 
   const { fields, append } = useFieldArray({
     control,
@@ -87,8 +89,8 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
     try {
       // 문제 생성 API 호출
       await createQuestion({
-        containerId: 1, // 실제 값으로 교체
-        teamId: 1,
+        containerId: containerId, // 실제 값으로 교체
+        teamId: teamId,
         questionTitle: data.questionTitle,
         questionDescription: "",
         question: data.problem,
@@ -106,8 +108,8 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
       alert("문제 생성 성공!");
 
       const res = await createDirectory({
-        containerId,
-        teamId,
+        containerId: containerId,
+        teamId: teamId,
         directoryName: data.questionTitle,
         directoryRoot,
         directoryId: 0,

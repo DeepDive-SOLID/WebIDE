@@ -77,9 +77,11 @@ const Container = ({ activeMember }: ContainerProp) => {
       const fileExtension = parts[1];
 
       const fullLanguageName = languageMap[fileExtension];
+
       return fileName === activeMember && fullLanguageName === selectedLanguage;
     });
     if (memberCode) {
+      console.log(memberCode);
       await fileData(memberCode.codeFileId);
       setCodeId(memberCode.codeFileId);
     } else {
@@ -112,6 +114,7 @@ const Container = ({ activeMember }: ContainerProp) => {
     if (output !== "") {
       dispatch(setRestart());
     }
+    if (questionId === 0 || questionId === undefined) return null;
     try {
       // 로그인한 유저 id 로 파일 명 바꾸기
       const select = selectedLanguage === "javascript" ? `${activeMember}.js` : selectedLanguage === "java" ? `${activeMember}.java` : `${activeMember}.py`;
@@ -178,7 +181,9 @@ const Container = ({ activeMember }: ContainerProp) => {
       case "run":
         dispatch(setRunInput(""));
         dispatch(setRunOutput(""));
-        saveAPI().then(() => setIsInputDisabled((prev) => !prev));
+        saveAPI().then((i) => {
+          if (i !== null) setIsInputDisabled((prev) => !prev);
+        });
         break;
       case "submit": {
         dispatch(setSubmitOutput(""));
@@ -215,7 +220,7 @@ const Container = ({ activeMember }: ContainerProp) => {
           <option value='python'>Python</option>
         </select>
       </div>
-      {activeMember && <CodeEditor language={selectedLanguage} code={code} onChange={handleCodeChange} />}
+      {<CodeEditor language={selectedLanguage} code={code} onChange={handleCodeChange} />}
       <div>
         <div style={{ display: "flex" }}>
           <div className={`${styles.terminal_case} ${terminalToggle === "run" ? styles.terminal_case_active : ""}`} onClick={() => handleTerminalClick("run")}>

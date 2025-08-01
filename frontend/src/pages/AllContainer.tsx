@@ -4,15 +4,8 @@ import folderImg from "../assets/icons/folder.svg";
 import folderDarkImg from "../assets/icons/folder_darkmode.svg";
 import CreateContainer from "../components/Modal/CreateContainer";
 import OwnerSetting from "../components/Modal/OwnerSetting";
-import {
-  getContainers,
-  getContainerMembers,
-  leaveContainer,
-} from "../api/homeApi";
-import type {
-  ContainerResponseDto,
-  GroupMemberResponseDto,
-} from "../types/home";
+import { getContainers, getContainerMembers, leaveContainer } from "../api/homeApi";
+import type { ContainerResponseDto, GroupMemberResponseDto } from "../types/home";
 
 import ContainerCard from "../components/Container/ContainerCard";
 import emptyImg from "../assets/icons/empty.svg";
@@ -23,11 +16,8 @@ const AllContainer: React.FC = () => {
   const isDark = useSelector((state: RootState) => state.theme.isDark);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSettingOpen, setIsSettingOpen] = useState(false);
-  const [selectedContainerName, setSelectedContainerName] =
-    useState<string>("");
-  const [selectedContainerId, setSelectedContainerId] = useState<number | null>(
-    null
-  );
+  const [selectedContainerName, setSelectedContainerName] = useState<string>("");
+  const [selectedContainerId, setSelectedContainerId] = useState<number | null>(null);
   const [containers, setContainers] = useState<ContainerResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -107,7 +97,7 @@ const AllContainer: React.FC = () => {
         <h2>
           <img
             src={isDark ? folderDarkImg : folderImg}
-            alt="folder"
+            alt='folder'
             style={{
               width: 28,
               height: 22,
@@ -118,10 +108,7 @@ const AllContainer: React.FC = () => {
           />
           모든 컨테이너
         </h2>
-        <button
-          className={styles.createBtn}
-          onClick={() => setIsModalOpen(true)}
-        >
+        <button className={styles.createBtn} onClick={() => setIsModalOpen(true)}>
           컨테이너 생성
         </button>
       </div>
@@ -132,31 +119,17 @@ const AllContainer: React.FC = () => {
           <div style={{ color: "red" }}>{error}</div>
         ) : containers.length === 0 ? (
           <div className={styles.emptyContainer}>
-            <img
-              src={emptyImg}
-              alt="빈 컨테이너"
-              style={{ width: 135, marginBottom: 10 }}
-            />
+            <img src={emptyImg} alt='빈 컨테이너' style={{ width: 135, marginBottom: 10 }} />
             <p>컨테이너가 없습니다!</p>
           </div>
         ) : (
           containers.map((container) => {
             const token = localStorage.getItem("accessToken");
-            const decodedToken = token
-              ? JSON.parse(atob(token.split(".")[1]))
-              : null;
+            const decodedToken = token ? JSON.parse(atob(token.split(".")[1])) : null;
 
-            const isSettingBtnVisible = membersMap[container.containerId]?.some(
-              (member) =>
-                member.authority === "ROOT" &&
-                member.memberId === decodedToken?.memberId
-            );
+            const isSettingBtnVisible = membersMap[container.containerId]?.some((member) => member.authority === "ROOT" && member.memberId === decodedToken?.memberId);
 
-            const isLeaveBtnVisible = membersMap[container.containerId]?.some(
-              (member) =>
-                member.memberId === decodedToken?.memberId &&
-                member.authority !== "ROOT"
-            );
+            const isLeaveBtnVisible = membersMap[container.containerId]?.some((member) => member.memberId === decodedToken?.memberId && member.authority !== "ROOT");
 
             return (
               <ContainerCard
@@ -181,19 +154,9 @@ const AllContainer: React.FC = () => {
           })
         )}
       </div>
-      {isModalOpen && (
-        <CreateContainer
-          onClose={() => setIsModalOpen(false)}
-          onSuccess={fetchContainers}
-        />
-      )}
+      {isModalOpen && <CreateContainer onClose={() => setIsModalOpen(false)} onSuccess={fetchContainers} />}
       {isSettingOpen && selectedContainerId && (
-        <OwnerSetting
-          onClose={() => setIsSettingOpen(false)}
-          containerId={selectedContainerId}
-          containerName={selectedContainerName}
-          onSuccess={fetchContainers}
-        />
+        <OwnerSetting onClose={() => setIsSettingOpen(false)} containerId={selectedContainerId} containerName={selectedContainerName} onSuccess={fetchContainers} />
       )}
     </div>
   );

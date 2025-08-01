@@ -41,10 +41,11 @@ export const updateQuestion = async (dto: QuestionUpdDto): Promise<string> => {
 export const deleteQuestion = async (questionId: number): Promise<string> => {
   const response = await axios.delete<string>("/question/delete", {
     data: questionId,
-    headers: { "Content-Type": "text/plain" },
+    headers: { "Content-Type": "application/json" },
   });
   return response.data;
 };
+
 
 export const TestCaseQuestion = async (questionId: number): Promise<test[]> => {
   const response = await axios.post<test[]>("/question/trueList", questionId ,{

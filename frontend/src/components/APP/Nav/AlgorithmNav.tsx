@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { IoHomeOutline } from "react-icons/io5";
 import { PiListMagnifyingGlass } from "react-icons/pi";
 import { profile } from "../../../assets";
@@ -12,22 +11,22 @@ interface AlgorithmNavProps {
   containerId: number;
 }
 
-const AlgorithmNav = ({ containerId }: AlgorithmNavProps) => {
+const AlgorithmNav = ({ containerId, modal, setModal }: AlgorithmNavProps) => {
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleNavClick = (target: "home" | "algorithm" | "mypage") => {
     switch (target) {
       case "home":
         navigate("/home/all-container");
-        setSidebarOpen(false);
+        setModal(false);
         break;
       case "algorithm":
-        setSidebarOpen((prev) => !prev);
+        setModal((prev) => !prev);
         break;
       case "mypage":
         navigate("/info");
-        setSidebarOpen(false);
+        setModal(false);
         break;
     }
   };
@@ -48,7 +47,7 @@ const AlgorithmNav = ({ containerId }: AlgorithmNavProps) => {
         </div>
       </aside>
 
-      <AppSidebar isOpen={sidebarOpen} type='algorithm' containerId={containerId} />
+      <AppSidebar isOpen={modal} type='algorithm' containerId={containerId} />
     </>
   );
 };
