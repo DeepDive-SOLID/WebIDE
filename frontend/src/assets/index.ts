@@ -1,4 +1,4 @@
-export { default as inputBtn } from "./inputBtn.svg";
+export { default as inputBtn } from "./icons/inputBtn.svg";
 
 // 아이콘
 export { default as tab } from "./icons/tab.svg";
