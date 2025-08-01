@@ -5,7 +5,11 @@ import {
   isLoggedIn as checkIsLoggedIn,
   getCurrentUserInfo,
 } from "../utils/auth";
+
+import { useStore } from "../stores/store";
+import { useStomp } from "../hooks/useStomp";
 import { signApi } from "../api/signApi";
+
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -20,6 +24,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     authId?: string;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // STOMP 클라이언트 설정 함수 가져오기
+  const setStompClient = useStore((state) => state.setStompClient);
+  // WebSocket 연결을 위한 connect 함수 가져오기
+  const { connect } = useStomp();
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -28,6 +36,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const currentUserInfo = getCurrentUserInfo();
         setUserInfo(currentUserInfo);
         setIsLoggedIn(true);
+
+        // WebSocket 연결
+        connect({
+          onConnect: () => console.log("STOMP 연결됨"),
+          onError: (e) => console.error(e),
+          onDisconnect: () => console.log("STOMP 연결 해제됨"),
+        });
       } else {
         // 로그인하지 않은 상태에서는 토큰 재발급을 시도하지 않음
         setIsLoggedIn(false);
@@ -37,12 +52,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     initializeAuth();
-  }, []);
+
+    // 컴포넌트가 사라질 때 WebSocket 연결을 안전하게 끊어주는 역할
+    return () => {
+      const client = useStore.getState().stompClient;
+      client?.deactivate();
+    };
+  }, [connect, setStompClient]);
 
   const login = () => {
     setIsLoggedIn(true);
     const currentUserInfo = getCurrentUserInfo();
     setUserInfo(currentUserInfo);
+
+    // WebSocket 연결
+    connect({
+      onConnect: () => console.log("STOMP 연결됨 (login)"),
+      onError: (e) => console.error(e),
+      onDisconnect: () => console.log("STOMP 연결 해제됨 (login)"),
+    });
   };
 
   const logout = async () => {

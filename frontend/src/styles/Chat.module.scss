@@ -1,0 +1,156 @@
+// Chat Toggle
+.chatContainer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+}
+
+.toggleButton {
+  position: fixed;
+  top: 300px;
+  right: 280px;
+  width: 40px;
+  height: 150px;
+  background-color: #0085ff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  clip-path: polygon(100% 0, 100% 100%, 0 80%, 0 20%);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  z-index: 1001;
+  transition: right 0.3s ease-in-out;
+
+  &.buttonClosed {
+    right: 0;
+  }
+}
+
+.chatWrapper {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 100vh;
+  background-color: #fff;
+  border-left: 1px solid #e7e7e7;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem 0.8rem;
+  box-sizing: border-box;
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+.chatOpen {
+  transform: translateX(0);
+}
+
+.chatClosed {
+  transform: translateX(100%);
+}
+
+// Chat
+.systemMessage {
+  font-size: 12px;
+  color: #555;
+  text-align: center;
+  padding: 0.3rem;
+  opacity: 0.7;
+  margin: 0;
+}
+
+.chatList {
+  flex-grow: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-bottom: 1rem;
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0;
+  border-top: 1px solid #eee;
+
+  input {
+    flex: 1;
+    height: 32px;
+    border: 1px solid #e6e6e6;
+    border-radius: 10px;
+    padding: 0 0.75rem;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .inputBtn {
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+// ChatBox
+.chatBox {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+}
+
+.user {
+  font-size: 10px;
+  color: #0085ff;
+  margin-bottom: 0.2rem;
+  margin-left: 0.25rem;
+}
+
+.message {
+  font-size: 16px;
+  padding: 0.6rem 1rem;
+  border-radius: 15px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  font-weight: 500;
+  word-break: break-word;
+  display: inline-block;
+  width: fit-content;
+}
+
+.userMessage {
+  align-self: flex-end;
+
+  .message {
+    background-color: #0085ff;
+    color: white;
+    border-radius: 15px 15px 0 15px;
+  }
+
+  .user {
+    text-align: right;
+    margin-right: 0.25rem;
+  }
+}
+
+.otherMessage {
+  align-self: flex-start;
+
+  .message {
+    background-color: #f6f7f8;
+    color: #121116;
+    border-radius: 15px 15px 15px 0;
+  }
+
+  .user {
+    text-align: left;
+  }
+}
