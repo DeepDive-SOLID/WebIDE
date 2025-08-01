@@ -4,8 +4,8 @@ import { AuthContext } from "./AuthContext";
 import {
   isLoggedIn as checkIsLoggedIn,
   getCurrentUserInfo,
-  refreshNewToken,
 } from "../utils/auth";
+import { signApi } from "../api/signApi";
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -17,7 +17,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState<{
     memberId: string;
-    authId: string;
+    authId?: string;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,15 +29,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUserInfo(currentUserInfo);
         setIsLoggedIn(true);
       } else {
-        const newToken = await refreshNewToken();
-        if (newToken) {
-          const currentUserInfo = getCurrentUserInfo();
-          setUserInfo(currentUserInfo);
-          setIsLoggedIn(true);
-        } else {
-          setIsLoggedIn(false);
-          setUserInfo(null);
-        }
+        // 로그인하지 않은 상태에서는 토큰 재발급을 시도하지 않음
+        setIsLoggedIn(false);
+        setUserInfo(null);
       }
       setIsLoading(false);
     };
@@ -51,11 +45,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUserInfo(currentUserInfo);
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    setIsLoggedIn(false);
-    setUserInfo(null);
-    window.location.href = "/";
+  const logout = async () => {
+    try {
+      // 백엔드에 로그아웃 요청 (세션의 refreshToken 제거)
+      await signApi.logout();
+    } catch (error) {
+      console.error("로그아웃 요청 실패:", error);
+    } finally {
+      // 프론트엔드에서 accessToken 제거
+      localStorage.removeItem("accessToken");
+      setIsLoggedIn(false);
+      setUserInfo(null);
+      window.location.href = "/";
+    }
   };
 
   const value = { isLoggedIn, userInfo, isLoading, login, logout };
