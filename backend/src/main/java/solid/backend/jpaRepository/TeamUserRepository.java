@@ -24,4 +24,7 @@ public interface TeamUserRepository extends JpaRepository<TeamUser, Integer> {
     
     // 멤버 ID로 팀 유저 목록 조회
     List<TeamUser> findByMember_MemberId(String memberId);
+    
+    // 멤버 ID와 팀 ID로 팀 유저 조회
+    Optional<TeamUser> findByMember_MemberIdAndTeam_TeamId(String memberId, Integer teamId);
 }

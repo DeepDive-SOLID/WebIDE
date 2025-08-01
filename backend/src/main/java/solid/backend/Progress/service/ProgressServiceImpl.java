@@ -94,23 +94,27 @@ public class ProgressServiceImpl implements ProgressService{
         
         for (TeamUser teamUser : teamUsers) {
             int totalProgress = 0;
-            int directoryCount = directories.size();
+            int problemDirectoryCount = 0;
             
-            // 각 디렉터리에 대한 진행률 합산
+            // 각 디렉터리에 대한 진행률 합산 (root 디렉터리 제외)
             for (Directory directory : directories) {
-                Optional<Progress> progress = progressRepository.findByDirectoryAndTeamUser(directory, teamUser);
-                if (progress.isPresent()) {
-                    totalProgress += progress.get().getProgressComplete();
+                // root 디렉터리는 제외 (이름이 "root"이고 directoryRoot가 "/" 인 경우)
+                if (!("root".equals(directory.getDirectoryName()) && "/".equals(directory.getDirectoryRoot()))) {
+                    problemDirectoryCount++;
+                    Optional<Progress> progress = progressRepository.findByDirectoryAndTeamUser(directory, teamUser);
+                    if (progress.isPresent()) {
+                        totalProgress += progress.get().getProgressComplete();
+                    }
                 }
             }
             
-            // 평균 진행률 계산 (디렉터리당 평균)
-            int averageProgress = directoryCount > 0 ? totalProgress / directoryCount : 0;
+            // 평균 진행률 계산 (문제 디렉터리당 평균)
+            int averageProgress = problemDirectoryCount > 0 ? totalProgress / problemDirectoryCount : 0;
             
             ProgressListDto dto = new ProgressListDto();
             dto.setMemberId(teamUser.getMember().getMemberId());
             dto.setMemberName(teamUser.getMember().getMemberName());
-            dto.setDirectoryCount(directoryCount);
+            dto.setDirectoryCount(problemDirectoryCount);
             dto.setAverageProgress(averageProgress);
             
             result.add(dto);

@@ -42,7 +42,7 @@ export const deleteQuestion = async (questionId: number): Promise<string> => {
   console.log("api : " + questionId)
   const response = await axios.delete<string>("/question/delete", {
     data: questionId,
-    headers: { "Content-Type": "text/plain" },
+    headers: { "Content-Type": "application/json" },
   });
   return response.data;
 };

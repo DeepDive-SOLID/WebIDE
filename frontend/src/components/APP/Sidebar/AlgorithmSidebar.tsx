@@ -299,9 +299,14 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
               onDelete={async (id) => {
                 const item = boxList.find((b) => b.id === id);
                 if (!item) return;
-                console.log(questionId);
-                await deleteQuestion(questionId);
+                
                 try {
+                  // questionId가 있을 때만 deleteQuestion 호출
+                  if (questionId) {
+                    console.log("Deleting question:", questionId);
+                    await deleteQuestion(questionId);
+                  }
+                  
                   await deleteDirectory({
                     directoryId: item.directoryId,
                     containerId,
