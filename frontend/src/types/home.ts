@@ -27,6 +27,7 @@ export interface GroupMemberResponseDto {
   authority: "ROOT" | "USER";
   joinedDate: string;
   lastActivityDate: string;
+  isOnline: boolean;
 }
 
 // API 응답 공통 타입
