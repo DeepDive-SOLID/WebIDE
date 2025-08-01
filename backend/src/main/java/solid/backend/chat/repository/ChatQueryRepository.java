@@ -54,15 +54,25 @@ public class ChatQueryRepository {
         QTeamUser teamUser = QTeamUser.teamUser;
         QMember member = QMember.member;
 
-        return query.select(teamUser.teamUserIsOnline)
+        Boolean result = query.select(teamUser.teamUserIsOnline)
                 .from(teamUser)
                 .join(teamUser.team, team)
                 .join(teamUser.member, member)
-                .where(team.teamId.eq(chatRoomId))
-                .where(member.memberId.eq(memberId))
+                .where(
+                        team.teamId.eq(chatRoomId),
+                        member.memberId.eq(memberId)
+                )
                 .fetchOne();
+
+        return result != null ? result : false;
     }
 
+    /**
+     * 설명 : 채팅에 참여중인 사용자 찾기
+     * @param memberId 사용자 ID
+     * @param chatRoomId 그룹 ID
+     * @return TeamUser
+     */
     public TeamUser findByTeamUser(String memberId, Integer chatRoomId) {
         QTeam team = QTeam.team;
         QTeamUser teamUser = QTeamUser.teamUser;
@@ -92,5 +102,37 @@ public class ChatQueryRepository {
                 .where(member.memberId.eq(memberId))
                 .where(teamUser.teamUserIsOnline.eq(true))
                 .fetch();
+    }
+
+    /**
+     * 설명 : 그룹 ID 찾기
+     * @param chatRoomId 컨테이너 ID
+     * @return Integer
+     */
+    public Integer findTeamId(Integer chatRoomId) {
+        QTeam team = QTeam.team;
+        QContainer container = QContainer.container;
+
+        return query.select(team.teamId)
+                .from(container)
+                .join(container.team, team)
+                .where(container.containerId.eq(chatRoomId))
+                .fetchOne();
+    }
+
+    /**
+     * 설명 : 컨테이너 ID 찾기
+     * @param chatRoomId 그룹 ID
+     * @return Integer
+     */
+    public Integer findByChatRoomId(Integer chatRoomId) {
+        QTeam team = QTeam.team;
+        QContainer container = QContainer.container;
+
+        return query.select(team.teamId)
+                .from(container)
+                .join(container.team, team)
+                .where(team.teamId.eq(chatRoomId))
+                .fetchOne();
     }
 }
