@@ -1,0 +1,51 @@
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+  define: {
+    'process.env': {}, // 일부 라이브러리에서 필요
+    global: "window",
+  },
+  server: {
+    proxy: {
+      "/directory": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        rewrite: (path) => path,
+      },
+      "/CodeFile": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        rewrite: (path) => path,
+      },
+      "/question": {
+        target: "http://localhost:8080/",
+        changeOrigin: true,
+      },
+      "/progress": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
+      "/docker": {
+        target: "http://localhost:8080",
+        changeOrigin: true
+      }, 
+      "/sign": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
+      "/api": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
+      "/token": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
+      "/mypage": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
+    }}
+});
