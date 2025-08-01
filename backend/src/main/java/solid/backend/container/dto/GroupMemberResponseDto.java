@@ -32,6 +32,8 @@ public class GroupMemberResponseDto {
     private LocalDateTime joinedDate;
     /** 마지막 활동일시 */
     private LocalDateTime lastActivityDate;
+    /** 회원 접속 여부 */
+    private Boolean isOnline;
     
     /**
      * TeamUser 엔티티를 DTO로 변환
@@ -60,6 +62,7 @@ public class GroupMemberResponseDto {
                 .authority(teamUser.getTeamAuth() != null ? teamUser.getTeamAuth().getAuthId() : null)
                 .joinedDate(teamUser.getJoinedDate())
                 .lastActivityDate(teamUser.getLastActivityDate())
+                .isOnline(teamUser.getMember().getMemberIsOnline())
                 .build();
     }
 }
