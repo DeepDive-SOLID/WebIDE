@@ -1,7 +1,10 @@
 package solid.backend.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 import java.time.LocalDate;
@@ -9,6 +12,9 @@ import java.time.LocalDate;
 @Data
 @Entity
 @Table(name = "chat")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Chat {
 
     @Id
@@ -28,10 +34,6 @@ public class Chat {
     @Column(name = "chat_date", nullable = false)
     @Comment("채팅 날짜")
     private LocalDate chatDate;
-
-    @Column(name = "chat_data", nullable = false)
-    @Comment("채팅 날짜")
-    private LocalDate chatData;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")

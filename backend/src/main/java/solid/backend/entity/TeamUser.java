@@ -33,6 +33,6 @@ public class TeamUser {
     private LocalDateTime lastActivityDate;
     
     @Column(name = "team_user_is_online", nullable = false)
-    private boolean isOnline = false;
+    private boolean teamUserIsOnline = false;
 
 }
