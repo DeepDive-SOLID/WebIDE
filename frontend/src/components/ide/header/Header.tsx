@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
 import styles from "../../../styles/ideHeader.module.scss";
-import type { HeaderProps, member } from "../../../types/ide";
+import type { HeaderProps } from "../../../types/ide";
 import { getContainerMembers } from "../../../api/homeApi";
+import type { GroupMemberResponseDto } from "../../../types/home";
 
 const Header = ({ activeMember, handleOnClick, containerId }: HeaderProps) => {
-  const [member, setMember] = useState<member[]>([]);
+  const [member, setMember] = useState<GroupMemberResponseDto[]>([]);
 
   useEffect(() => {
-    console.log(containerId);
     const fetchContainerMember = async () => {
       try {
         const res = await getContainerMembers(Number(containerId));
-        console.log(res);
         setMember(res);
       } catch (e) {
         console.error(e);

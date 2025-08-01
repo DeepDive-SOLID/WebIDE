@@ -9,11 +9,11 @@ interface IdeProps {
 }
 const Ide = ({ containerId, modal }: IdeProps) => {
   // 로그인한 유저의 id 가져오기
-  const [loginId, setLoginId] = useState<string | null>(getCurrentMemberId());
+  const [loginId, setLoginId] = useState<string>(getCurrentMemberId());
   const [activeButtonId, setActiveButtonId] = useState<string>("");
   // 클릭된 버튼의 ID를 인자로 받습니다.
   const handleOnClick = (id: string) => {
-    setActiveButtonId(id);
+    setActiveButtonId((prev) => (prev === id ? loginId : id));
   };
   useEffect(() => {
     setLoginId(loginId);
