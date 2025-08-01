@@ -12,7 +12,7 @@
     - GroupMemberResponseDto.java
     - MemberInviteDto.java
 - repository(jpa)
-    - ContainerJpaRepository.java
+    - ContainerRepository.java
     - ContainerQueryRepository.java
 - service(비즈니스 로직)
     - ContainerService.java

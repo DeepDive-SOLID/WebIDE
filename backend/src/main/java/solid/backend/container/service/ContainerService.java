@@ -163,6 +163,16 @@ public interface ContainerService {
      */
     long batchUpdateVisibility(List<Integer> containerIds, Boolean isPublic, String requesterId);
     
+    /**
+     * 컨테이너의 팀 ID 조회
+     * @param containerId 컨테이너 ID
+     * @param memberId 조회하는 사용자 ID
+     * @return 팀 ID
+     * @throws ContainerNotFoundException 컨테이너를 찾을 수 없는 경우
+     * @throws IllegalArgumentException 접근 권한이 없는 경우
+     */
+    Integer getContainerTeamId(Integer containerId, String memberId);
+    
     /*
     // 컨테이너 고급 검색
     List<ContainerResponseDto> advancedSearch(ContainerSearchDto searchDto, String memberId);
