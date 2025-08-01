@@ -4,7 +4,7 @@ import styles from "../styles/Login.module.scss";
 import { logoImg } from "../assets";
 import { signApi } from "../api/signApi";
 import { setToken } from "../utils/auth.ts";
-import { AuthContext } from "../contexts/AuthContext.ts";
+import { AuthContext } from "../contexts/AuthContext";
 
 // EyeIcon 컴포넌트 (비밀번호 보기/숨기기)
 const EyeIcon = ({ visible }: { visible: boolean }) =>
@@ -45,8 +45,8 @@ function removeKorean(text: string) {
 }
 
 const Login: React.FC = () => {
-  const authContext = useContext(AuthContext);
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext)!;
   const [formData, setFormData] = useState({
     memberId: "",
     memberPw: "",
@@ -94,7 +94,7 @@ const Login: React.FC = () => {
       });
       // 로그인 성공 시 access token 저장
       setToken(token);
-      authContext?.login?.();
+      login(); // AuthProvider의 login 함수 호출하여 상태 업데이트
       navigate("/home/all-container"); // 모든 컨테이너 화면으로 이동
     } catch (error: unknown) {
       // 로그인 실패 시 처리

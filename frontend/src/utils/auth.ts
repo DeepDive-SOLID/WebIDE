@@ -117,7 +117,7 @@ export const refreshNewToken = async (): Promise<string | null> => {
 
   try {
     const newToken = await signApi.refreshToken();
-    localStorage.setItem("accessToken", newToken);
+    setToken(newToken);
     return newToken;
   } catch (error) {
     console.error("토큰 재발급 실패", error);

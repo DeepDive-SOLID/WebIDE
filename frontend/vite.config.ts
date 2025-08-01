@@ -17,6 +17,10 @@ export default defineConfig({
         target: "http://localhost:8080",
         changeOrigin: true,
       },
+      "/token": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
       "/mypage": {
         target: "http://localhost:8080",
         changeOrigin: true,

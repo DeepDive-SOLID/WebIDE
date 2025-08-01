@@ -6,7 +6,7 @@ import {
   getPublicContainers,
   getContainerMembers,
   joinContainer,
-} from "../api/home";
+} from "../api/homeApi";
 import type {
   ContainerResponseDto,
   GroupMemberResponseDto,

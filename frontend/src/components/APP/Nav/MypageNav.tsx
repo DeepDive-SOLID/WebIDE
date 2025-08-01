@@ -36,7 +36,11 @@ const MypageNav = () => {
   }, [memberId, isAuthLoading]);
 
   const handleNavClick = (target: "home" | "mypage") => {
-    navigate(`/${target}`);
+    if (target === "home") {
+      navigate("/home/all-container");
+    } else {
+      navigate("/Info");
+    }
   };
 
   return (
