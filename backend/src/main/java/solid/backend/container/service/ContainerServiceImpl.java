@@ -326,6 +326,7 @@ public class ContainerServiceImpl implements ContainerService {
                         .authority(tu.getTeamAuth() != null ? tu.getTeamAuth().getAuthId() : AUTHORITY_USER)
                         .joinedDate(tu.getJoinedDate())
                         .lastActivityDate(tu.getLastActivityDate())
+                        .isOnline(tu.getMember().getMemberIsOnline())
                         .build())
                 .collect(Collectors.toList());
     }

@@ -36,6 +36,8 @@ public class ContainerResponseDto {
     private Integer memberCount;
     /** 현재 사용자의 권한 (ROOT/USER/null) */
     private String userAuthority;
+    /** 컨테이너가 속한 팀 ID */
+    private Integer teamId;
     
     // 선택적 필드 - 특정 응답에서만 사용
     /** 응답 메시지 (선택적) */
@@ -76,6 +78,7 @@ public class ContainerResponseDto {
                 .ownerId(ownerId)
                 .memberCount(memberCount)
                 .userAuthority(userAuthority)
+                .teamId(container.getTeam().getTeamId())
                 .build();
     }
 }
