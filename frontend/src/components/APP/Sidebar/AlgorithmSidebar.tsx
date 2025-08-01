@@ -12,6 +12,7 @@ import { setDirectoryId, setRoot, setTeamId, setTtile } from "../../../stores/pr
 import { getContainerDetail } from "../../../api/homeApi";
 import type { RootState } from "../../../stores";
 import { deleteQuestion } from "../../../api/questionApi";
+import { getCurrentMemberId } from "../../../utils/auth";
 
 interface AlgorithmSidebarProps {
   containerId: number;
@@ -40,6 +41,8 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
     directoryId: number;
     title: string;
   } | null>(null);
+  const loginId = getCurrentMemberId();
+  const [containerOwner, setContainerOwner] = useState<string>("");
 
   const normalizePath = (path: string) => path.replace(/\/+/g, "/");
   const dispatch = useDispatch();
@@ -58,10 +61,10 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
   }, [selectedId, dispatch, boxList]);
 
   useEffect(() => {
-    console.log(1);
     const fetchDirectory = async () => {
       const list = await getDirectoryList({ containerId });
       const data = await getContainerDetail(containerId);
+      setContainerOwner(data.ownerId);
       dispatch(setTeamId(data.teamId));
       const filtered = list.filter((item) => item.containerId === containerId);
 
@@ -183,7 +186,7 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
       <div className={`${styles.section} ${styles.topSection}`}>
         <h2 className={styles.heading}>Algorithm</h2>
         <div className={styles.boxArea} onContextMenu={(e) => handleContextMenu("", e)}>
-          {menuPos && (
+          {menuPos && loginId === containerOwner && (
             <ContextMenu
               x={menuPos.x}
               y={menuPos.y}
@@ -246,8 +249,11 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
               onDelete={async (id) => {
                 const item = boxList.find((b) => b.id === id);
                 if (!item) return;
-                console.log(questionId);
-                await deleteQuestion(questionId);
+                try {
+                  await deleteQuestion(questionId);
+                } catch (e) {
+                  console.error(e);
+                }
                 try {
                   await deleteDirectory({
                     directoryId: item.directoryId,
