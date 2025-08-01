@@ -48,10 +48,34 @@ public class QuestionServiceImpl implements QuestionService{
                 )).collect(Collectors.toList());
     }
 
+    /**
+     * 설명: 컨테이너 내부에 등록된 문제 조회
+     * @param containerId
+     * @return List<QuestionListDto>
+     */
     @Override
     @Transactional
     public List<QuestionListDto> containerInQuestionList(Integer containerId) {
         return questionQueryRepository.getQuestionListByContainerId(containerId);
+    }
+
+    /**
+     * 설명: 등록된 문제의 공개된 테스트케이스 리스트 반환
+     * @param questionId
+     * @return List<TestCaseListDto>
+     */
+    @Override
+    @Transactional
+    public List<TestCaseListDto> trueQuestionList(Integer questionId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 문제가 존재하지 않습니다."));
+
+        List<TestCase> allCases = testCaseRepository.findByQuestion_QuestionId(questionId);
+
+        return allCases.stream()
+                .filter(TestCase::getCaseCheck)
+                .map(tc -> new TestCaseListDto(tc.getCaseId(), tc.getCaseEx(), tc.getCaseAnswer()))
+                .toList();
     }
 
     /**
