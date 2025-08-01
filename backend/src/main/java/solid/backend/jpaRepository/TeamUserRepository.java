@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import solid.backend.entity.TeamUser;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -17,4 +18,10 @@ public interface TeamUserRepository extends JpaRepository<TeamUser, Integer> {
            "JOIN FETCH tu.team " +
            "WHERE tu.teamUserId = :id")
     Optional<TeamUser> findByIdWithFetch(@Param("id") Integer id);
+    
+    // 팀 ID로 팀 유저 목록 조회
+    List<TeamUser> findByTeam_TeamId(Integer teamId);
+    
+    // 멤버 ID로 팀 유저 목록 조회
+    List<TeamUser> findByMember_MemberId(String memberId);
 }
