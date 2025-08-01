@@ -53,10 +53,7 @@ dependencies {
 	//테스트에서 lombok 사용
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
-	
-	//Docker Java API
-	implementation 'com.github.docker-java:docker-java:3.3.6'
-	implementation 'com.github.docker-java:docker-java-transport-httpclient5:3.3.6'
+
 }
 
 clean {
