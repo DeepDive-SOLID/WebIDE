@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import lang from "../../../assets/defaultLang.json";
 import CodeEditor from "../codeEditor/CodeEditor";
 import XtermComponent from "../terminal/XtermComponent";
-import styles from "../../../styles/container.module.scss";
+import styles from "../../../styles/IdeContainer.module.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { setRestart, setRunInput, setRunOutput, setSubmitOutput } from "../../../stores/terminalSlice";
 import type { codeFileList, ContainerProp, testApi } from "../../../types/ide";

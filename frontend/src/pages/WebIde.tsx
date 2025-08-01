@@ -6,14 +6,14 @@ import ChatToast from "../components/UI/ChatToast";
 import { useState } from "react";
 
 const WebIde = () => {
-  const { containerId } = useParams<{ containerId: string }>();
+  const { chatRoomId } = useParams();
   const [showToast, setShowToast] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <div>
       <div style={{ display: "flex", flexDirection: "row", overflow: "hidden" }}>
-        <AlgorithmNav containerId={Number(containerId)} />
-        <Ide containerId={Number(containerId)}/>
+        <AlgorithmNav containerId={Number(chatRoomId)} />
+        <Ide containerId={Number(chatRoomId)} isModalOpen={isModalOpen} />
         <Chat />
         {showToast && (
           <ChatToast

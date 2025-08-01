@@ -3,10 +3,7 @@ import styles from "../../styles/Container.module.scss";
 import { FaCog, FaPlay, FaCrown, FaUser } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import type {
-  ContainerResponseDto,
-  GroupMemberResponseDto,
-} from "../../types/home";
+import type { ContainerResponseDto, GroupMemberResponseDto } from "../../types/home";
 
 interface ContainerCardProps {
   container: ContainerResponseDto;
@@ -37,7 +34,6 @@ const ContainerCard: React.FC<ContainerCardProps> = ({
   showJoinBtn,
   onJoinClick,
 }) => {
-
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -45,9 +41,7 @@ const ContainerCard: React.FC<ContainerCardProps> = ({
     <div className={styles.containerCard}>
       <div className={styles.cardHeader}>
         <span className={styles.statusDot} style={{ background: "#34C759" }} />
-        <span className={styles.containerName}>
-          {container.containerName} 컨테이너
-        </span>
+        <span className={styles.containerName}>{container.containerName} 컨테이너</span>
         <span className={styles.memberCount}>({container.memberCount})</span>
         {showSettingBtn && (
           <button className={styles.settingBtn} onClick={onSettingClick}>
@@ -55,17 +49,11 @@ const ContainerCard: React.FC<ContainerCardProps> = ({
           </button>
         )}
         {showLeaveBtn && (
-          <button
-            className={styles.leaveBtn}
-            onClick={onLeaveClick}
-            disabled={leaveLoading}
-          >
+          <button className={styles.leaveBtn} onClick={onLeaveClick} disabled={leaveLoading}>
             {leaveLoading ? "탈퇴 중..." : "탈퇴하기"}
           </button>
         )}
-        {leaveError && (
-          <div style={{ color: "red", marginTop: 8 }}>{leaveError}</div>
-        )}
+        {leaveError && <div style={{ color: "red", marginTop: 8 }}>{leaveError}</div>}
       </div>
       <div className={styles.memberList}>
         {membersLoading ? (
@@ -83,11 +71,7 @@ const ContainerCard: React.FC<ContainerCardProps> = ({
                 }}
               />
               <span className={styles.memberName}>{member.memberName}</span>
-              {member.authority === "ROOT" ? (
-                <FaCrown className={styles.crownIcon} />
-              ) : (
-                <FaUser className={styles.userIcon} />
-              )}
+              {member.authority === "ROOT" ? <FaCrown className={styles.crownIcon} /> : <FaUser className={styles.userIcon} />}
             </div>
           ))
         ) : (
@@ -95,11 +79,13 @@ const ContainerCard: React.FC<ContainerCardProps> = ({
         )}
       </div>
       {showJoinBtn && (
-        <button className={styles.joinBtn}
-                onClick={() => {
-                  onJoinClick?.();
-                  navigate(`${location.pathname}/${container.containerId}`);
-                }}
+        <button
+          className={styles.joinBtn}
+          onClick={() => {
+            onJoinClick?.();
+            // navigate(`${location.pathname}/${container.containerId}`);
+            navigate(`/container/${container.containerId}`);
+          }}
         >
           <FaPlay /> 참가하기
         </button>
