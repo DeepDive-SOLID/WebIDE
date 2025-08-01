@@ -10,8 +10,10 @@ import type { ProgressData } from "../../../types/progress";
 import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
 import { CiFileOn } from "react-icons/ci";
 import AddFileModal from "../AddFileModal";
-import { useDispatch } from "react-redux";
-import { setDirectoryId, setRoot, setTtile } from "../../../stores/problemSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { setDirectoryId, setRoot, setTeamId, setTtile } from "../../../stores/problemSlice";
+import type { RootState } from "../../../stores";
+import { deleteQuestion } from "../../../api/questionApi";
 
 interface AlgorithmSidebarProps {
   containerId: number;
@@ -46,8 +48,11 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
   const [progressData, setProgressData] = useState<ProgressData[]>([]);
   const [containerTeamId, setContainerTeamId] = useState<number | null>(null);
   const [containerName, setContainerName] = useState<string>('');
+  const selectTeamId = useSelector((state: RootState) => state.problems.teamId);
+  const questionId = useSelector((state: RootState) => state.problems.questionId);
 
   useEffect(() => {
+    console.log(boxList);
     if (!boxList?.length) return;
 
     const problems = boxList.filter((item) => item.id === selectedId);
@@ -73,8 +78,11 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
   }, [containerId]);
 
   useEffect(() => {
+    console.log(1);
     const fetchDirectory = async () => {
       let list = await getDirectoryList({ containerId });
+      const data = await getContainerDetail(containerId);
+      dispatch(setTeamId(data.teamId));
 
       if (list.length === 0 && containerTeamId !== null) {
         await createDirectory({
@@ -142,7 +150,7 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
         title,
         parentId,
         isProblem,
-        teamId: 1,
+        teamId: selectTeamId,
         directoryRoot,
       },
     ]);
@@ -237,7 +245,7 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
               onCreate={async (type) => {
                 const parent = boxList.find((b) => b.id === selectedId);
                 const directoryRoot = parent ? normalizePath(`${parent.directoryRoot}/${parent.title}`) : "/";
-                const teamId = parent?.teamId ?? boxList[0]?.teamId ?? containerTeamId ?? 1;
+                const teamId = parent?.teamId ?? boxList[0]?.teamId ?? selectTeamId ?? containerTeamId ?? 1;
                 const parentId = parent?.id ?? null;
 
                 if (type === "folder") {
@@ -246,8 +254,8 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
 
                   try {
                     const res = await createDirectory({
-                      containerId,
-                      teamId,
+                      containerId: containerId,
+                      teamId: teamId,
                       directoryName: title,
                       directoryRoot,
                       directoryId: 0,
@@ -291,7 +299,8 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
               onDelete={async (id) => {
                 const item = boxList.find((b) => b.id === id);
                 if (!item) return;
-
+                console.log(questionId);
+                await deleteQuestion(questionId);
                 try {
                   await deleteDirectory({
                     directoryId: item.directoryId,
@@ -299,6 +308,7 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
                     directoryRoot: item.directoryRoot,
                     directoryName: item.title,
                   });
+
                   remove(id);
                 } catch (err) {
                   console.error("디렉터리 삭제 실패:", err);
@@ -350,6 +360,7 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
           }}
           directoryId={selectedFolder.directoryId}
           onCreateComplete={(newFile) => {
+            const parent = boxList.find((b) => b.id === selectedId);
             const directoryRoot = parent ? normalizePath(`${parent.directoryRoot}/${parent.title}`) : "/";
             create(newFile.title, newFile.directoryId, selectedId, true, directoryRoot);
           }}

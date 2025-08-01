@@ -16,6 +16,7 @@ export interface ContainerResponseDto {
   authority: "ROOT" | "USER";
   memberCount: number;
   createdDate: string;
+  teamId:number
 }
 
 // 컨테이너 멤버 응답 DTO

@@ -7,7 +7,7 @@ import { getCurrentMemberId } from "../../utils/auth";
 interface IdeProps {
   containerId: number;
 }
-const Ide = ({ containerId }: IdeProps) => {
+const Ide = ({ containerId, modal }: IdeProps) => {
   // 로그인한 유저의 id 가져오기
   const [loginId, setLoginId] = useState<string | null>(getCurrentMemberId());
   const [activeButtonId, setActiveButtonId] = useState<string>("");
@@ -21,7 +21,7 @@ const Ide = ({ containerId }: IdeProps) => {
   }, []);
 
   return (
-    <div style={{ flex: 1, minWidth: 0, marginLeft: 80 }}>
+    <div style={{ flex: 1, minWidth: 0, marginLeft: modal ? 320 : 80 }}>
       <Header activeMember={activeButtonId} handleOnClick={handleOnClick} containerId={containerId} />
       <div
         style={{

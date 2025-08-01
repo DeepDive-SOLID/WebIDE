@@ -6,6 +6,7 @@ import { deleteMember } from "../../api/homeApi";
 import { updateContainer } from "../../api/homeApi";
 import styles from "../../styles/Modal.module.scss";
 import profileImg from "../../assets/images/profile_img.png";
+import { useDispatch } from "react-redux";
 
 interface OwnerSettingProps {
   onClose: () => void;
@@ -63,6 +64,7 @@ const OwnerSetting: React.FC<OwnerSettingProps> = ({ onClose, containerId, conta
     const fetchContainerDetail = async () => {
       try {
         const detail = await getContainerDetail(containerId);
+
         setIsPublic(detail.isPublic ?? null);
       } catch {
         setIsPublic(null);
