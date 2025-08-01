@@ -19,7 +19,7 @@ const AlgorithmNav = ({ containerId }: AlgorithmNavProps) => {
   const handleNavClick = (target: "home" | "algorithm" | "mypage") => {
     switch (target) {
       case "home":
-        navigate("/");
+        navigate("/home");
         setSidebarOpen(false);
         break;
       case "algorithm":

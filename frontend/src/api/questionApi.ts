@@ -8,7 +8,7 @@ import type {
 
 // 전체 문제 리스트 조회
 export const getQuestionList = async (): Promise<QuestionListDto[]> => {
-  const response = await axios.get("/question/list");
+  const response = await axios.get<QuestionListDto[]>("/question/list");
   return response.data;
 };
 
@@ -16,7 +16,7 @@ export const getQuestionList = async (): Promise<QuestionListDto[]> => {
 export const getQuestionListByContainerId = async (
   containerId: number
 ): Promise<QuestionListDto[]> => {
-  const response = await axios.post("/question/list_id", containerId, {   
+  const response = await axios.post<QuestionListDto[]>("/question/list_id", containerId, {   
     headers: {
       "Content-Type": "application/json",
     }})
@@ -27,19 +27,19 @@ export const getQuestionListByContainerId = async (
 export const createQuestion = async (
   dto: QuestionCreateDto
 ): Promise<string> => {
-  const response = await axios.post("/question/create", dto);
+  const response = await axios.post<string>("/question/create", dto);
   return response.data;
 };
 
 // 문제 및 테스트 케이스 수정
 export const updateQuestion = async (dto: QuestionUpdDto): Promise<string> => {
-  const response = await axios.put("/question/update", dto);
+  const response = await axios.put<string>("/question/update", dto);
   return response.data;
 };
 
 // 문제 및 테스트 케이스 삭제
 export const deleteQuestion = async (questionId: number): Promise<string> => {
-  const response = await axios.delete("/question/delete", {
+  const response = await axios.delete<string>("/question/delete", {
     data: questionId,
     headers: { "Content-Type": "text/plain" },
   });
@@ -47,7 +47,7 @@ export const deleteQuestion = async (questionId: number): Promise<string> => {
 };
 
 export const TestCaseQuestion = async (questionId: number): Promise<test[]> => {
-  const response = await axios.post("/question/trueList", questionId ,{
+  const response = await axios.post<test[]>("/question/trueList", questionId ,{
     headers: {
       "Content-Type": "application/json",
     }

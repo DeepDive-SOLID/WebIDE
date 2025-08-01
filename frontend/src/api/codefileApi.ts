@@ -8,7 +8,7 @@ import type {
 
 // 전체 코드 파일 목록 조회
 export const getCodeFileList = async (): Promise<CodeFileListDto[]> => {
-  const response = await axios.get("/CodeFile/list");
+  const response = await axios.get<CodeFileListDto[]>("/CodeFile/list");
   return response.data;
 };
 
@@ -16,7 +16,7 @@ export const getCodeFileList = async (): Promise<CodeFileListDto[]> => {
 export const getCodeFileContent = async (
   codeFileId: number
 ): Promise<string> => {
-  const response = await axios.post("/CodeFile/content", codeFileId, {
+  const response = await axios.post<string>("/CodeFile/content", codeFileId, {
     headers: { "Content-Type": "application/json" },
   });
   return response.data;
