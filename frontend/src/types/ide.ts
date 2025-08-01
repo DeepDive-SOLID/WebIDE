@@ -9,6 +9,7 @@ export interface member {
 export interface HeaderProps {
     activeMember: string | null;
     handleOnClick: (id: string) => void;
+    containerId:number
 }
 
 export interface CodeEditorProps {

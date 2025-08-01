@@ -49,10 +49,10 @@ const router = createBrowserRouter([
           { path: "shared-container", element: <SharedContainer /> },
           { path: "public-container", element: <PublicContainer /> },
 
-          { path: "all-container/:chatRoomId", element: <Chat /> },
-          { path: "my-container/:chatRoomId", element: <Chat /> },
-          { path: "shared-container/:chatRoomId", element: <Chat /> },
-          { path: "public-container/:chatRoomId", element: <Chat /> },
+          // { path: "all-container/:chatRoomId", element: <Chat /> },
+          // { path: "my-container/:chatRoomId", element: <Chat /> },
+          // { path: "shared-container/:chatRoomId", element: <Chat /> },
+          // { path: "public-container/:chatRoomId", element: <Chat /> },
         ],
       },
       {
@@ -60,11 +60,11 @@ const router = createBrowserRouter([
         element: <Mypage />,
       },
       {
-        path: "Info",
+        path: "info",
         element: <Info />,
       },
       {
-        path: "/container/:containerId",
+        path: "/container/:chatRoomId",
         element: <WebIde />,
       },
     ],

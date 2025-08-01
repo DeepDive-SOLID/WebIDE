@@ -1,25 +1,30 @@
 import { useEffect, useState } from "react";
 import styles from "../../../styles/ideHeader.module.scss";
 import type { HeaderProps, member } from "../../../types/ide";
+import { getContainerMembers } from "../../../api/homeApi";
 
-const Header = ({ activeMember, handleOnClick }: HeaderProps) => {
+const Header = ({ activeMember, handleOnClick, containerId }: HeaderProps) => {
   const [member, setMember] = useState<member[]>([]);
 
   useEffect(() => {
-    // 해당 컨테이너 유저를 가져오는 api
-    // 더미 데이터
-    setMember([
-      { id: "test", name: "테스트" },
-      { id: "2", name: "k" },
-      { id: "3", name: "p" },
-    ]);
+    console.log(containerId);
+    const fetchContainerMember = async () => {
+      try {
+        const res = await getContainerMembers(Number(containerId));
+        console.log(res);
+        setMember(res);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchContainerMember();
   }, []);
   return (
     <header className={styles.header}>
       {member.map((user) => (
-        <div key={user.id}>
-          <button onClick={() => handleOnClick(user.id)} className={`${styles.button} ${activeMember === user.id ? styles.action : ""}`}>
-            {user.name}
+        <div key={user.memberId}>
+          <button onClick={() => handleOnClick(user.memberId)} className={`${styles.button} ${activeMember === user.memberId ? styles.action : ""}`}>
+            {user.memberName}
           </button>
         </div>
       ))}

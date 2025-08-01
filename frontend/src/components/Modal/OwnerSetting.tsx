@@ -21,10 +21,7 @@ function formatActivityDate(dateStr: string) {
   const now = new Date();
 
   // 오늘 여부 판별
-  const isToday =
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate();
+  const isToday = date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
 
   const diffMs = now.getTime() - date.getTime();
   const diffMin = Math.floor(diffMs / 60000);
@@ -49,12 +46,7 @@ function formatActivityDate(dateStr: string) {
   return `${yyyy}.${mm}.${dd} (${ago})`;
 }
 
-const OwnerSetting: React.FC<OwnerSettingProps> = ({
-  onClose,
-  containerId,
-  containerName,
-  onSuccess,
-}) => {
+const OwnerSetting: React.FC<OwnerSettingProps> = ({ onClose, containerId, containerName, onSuccess }) => {
   const [members, setMembers] = useState<GroupMemberResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPublic, setIsPublic] = useState<boolean | null>(null);
@@ -111,19 +103,10 @@ const OwnerSetting: React.FC<OwnerSettingProps> = ({
       setMembers((prev) => [...prev, newMember]);
       setInviteInput("");
     } catch (e: unknown) {
-      if (
-        typeof e === "object" &&
-        e !== null &&
-        "response" in e &&
-        typeof (e as { response?: { data?: { message?: string } } })
-          .response === "object"
-      ) {
+      if (typeof e === "object" && e !== null && "response" in e && typeof (e as { response?: { data?: { message?: string } } }).response === "object") {
         const err = e as { response?: { data?: { message?: string } } };
         const backendMsg = err.response?.data?.message || "";
-        if (
-          backendMsg.includes("입력값") ||
-          backendMsg.includes("Validation")
-        ) {
+        if (backendMsg.includes("입력값") || backendMsg.includes("Validation")) {
           setInviteError("일치하는 사용자가 없습니다.");
         } else {
           setInviteError(backendMsg || "초대에 실패했습니다.");
@@ -176,22 +159,10 @@ const OwnerSetting: React.FC<OwnerSettingProps> = ({
         <div className={styles.formGroup}>
           <label>컨테이너 공개 여부</label>
           <div className={styles.buttonRow}>
-            <button
-              className={
-                isPublic === true ? styles.primaryBtn : styles.secondaryBtn
-              }
-              type="button"
-              onClick={() => setIsPublic(true)}
-            >
+            <button className={isPublic === true ? styles.primaryBtn : styles.secondaryBtn} type='button' onClick={() => setIsPublic(true)}>
               공개
             </button>
-            <button
-              className={
-                isPublic === false ? styles.primaryBtn : styles.secondaryBtn
-              }
-              type="button"
-              onClick={() => setIsPublic(false)}
-            >
+            <button className={isPublic === false ? styles.primaryBtn : styles.secondaryBtn} type='button' onClick={() => setIsPublic(false)}>
               비공개
             </button>
           </div>
@@ -201,7 +172,7 @@ const OwnerSetting: React.FC<OwnerSettingProps> = ({
           <div className={styles.buttonRow}>
             <input
               className={styles.inviteInput}
-              placeholder="초대할 아이디를 작성해주세요"
+              placeholder='초대할 아이디를 작성해주세요'
               value={inviteInput}
               onChange={(e) => setInviteInput(e.target.value)}
               onKeyDown={(e) => {
@@ -209,24 +180,15 @@ const OwnerSetting: React.FC<OwnerSettingProps> = ({
               }}
               disabled={inviteLoading}
             />
-            <button
-              className={styles.inviteBtn}
-              type="button"
-              onClick={handleInvite}
-              disabled={inviteLoading}
-            >
+            <button className={styles.inviteBtn} type='button' onClick={handleInvite} disabled={inviteLoading}>
               {inviteLoading ? "초대 중..." : "초대"}
             </button>
           </div>
-          {inviteError && (
-            <div style={{ color: "red", marginTop: 4 }}>{inviteError}</div>
-          )}
+          {inviteError && <div style={{ color: "red", marginTop: 4 }}>{inviteError}</div>}
         </div>
         <div>
           <div style={{ marginBottom: 8 }}>
-            <span className={styles.memberBadge}>
-              멤버 ({members.length}/5)
-            </span>
+            <span className={styles.memberBadge}>멤버 ({members.length}/5)</span>
           </div>
           <div className={styles.memberList}>
             {loading ? (
@@ -236,35 +198,17 @@ const OwnerSetting: React.FC<OwnerSettingProps> = ({
             ) : (
               members.map((member) => (
                 <div className={styles.memberItem} key={member.teamUserId}>
-                  <img
-                    src={profileImg}
-                    alt="user"
-                    className={styles.memberAvatar}
-                  />
+                  <img src={profileImg} alt='user' className={styles.memberAvatar} />
                   {member.memberId}
-                  <span
-                    className={`${styles.roleBadge} ${
-                      member.authority === "ROOT" ? styles.owner : styles.member
-                    }`}
-                  >
-                    {member.authority === "ROOT" ? "Owner" : "Member"}
-                  </span>
+                  <span className={`${styles.roleBadge} ${member.authority === "ROOT" ? styles.owner : styles.member}`}>{member.authority === "ROOT" ? "Owner" : "Member"}</span>
                   <span className={styles.memberActivity}>
                     {/* 활동일자: 마지막 활동일시 표시 */}
-                    {member.lastActivityDate
-                      ? `활동일자 ${formatActivityDate(
-                          member.lastActivityDate
-                        )}`
-                      : "-"}
+                    {member.lastActivityDate ? `활동일자 ${formatActivityDate(member.lastActivityDate)}` : "-"}
                   </span>
                   {/* 권한이 Member일 때만 삭제 버튼 예시 */}
                   {member.authority !== "ROOT" && (
                     <div className={styles.memberActions}>
-                      <button
-                        className={styles.removeBtn}
-                        onClick={() => handleDeleteMember(member.memberId)}
-                        disabled={deleteLoading === member.memberId}
-                      >
+                      <button className={styles.removeBtn} onClick={() => handleDeleteMember(member.memberId)} disabled={deleteLoading === member.memberId}>
                         {deleteLoading === member.memberId ? "삭제 중..." : "×"}
                       </button>
                     </div>
@@ -274,19 +218,11 @@ const OwnerSetting: React.FC<OwnerSettingProps> = ({
             )}
           </div>
         </div>
-        {deleteError && (
-          <div style={{ color: "red", marginTop: 8 }}>{deleteError}</div>
-        )}
-        <button
-          className={styles.addBtn}
-          onClick={handleUpdate}
-          disabled={updateLoading || isPublic === null}
-        >
+        {deleteError && <div style={{ color: "red", marginTop: 8 }}>{deleteError}</div>}
+        <button className={styles.addBtn} onClick={handleUpdate} disabled={updateLoading || isPublic === null}>
           {updateLoading ? "수정 중..." : "수정 완료"}
         </button>
-        {updateError && (
-          <div style={{ color: "red", marginTop: 8 }}>{updateError}</div>
-        )}
+        {updateError && <div style={{ color: "red", marginTop: 8 }}>{updateError}</div>}
       </div>
     </div>
   );

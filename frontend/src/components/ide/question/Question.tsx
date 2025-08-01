@@ -21,6 +21,7 @@ const Question = ({ containerId }: QuestionProp) => {
     const questionFetch = async () => {
       try {
         const res = await getQuestionListByContainerId(containerId);
+        console.log(res);
         const filterQuestion = res?.filter((item) => item.questionTitle === title);
         setQuestion(filterQuestion);
         dispatch(setQuestionId(filterQuestion[0]?.questionId));

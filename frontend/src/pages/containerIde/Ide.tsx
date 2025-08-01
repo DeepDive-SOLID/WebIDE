@@ -2,31 +2,27 @@ import { useEffect, useState } from "react";
 import Question from "../../components/ide/question/Question";
 import Header from "../../components/ide/header/Header";
 import Container from "../../components/ide/container/Container";
+import { getCurrentMemberId } from "../../utils/auth";
 
 interface IdeProps {
   containerId: number;
 }
 const Ide = ({ containerId }: IdeProps) => {
   // 로그인한 유저의 id 가져오기
-  const [loginId, setLoginId] = useState<string | null>("");
+  const [loginId, setLoginId] = useState<string | null>(getCurrentMemberId());
   const [activeButtonId, setActiveButtonId] = useState<string>("");
-
   // 클릭된 버튼의 ID를 인자로 받습니다.
   const handleOnClick = (id: string) => {
     setActiveButtonId(id);
   };
   useEffect(() => {
-    // 컨테이너 유저 목록을 가져오는 api
-
-    // 테스트용 더미 데이터
-    const id = "test";
-    setLoginId(id);
-    setActiveButtonId(id);
+    setLoginId(loginId);
+    setActiveButtonId(loginId);
   }, []);
 
   return (
-    <div style={{ flex: 1, minWidth: 0 }}>
-      <Header activeMember={activeButtonId} handleOnClick={handleOnClick} />
+    <div style={{ flex: 1, minWidth: 0, marginLeft: 80 }}>
+      <Header activeMember={activeButtonId} handleOnClick={handleOnClick} containerId={containerId} />
       <div
         style={{
           display: "flex",

@@ -48,11 +48,7 @@ const AlgorithmNav = ({ containerId }: AlgorithmNavProps) => {
         </div>
       </aside>
 
-      <AppSidebar
-        isOpen={sidebarOpen}
-        type="algorithm"
-        containerId={containerId}
-      />
+      <AppSidebar isOpen={sidebarOpen} type='algorithm' containerId={containerId} />
     </>
   );
 };
