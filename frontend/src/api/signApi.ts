@@ -56,6 +56,18 @@ export const signApi = {
     return res.data as string; // JWT 문자열 반환
   },
 
+  // 카카오 로그인
+  loginKakao: async (code: string): Promise<string> => {
+    const res = await signAxios.get(`/sign/kakao?code=${code}`);
+    return res.data as string;
+  },
+
+  // 구글 로그인
+  loginGoogle: async (code: string): Promise<string> => {
+    const res = await signAxios.get(`/sign/google?code=${code}`);
+    return res.data as string;
+  },
+
   // 아이디 찾기
   findId: async (signFindIdDto: SignFindIdDto): Promise<string> => {
     const res = await signAxios.post("/sign/findId", signFindIdDto);
