@@ -89,28 +89,24 @@ public class ContainerServiceImpl implements ContainerService {
                 .team(team)
                 .build();
         
-        // 컨테이너 저장 (Team도 cascade로 함께 저장됨)
-        Container savedContainer = containerRepository.save(container);
-        
-        // 저장된 Team에 생성자를 ROOT 권한으로 추가
+        // 생성자를 ROOT 권한으로 Team에 추가
         Auth rootAuth = getOrCreateAuth(AUTHORITY_ROOT, "관리자");
+        TeamUser creatorMember = createTeamUser(team, creator, rootAuth);
+        team.getTeamUsers().add(creatorMember);
         
-        TeamUser creatorMember = createTeamUser(savedContainer.getTeam(), creator, rootAuth);
-        teamUserRepository.save(creatorMember);
+        // 초대 멤버 처리 (저장 전에 처리해야 cascade로 함께 저장됨)
+        if (createDto.getInvitedMemberIds() != null && !createDto.getInvitedMemberIds().isEmpty()) {
+            validateAndAddInvitedMembers(team, createDto.getInvitedMemberIds());
+        }
         
-        // Team의 teamUsers 리스트에도 추가
-        savedContainer.getTeam().getTeamUsers().add(creatorMember);
+        // 컨테이너 저장 (Team과 모든 TeamUser들이 cascade로 함께 저장됨)
+        Container savedContainer = containerRepository.save(container);
         
         // 팀 유저가 제대로 저장되었는지 확인
         log.info("Container created with ID: {}, Team ID: {}", savedContainer.getContainerId(), savedContainer.getTeam().getTeamId());
         log.info("Team users count: {}", savedContainer.getTeam().getTeamUsers().size());
         for (TeamUser tu : savedContainer.getTeam().getTeamUsers()) {
             log.info("TeamUser - ID: {}, Member: {}, Auth: {}", tu.getTeamUserId(), tu.getMember().getMemberId(), tu.getTeamAuth().getAuthId());
-        }
-        
-        // 초대 멤버 처리
-        if (createDto.getInvitedMemberIds() != null && !createDto.getInvitedMemberIds().isEmpty()) {
-            validateAndAddInvitedMembers(team, createDto.getInvitedMemberIds());
         }
         
         return createContainerResponse(savedContainer, memberId);
