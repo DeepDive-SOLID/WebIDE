@@ -89,13 +89,24 @@ public class ContainerServiceImpl implements ContainerService {
                 .team(team)
                 .build();
         
+        // 컨테이너 저장 (Team도 cascade로 함께 저장됨)
         Container savedContainer = containerRepository.save(container);
         
-        // 생성자를 팀에 ROOT 권한으로 추가
+        // 저장된 Team에 생성자를 ROOT 권한으로 추가
         Auth rootAuth = getOrCreateAuth(AUTHORITY_ROOT, "관리자");
         
-        TeamUser creatorMember = createTeamUser(team, creator, rootAuth);
-        team.getTeamUsers().add(creatorMember);
+        TeamUser creatorMember = createTeamUser(savedContainer.getTeam(), creator, rootAuth);
+        teamUserRepository.save(creatorMember);
+        
+        // Team의 teamUsers 리스트에도 추가
+        savedContainer.getTeam().getTeamUsers().add(creatorMember);
+        
+        // 팀 유저가 제대로 저장되었는지 확인
+        log.info("Container created with ID: {}, Team ID: {}", savedContainer.getContainerId(), savedContainer.getTeam().getTeamId());
+        log.info("Team users count: {}", savedContainer.getTeam().getTeamUsers().size());
+        for (TeamUser tu : savedContainer.getTeam().getTeamUsers()) {
+            log.info("TeamUser - ID: {}, Member: {}, Auth: {}", tu.getTeamUserId(), tu.getMember().getMemberId(), tu.getTeamAuth().getAuthId());
+        }
         
         // 초대 멤버 처리
         if (createDto.getInvitedMemberIds() != null && !createDto.getInvitedMemberIds().isEmpty()) {
@@ -466,7 +477,15 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     @Transactional
     public void updateMemberActivity(Integer containerId, String memberId) {
+        log.info("Updating activity for member {} in container {}", memberId, containerId);
+        
         Container container = getContainerWithTeamOrThrow(containerId);
+        log.info("Found container with team ID: {}", container.getTeam().getTeamId());
+        log.info("Team users count: {}", container.getTeam().getTeamUsers().size());
+        
+        for (TeamUser tu : container.getTeam().getTeamUsers()) {
+            log.info("Checking TeamUser - ID: {}, Member: {}", tu.getTeamUserId(), tu.getMember().getMemberId());
+        }
         
         TeamUser teamUser = getTeamUserOrThrow(container, memberId);
         
