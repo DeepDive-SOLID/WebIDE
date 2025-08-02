@@ -9,6 +9,7 @@
     - SignUpCheckIdDto.java
     - SignUpdPwDto.java
     - SignUpDto.java
+    - SignApiDto.java
 - repository(jpa)
     - SignRepository.java
 - service(비즈니스 로직)
@@ -61,5 +62,19 @@
 [로그아웃]
 - HTTP method : POST
 - HTTP request URL : /sign/logout
+- param : request
+- return : ResponseEntity<String>
+
+[카카오 로그인]
+- HTTP method : GET
+- HTTP request URL : /sign/kakao
+- param : code
+- param : request
+- return : ResponseEntity<String>
+
+[구글 로그인]
+- HTTP method : GET
+- HTTP request URL : /sign/google
+- param : code
 - param : request
 - return : ResponseEntity<String>

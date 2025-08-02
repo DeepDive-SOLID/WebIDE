@@ -144,4 +144,50 @@ public class SignController {
         }
         return ResponseEntity.ok("로그아웃되었습니다.");
     }
+
+    /**
+     * 설명 : 카카오 로그인
+     * @param code
+     * @param request
+     * @return ResponseEntity<String>
+     */
+    @GetMapping("/kakao")
+    public ResponseEntity<String> kakaoLogin(@RequestParam("code") String code, HttpServletRequest request) {
+        try {
+            String token = signService.loginKakao(code, request);
+            return ResponseEntity.ok(token);
+        } catch (UsernameNotFoundException | BadCredentialsException e) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("LOGIN_FAIL: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("LOGIN_ERROR: 알 수 없는 오류가 발생했습니다.");
+        }
+    }
+
+    /**
+     * 설명 : 구글 로그인
+     * @param code
+     * @param request
+     * @return ResponseEntity<String>
+     */
+    @GetMapping("/google")
+    public ResponseEntity<String> googleLogin(@RequestParam("code") String code, HttpServletRequest request) {
+        try {
+            String token = signService.loginGoogle(code, request);
+            return ResponseEntity.ok(token);
+        } catch (UsernameNotFoundException | BadCredentialsException e) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("LOGIN_FAIL: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("LOGIN_ERROR: 알 수 없는 오류가 발생했습니다.");
+        }
+    }
 }

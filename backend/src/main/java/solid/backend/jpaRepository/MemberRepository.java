@@ -13,4 +13,16 @@ public interface MemberRepository extends JpaRepository<Member, String> {
      * @param email
      */
     Optional<Member> findByMemberEmail(String email);
+
+    /**
+     * 설명 : 카카오 아이디 찾기
+     * @param kakaoId
+     */
+    Optional<Member> findByKakaoId(String kakaoId);
+
+    /**
+     * 설명 : 구글 아이디 찾기
+     * @param googleId
+     */
+    Optional<Member> findByGoogleId(String googleId);
 }
