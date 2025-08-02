@@ -1,5 +1,8 @@
 import { IoHomeOutline, IoFolderOpenOutline } from "react-icons/io5";
 import { AiOutlineGlobal } from "react-icons/ai";
+import { useEffect, useState, useContext } from "react";
+import { getProfileDto } from "../../../api/mypageApi";
+import { AuthContext } from "../../../contexts/AuthContext";
 import { profile } from "../../../assets";
 import Toggle from "../../UI/Toggle";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +23,29 @@ const AppNav = ({
   sidebarType,
   setSidebarType,
 }: AppNavProps) => {
+  const authContext = useContext(AuthContext);
+  const [profileImg, setProfileImg] = useState<string>(profile);
+  const memberId = authContext?.userInfo?.memberId;
+  const isAuthLoading = authContext?.isLoading;
+
+  useEffect(() => {
+    if (isAuthLoading || !memberId) return;
+
+    const fetchProfile = async () => {
+      try {
+        const res = await getProfileDto(memberId);
+        if (res?.memberImg) {
+          setProfileImg(res.memberImg);
+        }
+      } catch (err) {
+        console.error("프로필 이미지 로딩 실패:", err);
+        setProfileImg(profile);
+      }
+    };
+
+    fetchProfile();
+  }, [memberId, isAuthLoading]);
+
   const navigate = useNavigate();
 
   const handleNavClick = (
@@ -79,7 +105,7 @@ const AppNav = ({
             <Toggle />
           </div>
           <Button
-            icon={<img src={profile} alt="profile" />}
+            icon={<img src={profileImg} alt="profile" />}
             onClick={() => handleNavClick("mypage")}
             className={styles.profileBtn}
           />
