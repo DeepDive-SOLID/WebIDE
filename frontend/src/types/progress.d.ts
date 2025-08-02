@@ -15,7 +15,20 @@ export interface ProgressData {
   averageProgress?: number;
   memberId?: string;
   memberName?: string;
+  language?: string;
 }
 
 // 진행률 응답 타입
 export type ProgressResponse = ProgressData[];
+
+// 문제별 진행률 DTO
+export interface QuestionProgressDto {
+  questionId: number;
+  questionTitle: string;
+  passedTestCases: number;
+  totalTestCases: number;
+  progressPercentage: number;
+}
+
+// 문제별 진행률 응답 타입
+export type QuestionProgressResponse = QuestionProgressDto[];

@@ -1,0 +1,36 @@
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Gradle
+backend/.gradle/
+backend/build/
+
+# Spring Boot
+backend/src/main/resources/application-secret.properties
+backend/src/main/resources/application-*.properties
+!backend/src/main/resources/application.properties
+
+# Node.js
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Package files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar

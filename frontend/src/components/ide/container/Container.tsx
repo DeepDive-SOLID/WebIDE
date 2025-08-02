@@ -5,6 +5,7 @@ import XtermComponent from "../terminal/XtermComponent";
 import styles from "../../../styles/IdeContainer.module.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { setRestart, setRunInput, setRunOutput, setSubmitOutput } from "../../../stores/terminalSlice";
+import { triggerProgressRefresh } from "../../../stores/progressSlice";
 import type { codeFileList, ContainerProp, testApi } from "../../../types/ide";
 import type { RootState } from "../../../stores";
 import TestResult from "../terminal/TestResult";
@@ -152,6 +153,8 @@ const Container = ({ activeMember }: ContainerProp) => {
     try {
       const result = await DockerTest({ memberId: activeMember, codeFileId: id, questionId: questionId });
       setTestCase(result);
+      // 테스트 후 진행률 업데이트 트리거
+      dispatch(triggerProgressRefresh());
     } catch (e) {
       console.error(e);
     }
@@ -162,6 +165,8 @@ const Container = ({ activeMember }: ContainerProp) => {
     try {
       const result = await DockerRun({ memberId: activeMember, codeFileId: id, questionId: questionId });
       dispatch(setSubmitOutput(result.isCorrect ? "성공" : "실패"));
+      // 제출 후 진행률 업데이트 트리거
+      dispatch(triggerProgressRefresh());
     } catch (e) {
       console.error(e);
     }
