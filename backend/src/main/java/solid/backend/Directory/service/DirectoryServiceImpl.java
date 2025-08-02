@@ -1,6 +1,6 @@
 package solid.backend.Directory.service;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import solid.backend.Directory.dto.DirectoryDelDto;
@@ -32,6 +32,7 @@ public class DirectoryServiceImpl implements DirectoryService {
      * @return List<DirectoryDto>
      */
     @Override
+    @Transactional(readOnly = true)
     public List<DirectoryDto> getDirectoryList(DirectoryListDto directoryListDto) {
         List<Directory> directories = directoryRepository.findAllByContainer_ContainerId(directoryListDto.getContainerId());
 
@@ -41,7 +42,8 @@ public class DirectoryServiceImpl implements DirectoryService {
                         d.getContainer().getContainerId(),
                         d.getTeam().getTeamId(),
                         d.getDirectoryName(),
-                        d.getDirectoryRoot()
+                        d.getDirectoryRoot(),
+                        !d.getQuestions().isEmpty()  // hasQuestion: Question이 하나라도 있으면 true
                 ))
                 .collect(Collectors.toList());
     }
@@ -71,7 +73,19 @@ public class DirectoryServiceImpl implements DirectoryService {
             }
 
             Directory parent = parentOpt.get();
-            rootPath = parent.getDirectoryRoot() + "/" + parent.getDirectoryName();
+            // 경로 정규화: 중복 슬래시 방지
+            String parentRoot = parent.getDirectoryRoot();
+            String parentDirName = parent.getDirectoryName();
+            
+            // 루트 경로가 /로 끝나는 경우 처리
+            if (parentRoot.endsWith("/")) {
+                rootPath = parentRoot + parentDirName;
+            } else {
+                rootPath = parentRoot + "/" + parentDirName;
+            }
+            
+            // 중복 슬래시 제거
+            rootPath = rootPath.replaceAll("/+", "/");
         }
 
         Directory directory = new Directory();
@@ -87,6 +101,7 @@ public class DirectoryServiceImpl implements DirectoryService {
 
         directoryDto.setDirectoryId(saved.getDirectoryId());
         directoryDto.setDirectoryRoot(saved.getDirectoryRoot());
+        directoryDto.setHasQuestion(false); // 새로 생성된 디렉터리는 아직 문제가 없음
         return directoryDto;
     }
 
@@ -103,7 +118,8 @@ public class DirectoryServiceImpl implements DirectoryService {
         String oldName = directory.getDirectoryName();
         String newName = directoryUpdDto.getDirectoryName();
 
-        System.out.println(oldName + " -> " + newName);
+        // 로깅이 필요한 경우 SLF4J 로거 사용
+        // log.debug("Renaming directory: {} -> {}", oldName, newName);
 
         // 파일 시스템에서 디렉터리명 변경
         fileManager.renameDirectory(

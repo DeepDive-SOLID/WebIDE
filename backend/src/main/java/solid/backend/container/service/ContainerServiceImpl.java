@@ -22,6 +22,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 import static solid.backend.container.constant.ContainerConstants.*;
 import solid.backend.container.dto.ContainerMemberDto;
+import solid.backend.jpaRepository.DirectoryRepository;
+import solid.backend.jpaRepository.QuestionRepository;
+import solid.backend.jpaRepository.ProgressRepository;
+import solid.backend.jpaRepository.ResultRepository;
+import solid.backend.jpaRepository.CodeFileRepository;
+import solid.backend.jpaRepository.TestCaseRepository;
 
 /**
  * 컨테이너 서비스 구현체
@@ -41,6 +47,18 @@ public class ContainerServiceImpl implements ContainerService {
     private final AuthRepository authRepository;
     /** 팀 멤버 데이터 접근 레포지토리 */
     private final TeamUserRepository teamUserRepository;
+    /** 디렉토리 데이터 접근 레포지토리 */
+    private final DirectoryRepository directoryRepository;
+    /** 문제 데이터 접근 레포지토리 */
+    private final QuestionRepository questionRepository;
+    /** 진행률 데이터 접근 레포지토리 */
+    private final ProgressRepository progressRepository;
+    /** 결과 데이터 접근 레포지토리 */
+    private final ResultRepository resultRepository;
+    /** 코드파일 데이터 접근 레포지토리 */
+    private final CodeFileRepository codeFileRepository;
+    /** 테스트케이스 데이터 접근 레포지토리 */
+    private final TestCaseRepository testCaseRepository;
     
     /**
      * 컨테이너 생성
@@ -71,17 +89,24 @@ public class ContainerServiceImpl implements ContainerService {
                 .team(team)
                 .build();
         
-        Container savedContainer = containerRepository.save(container);
-        
-        // 생성자를 팀에 ROOT 권한으로 추가
+        // 생성자를 ROOT 권한으로 Team에 추가
         Auth rootAuth = getOrCreateAuth(AUTHORITY_ROOT, "관리자");
-        
         TeamUser creatorMember = createTeamUser(team, creator, rootAuth);
         team.getTeamUsers().add(creatorMember);
         
-        // 초대 멤버 처리
+        // 초대 멤버 처리 (저장 전에 처리해야 cascade로 함께 저장됨)
         if (createDto.getInvitedMemberIds() != null && !createDto.getInvitedMemberIds().isEmpty()) {
             validateAndAddInvitedMembers(team, createDto.getInvitedMemberIds());
+        }
+        
+        // 컨테이너 저장 (Team과 모든 TeamUser들이 cascade로 함께 저장됨)
+        Container savedContainer = containerRepository.save(container);
+        
+        // 팀 유저가 제대로 저장되었는지 확인
+        log.info("Container created with ID: {}, Team ID: {}", savedContainer.getContainerId(), savedContainer.getTeam().getTeamId());
+        log.info("Team users count: {}", savedContainer.getTeam().getTeamUsers().size());
+        for (TeamUser tu : savedContainer.getTeam().getTeamUsers()) {
+            log.info("TeamUser - ID: {}, Member: {}, Auth: {}", tu.getTeamUserId(), tu.getMember().getMemberId(), tu.getTeamAuth().getAuthId());
         }
         
         return createContainerResponse(savedContainer, memberId);
@@ -177,7 +202,68 @@ public class ContainerServiceImpl implements ContainerService {
         // ROOT 권한 확인
         requireRootAuthority(container, memberId, "컨테이너 삭제는 관리자만 가능합니다.");
         
+        log.info("Starting deletion of container {} and all related data", containerId);
+        
+        // 1. 먼저 컨테이너 내의 모든 디렉토리 조회
+        List<Directory> directories = directoryRepository.findByContainer(container);
+        
+        if (!directories.isEmpty()) {
+            log.info("Found {} directories to delete for container {}", directories.size(), containerId);
+            
+            // 2. 각 디렉토리에 대해 관련 데이터 삭제
+            for (Directory directory : directories) {
+                Integer directoryId = directory.getDirectoryId();
+                
+                // 2-1. 디렉토리의 Progress 삭제
+                int progressCount = progressRepository.deleteByDirectory(directory);
+                if (progressCount > 0) {
+                    log.info("Deleted {} progress records for directory {}", progressCount, directoryId);
+                }
+                
+                // 2-2. 디렉토리의 CodeFile 삭제
+                int codeFileCount = codeFileRepository.deleteByDirectory(directory);
+                if (codeFileCount > 0) {
+                    log.info("Deleted {} code files for directory {}", codeFileCount, directoryId);
+                }
+            }
+            
+            // 3. 컨테이너의 모든 Question 조회
+            List<Question> questions = questionRepository.findByContainer(container);
+            
+            if (!questions.isEmpty()) {
+                log.info("Found {} questions to delete for container {}", questions.size(), containerId);
+                
+                // 4. 각 Question에 대해 관련 데이터 삭제
+                for (Question question : questions) {
+                    Integer questionId = question.getQuestionId();
+                    
+                    // 4-1. Question의 Result 삭제
+                    int resultCount = resultRepository.deleteByQuestion(question);
+                    if (resultCount > 0) {
+                        log.info("Deleted {} results for question {}", resultCount, questionId);
+                    }
+                    
+                    // 4-2. Question의 TestCase 삭제
+                    int testCaseCount = testCaseRepository.deleteByQuestion(question);
+                    if (testCaseCount > 0) {
+                        log.info("Deleted {} test cases for question {}", testCaseCount, questionId);
+                    }
+                }
+                
+                // 5. 모든 Question 삭제
+                questionRepository.deleteAll(questions);
+                log.info("Deleted all questions for container {}", containerId);
+            }
+            
+            // 6. 모든 Directory 삭제
+            directoryRepository.deleteAll(directories);
+            log.info("Deleted all directories for container {}", containerId);
+        }
+        
+        // 7. TeamUser 관계는 CASCADE로 자동 삭제됨
+        // 8. 최종적으로 Container 삭제
         containerRepository.delete(container);
+        log.info("Successfully deleted container {} and all related data", containerId);
     }
     
     /**
@@ -387,7 +473,15 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     @Transactional
     public void updateMemberActivity(Integer containerId, String memberId) {
+        log.info("Updating activity for member {} in container {}", memberId, containerId);
+        
         Container container = getContainerWithTeamOrThrow(containerId);
+        log.info("Found container with team ID: {}", container.getTeam().getTeamId());
+        log.info("Team users count: {}", container.getTeam().getTeamUsers().size());
+        
+        for (TeamUser tu : container.getTeam().getTeamUsers()) {
+            log.info("Checking TeamUser - ID: {}, Member: {}", tu.getTeamUserId(), tu.getMember().getMemberId());
+        }
         
         TeamUser teamUser = getTeamUserOrThrow(container, memberId);
         

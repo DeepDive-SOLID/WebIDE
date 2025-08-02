@@ -35,7 +35,7 @@ public class DockerController {
     @ResponseBody
     @PostMapping("/test")
     public ResponseEntity<ExecutionTestDto> runTestCodeFile(@RequestBody DockerRunDto dockerRunDto) {
-        return ResponseEntity.ok(dockerService.runTestCodeFile(dockerRunDto.getCodeFileId(), dockerRunDto.getQuestionId()));
+        return ResponseEntity.ok(dockerService.runTestCodeFile(dockerRunDto.getMemberId(), dockerRunDto.getCodeFileId(), dockerRunDto.getQuestionId()));
     }
 
     /**

@@ -87,10 +87,21 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
     }
 
     try {
-      // 문제 생성 API 호출
-      await createQuestion({
-        containerId: containerId, // 실제 값으로 교체
+      // 1. 먼저 Directory 생성
+      const res = await createDirectory({
+        containerId: containerId,
         teamId: teamId,
+        directoryName: data.questionTitle,
+        directoryRoot,
+        directoryId: 0,
+      });
+      console.log('Directory created:', res);
+
+      // 2. 생성된 directoryId를 사용하여 Question 생성
+      await createQuestion({
+        containerId: containerId,
+        teamId: teamId,
+        directoryId: res?.directoryId, // Directory ID 전달
         questionTitle: data.questionTitle,
         questionDescription: "",
         question: data.problem,
@@ -106,15 +117,8 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
       });
 
       alert("문제 생성 성공!");
-
-      const res = await createDirectory({
-        containerId: containerId,
-        teamId: teamId,
-        directoryName: data.questionTitle,
-        directoryRoot,
-        directoryId: 0,
-      });
-      console.log(res);
+      
+      // 3. UI 업데이트
       create(data.questionTitle, res?.directoryId, select, true, directoryRoot);
 
       onClose();

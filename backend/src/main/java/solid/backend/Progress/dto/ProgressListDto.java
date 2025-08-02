@@ -13,9 +13,10 @@ public class ProgressListDto {
     private Integer teamUserId;
     private Integer progressComplete;
     
-    // 컨테이너 레벨 필드 추가
-    private Integer directoryCount;
-    private Integer averageProgress;
+    // 팀원 현황용 추가 필드
     private String memberId;
     private String memberName;
+    private Integer directoryCount;
+    private Integer averageProgress;
+    private String language; // 가장 최근 사용한 언어
 }

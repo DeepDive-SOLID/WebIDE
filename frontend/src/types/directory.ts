@@ -11,6 +11,7 @@ export interface DirectoryDto {
   teamId: number;
   directoryName: string;
   directoryRoot: string;
+  hasQuestion?: boolean;
 }
 
 export interface DirectoryListDto {

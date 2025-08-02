@@ -19,6 +19,10 @@ public class Progress {
     @Comment("진행률")
     private Integer progressComplete;
 
+    @Column(name = "language", length = 20)
+    @Comment("프로그래밍 언어")
+    private String language;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "directory_id")
     private Directory directory;

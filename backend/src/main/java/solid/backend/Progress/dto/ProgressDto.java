@@ -11,4 +11,5 @@ public class ProgressDto {
     private Integer directoryId;
     private Integer teamUserId;
     private Integer progressComplete;
+    private String language;
 }

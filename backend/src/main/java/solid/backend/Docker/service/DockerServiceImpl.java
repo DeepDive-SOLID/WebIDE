@@ -83,8 +83,6 @@ public class DockerServiceImpl implements DockerService {
                     pass
             ));
         }
-        System.out.println(count);
-        System.out.println(testcases.size());
         int progress = (int) ((double) count / testcases.size() * 100.0);
 
         Result result = new Result();
@@ -98,33 +96,31 @@ public class DockerServiceImpl implements DockerService {
 
         resultRepository.save(result);
 
-        // Progress 업데이트
-        if (allPass) {
-            // 현재 디렉토리 찾기
-            Directory directory = codeFile.getDirectory();
-            if (directory != null) {
-                // TeamUser 찾기
-                TeamUser teamUser = teamUserRepository.findByMember_MemberIdAndTeam_TeamId(
-                    memberId, 
-                    directory.getTeam().getTeamId()
-                ).orElse(null);
+        // Progress 업데이트 (부분 점수 반영)
+        Directory directory = codeFile.getDirectory();
+        if (directory != null) {
+            // TeamUser 찾기
+            TeamUser teamUser = teamUserRepository.findByMember_MemberIdAndTeam_TeamId(
+                memberId, 
+                directory.getTeam().getTeamId()
+            ).orElse(null);
+            
+            if (teamUser != null) {
+                // Progress 찾기 또는 생성 (언어별로)
+                Progress progressEntity = progressRepository.findByDirectoryAndTeamUserAndLanguage(
+                    directory, teamUser, language
+                ).orElseGet(() -> {
+                    Progress newProgress = new Progress();
+                    newProgress.setDirectory(directory);
+                    newProgress.setTeamUser(teamUser);
+                    newProgress.setLanguage(language);
+                    newProgress.setProgressComplete(0);
+                    return newProgress;
+                });
                 
-                if (teamUser != null) {
-                    // Progress 찾기 또는 생성
-                    Progress progressEntity = progressRepository.findByDirectoryAndTeamUser(
-                        directory, teamUser
-                    ).orElseGet(() -> {
-                        Progress newProgress = new Progress();
-                        newProgress.setDirectory(directory);
-                        newProgress.setTeamUser(teamUser);
-                        newProgress.setProgressComplete(0);
-                        return newProgress;
-                    });
-                    
-                    // 진행률 업데이트 (100으로 설정)
-                    progressEntity.setProgressComplete(100);
-                    progressRepository.save(progressEntity);
-                }
+                // 진행률 업데이트 (부분 점수 반영)
+                progressEntity.setProgressComplete(progress); // 계산된 퍼센트 저장
+                progressRepository.save(progressEntity);
             }
         }
 
@@ -140,13 +136,14 @@ public class DockerServiceImpl implements DockerService {
 
     /**
      * 설명: 테스트 실행
+     * @param memberId
      * @param codeFileId
      * @param questionId
      * @return ExecutionTestDto
      */
     @Override
     @Transactional
-    public ExecutionTestDto runTestCodeFile(Integer codeFileId, Integer questionId) {
+    public ExecutionTestDto runTestCodeFile(String memberId, Integer codeFileId, Integer questionId) {
         CodeFile codeFile = codeFileRepository.findById(String.valueOf(codeFileId))
                 .orElseThrow(() -> new IllegalArgumentException("코드 파일이 존재하지 않습니다."));
         Question question = questionRepository.findById(questionId)
@@ -159,10 +156,13 @@ public class DockerServiceImpl implements DockerService {
 
         List<TestcaseResultDto> testcaseResults = new ArrayList<>();
         boolean allPass = true;
+        int passCount = 0;
+        int totalCount = 0;
         long beforeUsedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 
         for (TestCase testcase : testcases) {
             if (!Boolean.TRUE.equals(testcase.getCaseCheck())) continue;
+            totalCount++;
 
             String[] command = dockerRun.buildDockerCommand(filePath, extension, testcase.getCaseEx(), question.getQuestionMem());
 
@@ -180,6 +180,7 @@ public class DockerServiceImpl implements DockerService {
             if((Math.round(execTime * 100.0) / 100.0) > testcase.getQuestion().getQuestionTime()) pass = false;
             if(memUsedMb > testcase.getQuestion().getQuestionMem()) pass = false;
 
+            if (pass) passCount++;
             allPass &= pass;
 
             testcaseResults.add(new TestcaseResultDto(
@@ -190,6 +191,37 @@ public class DockerServiceImpl implements DockerService {
                     output,
                     pass
             ));
+        }
+
+        // 테스트 실행 시에도 진행률 업데이트 (테스트로 보이는 케이스만 계산)
+        Directory directory = codeFile.getDirectory();
+        if (directory != null && totalCount > 0) {
+            TeamUser teamUser = teamUserRepository.findByMember_MemberIdAndTeam_TeamId(
+                memberId, 
+                directory.getTeam().getTeamId()
+            ).orElse(null);
+            
+            if (teamUser != null) {
+                int progress = (passCount * 100) / totalCount;
+                
+                Progress progressEntity = progressRepository.findByDirectoryAndTeamUserAndLanguage(
+                    directory, teamUser, language
+                ).orElseGet(() -> {
+                    Progress newProgress = new Progress();
+                    newProgress.setDirectory(directory);
+                    newProgress.setTeamUser(teamUser);
+                    newProgress.setLanguage(language);
+                    newProgress.setProgressComplete(0);
+                    return newProgress;
+                });
+                
+                // 기존 진행률과 비교하여 더 높은 값으로 업데이트
+                Integer currentProgress = progressEntity.getProgressComplete();
+                if (currentProgress == null || progress > currentProgress) {
+                    progressEntity.setProgressComplete(progress);
+                    progressRepository.save(progressEntity);
+                }
+            }
         }
 
         return new ExecutionTestDto(

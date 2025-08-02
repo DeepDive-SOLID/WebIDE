@@ -48,6 +48,8 @@ public class ContainerQueryRepository {
                 .selectFrom(container)
                 .leftJoin(container.team, team).fetchJoin()
                 .leftJoin(team.teamUsers, teamUser).fetchJoin()
+                .leftJoin(teamUser.member).fetchJoin()
+                .leftJoin(teamUser.teamAuth).fetchJoin()
                 .where(container.containerId.eq(containerId))
                 .distinct()
                 .fetchOne();

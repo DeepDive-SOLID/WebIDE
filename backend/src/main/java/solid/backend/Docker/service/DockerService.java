@@ -14,10 +14,11 @@ public interface DockerService {
 
     /**
      * 설명: 테스트케이스 실행
+     * @param memberId
      * @param codeFileId
      * @param questionId
      */
-    ExecutionTestDto runTestCodeFile(Integer codeFileId, Integer questionId);
+    ExecutionTestDto runTestCodeFile(String memberId, Integer codeFileId, Integer questionId);
 
     /**
      * 설명: 사용자 입력 실행
