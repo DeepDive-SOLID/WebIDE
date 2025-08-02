@@ -55,7 +55,7 @@ public class Question {
     @JoinColumn(name = "team_id")
     private Team team;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<TestCase> testCases = new ArrayList<>();
 

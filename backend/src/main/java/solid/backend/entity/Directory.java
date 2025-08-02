@@ -35,15 +35,20 @@ public class Directory {
     @JoinColumn(name = "team_id")
     private Team team;
 
-    @OneToMany(mappedBy = "directory", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "directory", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JsonIgnore
     private List<CodeFile> codeFiles = new ArrayList<>();
 
-    @OneToMany(mappedBy = "directory", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "directory", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JsonIgnore
     private List<Code> codes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "directory", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "directory", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JsonIgnore
     private List<Progress> progresses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "directory", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JsonIgnore
+    @Comment("연결된 문제들")
+    private List<Question> questions = new ArrayList<>();
 }

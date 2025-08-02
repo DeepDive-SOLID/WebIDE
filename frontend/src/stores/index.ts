@@ -3,6 +3,7 @@ import themeReducer from "./themeSlice";
 import terminalReducer from "./terminalSlice";
 import problemReducer from "./problemSlice";
 import progressReducer from "./progressSlice";
+import languageReducer from "./languageSlice";
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     terminal: terminalReducer,
     problems: problemReducer,
     progress: progressReducer,
+    language: languageReducer,
   },
 });
 

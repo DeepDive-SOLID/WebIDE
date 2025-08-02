@@ -11,6 +11,8 @@
 - repository(jpa)
     - QuestionRepository.java
     - TestCaseRepository.java
+    - ResultRepository.java
+    - DirectoryRepository.java
 - repository(Query Dsl)
     - QuestionQueryRepository.java
 - service(비즈니스 로직)

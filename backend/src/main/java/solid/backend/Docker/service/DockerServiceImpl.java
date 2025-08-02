@@ -83,8 +83,6 @@ public class DockerServiceImpl implements DockerService {
                     pass
             ));
         }
-        System.out.println(count);
-        System.out.println(testcases.size());
         int progress = (int) ((double) count / testcases.size() * 100.0);
 
         Result result = new Result();
@@ -108,13 +106,14 @@ public class DockerServiceImpl implements DockerService {
             ).orElse(null);
             
             if (teamUser != null) {
-                // Progress 찾기 또는 생성
-                Progress progressEntity = progressRepository.findByDirectoryAndTeamUser(
-                    directory, teamUser
+                // Progress 찾기 또는 생성 (언어별로)
+                Progress progressEntity = progressRepository.findByDirectoryAndTeamUserAndLanguage(
+                    directory, teamUser, language
                 ).orElseGet(() -> {
                     Progress newProgress = new Progress();
                     newProgress.setDirectory(directory);
                     newProgress.setTeamUser(teamUser);
+                    newProgress.setLanguage(language);
                     newProgress.setProgressComplete(0);
                     return newProgress;
                 });
@@ -205,12 +204,13 @@ public class DockerServiceImpl implements DockerService {
             if (teamUser != null) {
                 int progress = (passCount * 100) / totalCount;
                 
-                Progress progressEntity = progressRepository.findByDirectoryAndTeamUser(
-                    directory, teamUser
+                Progress progressEntity = progressRepository.findByDirectoryAndTeamUserAndLanguage(
+                    directory, teamUser, language
                 ).orElseGet(() -> {
                     Progress newProgress = new Progress();
                     newProgress.setDirectory(directory);
                     newProgress.setTeamUser(teamUser);
+                    newProgress.setLanguage(language);
                     newProgress.setProgressComplete(0);
                     return newProgress;
                 });

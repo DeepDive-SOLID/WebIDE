@@ -13,4 +13,5 @@ public class DirectoryDto {
     private Integer teamId;
     private String directoryName;
     private String directoryRoot;
+    private Boolean hasQuestion;
 }

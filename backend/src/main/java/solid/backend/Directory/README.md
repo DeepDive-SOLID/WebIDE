@@ -19,7 +19,7 @@
 - HTTP method : POST
 - HTTP request URL : directory/list
 - param : directoryListDto
-- return : RList<DirectoryDto>
+- return : List<DirectoryDto>
 
 [디렉터리 생성]
 - HTTP method : POST
@@ -28,13 +28,13 @@
 - return : DirectoryDto
 
 [디렉터리 이름 변경]
-- HTTP method : POST
+- HTTP method : PUT
 - HTTP request URL : directory/rename
 - param : directoryUpdDto
 - return : ResponseEntity<String>
 
 [디렉터리 삭제]
-- HTTP method : POST
+- HTTP method : DELETE
 - HTTP request URL : directory/delete
 - param : directoryDelDto
 - return : ResponseEntity<String>

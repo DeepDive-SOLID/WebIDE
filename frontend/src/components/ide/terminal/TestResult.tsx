@@ -35,8 +35,8 @@ const TestResult = ({ isCorrect, testcaseResults }: testApi) => {
               <tr key={index} className={styles.test_body}>
                 <td className={styles.test_tr1}>{index + 1}</td>
                 <td className={styles.test_tr2}>{items.input}</td>
-                <td className={styles.test_tr3}>{items.output}</td>
-                <td className={styles.test_tr4}>{items.actual}</td>
+                <td className={styles.test_tr3}>{items.actual}</td>
+                <td className={styles.test_tr4}>{items.output}</td>
                 <td className={styles.test_tr5}>{`${items.pass.toString().toLocaleUpperCase()}`}</td>
               </tr>
             ))}

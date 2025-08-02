@@ -12,7 +12,6 @@ import solid.backend.jpaRepository.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -25,15 +24,8 @@ public class ProgressServiceImpl implements ProgressService{
     private final ResultRepository resultRepository;
     private final MemberRepository memberRepository;
     private final CodeFileRepository codeFileRepository;
+    private final ContainerRepository containerRepository;
     
-    // 문제 디렉터리 필터링을 위한 정규표현식 패턴
-    private static final Pattern EXCLUDE_PATTERN = Pattern.compile(".*(주차|week|Week|root|알고리즘|Algorithm|단원|Chapter).*");
-    private static final Pattern PROBLEM_PATTERN = Pattern.compile(
-        "^([A-Z][\\+\\-\\*\\/][A-Z]|" +      // A+B, A-B, A*B, A/B
-        "[0-9]+[_\\-\\s].*|" +               // 1_문제, 1-문제, 1 문제
-        "\\[.*\\].*|" +                      // [BOJ1000]문제
-        "[a-zA-Z]+[\\+\\-\\*\\/][a-zA-Z]+)$" // a+b, a*b 등
-    );
 
     /**
      * 설명: 디렉터리 속 진행률 조회
@@ -41,23 +33,65 @@ public class ProgressServiceImpl implements ProgressService{
      * @return List<ProgressListDto>
      */
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<ProgressListDto> getProgressList(Integer directoryId) {
-        // QueryDSL을 사용한 기존 방식 사용
-        List<ProgressListDto> progressList = progressQueryRepository.getProgressListByDirectoryId(directoryId);
-        
-        // language 필드는 여기서 채워줌
         Directory directory = directoryRepository.findById(directoryId)
                 .orElseThrow(() -> new RuntimeException("Directory not found"));
-        Integer containerId = directory.getContainer().getContainerId();
         
-        for (ProgressListDto dto : progressList) {
-            // 디렉터리별 진행률을 볼 때는 해당 디렉터리의 CodeFile에서 언어 정보 가져오기
-            String language = getLanguageForDirectoryAndMember(directoryId, dto.getMemberId());
-            dto.setLanguage(language);
+        // 해당 디렉터리의 팀 조회
+        Team team = directory.getTeam();
+        List<TeamUser> teamUsers = teamUserRepository.findByTeam_TeamId(team.getTeamId());
+        
+        List<ProgressListDto> result = new ArrayList<>();
+        
+        for (TeamUser teamUser : teamUsers) {
+            Member member = teamUser.getMember();
+            
+            // 해당 디렉터리와 팀 유저의 모든 언어별 진행률 조회
+            List<Progress> progressListByLang = progressRepository.findAllByDirectoryAndTeamUser(directory, teamUser);
+            
+            if (progressListByLang.isEmpty()) {
+                // 진행률이 없는 경우에도 멤버 정보는 표시
+                ProgressListDto dto = new ProgressListDto();
+                dto.setMemberId(member.getMemberId());
+                dto.setMemberName(member.getMemberName());
+                dto.setProgressComplete(0);
+                dto.setLanguage("N/A");
+                result.add(dto);
+            } else {
+                // 각 언어별로 별도의 DTO 생성
+                for (Progress progress : progressListByLang) {
+                    ProgressListDto dto = new ProgressListDto();
+                    dto.setMemberId(member.getMemberId());
+                    dto.setMemberName(member.getMemberName());
+                    dto.setProgressComplete(progress.getProgressComplete());
+                    
+                    // 언어 포맷팅
+                    String lang = progress.getLanguage();
+                    if (lang != null) {
+                        switch (lang.toLowerCase()) {
+                            case "javascript":
+                                dto.setLanguage("JavaScript");
+                                break;
+                            case "java":
+                                dto.setLanguage("Java");
+                                break;
+                            case "python":
+                                dto.setLanguage("Python");
+                                break;
+                            default:
+                                dto.setLanguage(lang);
+                        }
+                    } else {
+                        dto.setLanguage("N/A");
+                    }
+                    
+                    result.add(dto);
+                }
+            }
         }
         
-        return progressList;
+        return result;
     }
     
 
@@ -68,28 +102,48 @@ public class ProgressServiceImpl implements ProgressService{
     @Override
     @Transactional
     public void updateProgress(ProgressDto progressDto) {
-        // 디렉토리 ID + 팀 유저 ID 조합으로 기존 진행률 찾기
+        // 디렉토리 ID + 팀 유저 ID + 언어 조합으로 기존 진행률 찾기
         Directory directory = directoryRepository.findById(progressDto.getDirectoryId())
                 .orElseThrow(() -> new RuntimeException("Directory not found"));
 
         TeamUser teamUser = teamUserRepository.findById(progressDto.getTeamUserId())
                 .orElseThrow(() -> new RuntimeException("TeamUser not found"));
 
-        Optional<Progress> progressOptional = progressRepository.findByDirectoryAndTeamUser(directory, teamUser);
-
-
-        if (progressOptional.isPresent()) {
-            // 기존 진행률이 있으면 업데이트
-            Progress progress = progressOptional.get();
-            progress.setProgressComplete(progressDto.getProgressComplete());
-            progressRepository.save(progress);
+        String language = progressDto.getLanguage();
+        if (language == null || language.isEmpty()) {
+            // 언어가 없으면 기존 방식대로 처리
+            Optional<Progress> progressOptional = progressRepository.findByDirectoryAndTeamUser(directory, teamUser);
+            if (progressOptional.isPresent()) {
+                Progress progress = progressOptional.get();
+                progress.setProgressComplete(progressDto.getProgressComplete());
+                progressRepository.save(progress);
+            } else {
+                Progress progress = new Progress();
+                progress.setDirectory(directory);
+                progress.setTeamUser(teamUser);
+                progress.setProgressComplete(progressDto.getProgressComplete());
+                progressRepository.save(progress);
+            }
         } else {
-            // 없으면 새로 생성
-            Progress progress = new Progress();
-            progress.setDirectory(directoryRepository.findById(progressDto.getDirectoryId()).orElseThrow());
-            progress.setTeamUser(teamUserRepository.findById(progressDto.getTeamUserId()).orElseThrow());
-            progress.setProgressComplete(progressDto.getProgressComplete());
-            progressRepository.save(progress);
+            // 언어가 있으면 언어별로 처리
+            Optional<Progress> progressOptional = progressRepository.findByDirectoryAndTeamUserAndLanguage(
+                directory, teamUser, language
+            );
+
+            if (progressOptional.isPresent()) {
+                // 기존 진행률이 있으면 업데이트
+                Progress progress = progressOptional.get();
+                progress.setProgressComplete(progressDto.getProgressComplete());
+                progressRepository.save(progress);
+            } else {
+                // 없으면 새로 생성
+                Progress progress = new Progress();
+                progress.setDirectory(directory);
+                progress.setTeamUser(teamUser);
+                progress.setLanguage(language);
+                progress.setProgressComplete(progressDto.getProgressComplete());
+                progressRepository.save(progress);
+            }
         }
     }
     
@@ -99,74 +153,120 @@ public class ProgressServiceImpl implements ProgressService{
      * @return List<ProgressListDto>
      */
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<ProgressListDto> getAllMembersProgressInContainer(Integer containerId) {
-        // 컨테이너에 속한 모든 디렉터리 조회
-        List<Directory> allDirectories = directoryRepository.findAllByContainer_ContainerId(containerId);
+        // 컨테이너에 속한 모든 문제 조회
+        List<Question> questions = questionRepository.findByContainer_ContainerId(containerId);
         
-        // 해당 컨테이너의 팀 ID 가져오기 (디렉터리가 있다면 첫 번째 디렉터리의 팀 ID 사용)
-        if (allDirectories.isEmpty()) {
+        // 컨테이너 정보를 통해 팀 ID 가져오기
+        Container container = containerRepository.findById(containerId)
+                .orElseThrow(() -> new RuntimeException("Container not found"));
+        
+        Integer teamId = container.getTeam().getTeamId();
+        
+        if (teamId == null) {
             return new ArrayList<>();
         }
         
-        // 정규표현식으로 문제 디렉터리만 필터링
-        List<Directory> problemDirectories = allDirectories.stream()
-                .filter(this::isProblemDirectory)
-                .collect(Collectors.toList());
+        // Question과 연결된 Directory만 추출 (중복 제거)
+        Set<Directory> problemDirectories = questions.stream()
+                .map(Question::getDirectory)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
         
-        System.out.println("Total directories: " + allDirectories.size() + ", Problem directories: " + problemDirectories.size());
-        for (Directory dir : problemDirectories) {
-            System.out.println("Problem directory: " + dir.getDirectoryName());
-        }
-        
-        Integer teamId = allDirectories.get(0).getTeam().getTeamId();
+        // 로그는 필요시 SLF4J 로거를 사용하여 남기세요
+        // log.debug("Total questions: {}, Connected directories: {}", questions.size(), problemDirectories.size());
         
         // 팀에 속한 모든 팀 유저 조회
         List<TeamUser> teamUsers = teamUserRepository.findByTeam_TeamId(teamId);
+        
+        // 문제가 없는 경우 팀원 정보만 반환
+        if (questions.isEmpty()) {
+            List<ProgressListDto> result = new ArrayList<>();
+            for (TeamUser teamUser : teamUsers) {
+                Member member = teamUser.getMember();
+                ProgressListDto dto = new ProgressListDto();
+                dto.setMemberId(member.getMemberId());
+                dto.setMemberName(member.getMemberName());
+                dto.setDirectoryCount(0);
+                dto.setAverageProgress(0);
+                dto.setLanguage("N/A");
+                result.add(dto);
+            }
+            return result;
+        }
+        
+        // 배치 처리로 모든 진행률 데이터를 한 번에 조회
+        List<Progress> allProgressData = progressRepository
+            .findAllProgressForProblemDirectoriesInContainer(containerId);
+        
+        // 팀 유저별로 진행률 데이터 그룹화
+        Map<Integer, Map<Integer, List<Progress>>> progressByTeamUserAndDirectory = 
+            allProgressData.stream()
+                .collect(Collectors.groupingBy(
+                    p -> p.getTeamUser().getTeamUserId(),
+                    Collectors.groupingBy(p -> p.getDirectory().getDirectoryId())
+                ));
         
         List<ProgressListDto> result = new ArrayList<>();
         
         for (TeamUser teamUser : teamUsers) {
             Member member = teamUser.getMember();
+            Map<Integer, List<Progress>> userDirectoryProgress = 
+                progressByTeamUserAndDirectory.getOrDefault(teamUser.getTeamUserId(), new HashMap<>());
             
-            // 문제 디렉터리별 진행률 수집
-            List<Integer> progressList = new ArrayList<>();
-            int totalProgress = 0;
-            int problemCount = 0;
+            // 언어별로 진행률 데이터 수집
+            Map<String, List<Integer>> languageProgressMap = new HashMap<>();
+            Map<String, Integer> languageCompletedCount = new HashMap<>();
             
             for (Directory directory : problemDirectories) {
-                Optional<Progress> progress = progressRepository.findByDirectoryAndTeamUser(directory, teamUser);
-                int progressValue = 0;
-                if (progress.isPresent()) {
-                    progressValue = progress.get().getProgressComplete();
-                    progressList.add(progressValue);
-                    totalProgress += progressValue;
-                } else {
-                    progressList.add(0);
+                List<Progress> progressListByLang = userDirectoryProgress.getOrDefault(
+                    directory.getDirectoryId(), 
+                    new ArrayList<>()
+                );
+                
+                // 각 언어별로 진행률 수집
+                for (Progress progress : progressListByLang) {
+                    String lang = progress.getLanguage();
+                    if (lang == null || lang.isEmpty()) {
+                        lang = "N/A";
+                    }
+                    
+                    languageProgressMap.computeIfAbsent(lang, k -> new ArrayList<>()).add(progress.getProgressComplete());
+                    if (progress.getProgressComplete() >= 100) {
+                        languageCompletedCount.put(lang, languageCompletedCount.getOrDefault(lang, 0) + 1);
+                    }
                 }
-                System.out.println("Directory: " + directory.getDirectoryName() + 
-                                 ", Progress: " + progressValue + "%");
-                problemCount++;
             }
             
-            // 평균 진행률 계산 (문제 디렉터리만 기준)
-            int averageProgress = problemCount > 0 ? totalProgress / problemCount : 0;
-            System.out.println("Member: " + member.getMemberName() + 
-                             ", Total Progress: " + totalProgress + 
-                             ", Problem Count: " + problemCount + 
-                             ", Average: " + averageProgress + "%");
-            
-            ProgressListDto dto = new ProgressListDto();
-            dto.setMemberId(member.getMemberId());
-            dto.setMemberName(member.getMemberName());
-            dto.setDirectoryCount(problemCount); // 문제 디렉터리 수만 표시
-            dto.setAverageProgress(averageProgress);
-            
-            // 해당 멤버의 가장 최근 사용 언어 조회
-            String recentLanguage = getRecentLanguageForMember(member, containerId);
-            dto.setLanguage(recentLanguage);
-            
-            result.add(dto);
+            // 언어가 없는 경우 기본 DTO 추가
+            if (languageProgressMap.isEmpty()) {
+                ProgressListDto dto = new ProgressListDto();
+                dto.setMemberId(member.getMemberId());
+                dto.setMemberName(member.getMemberName());
+                dto.setDirectoryCount(problemDirectories.size());
+                dto.setAverageProgress(0);
+                dto.setLanguage("N/A");
+                result.add(dto);
+            } else {
+                // 각 언어별로 DTO 생성
+                for (Map.Entry<String, List<Integer>> entry : languageProgressMap.entrySet()) {
+                    String language = entry.getKey();
+                    List<Integer> progressValues = entry.getValue();
+                    
+                    // 해당 언어의 평균 진행률 계산
+                    int totalProgress = progressValues.stream().mapToInt(Integer::intValue).sum();
+                    int averageProgress = problemDirectories.size() > 0 ? totalProgress / problemDirectories.size() : 0;
+                    
+                    ProgressListDto dto = new ProgressListDto();
+                    dto.setMemberId(member.getMemberId());
+                    dto.setMemberName(member.getMemberName());
+                    dto.setDirectoryCount(languageCompletedCount.getOrDefault(language, 0));
+                    dto.setAverageProgress(averageProgress);
+                    dto.setLanguage(formatLanguageName(language));
+                    result.add(dto);
+                }
+            }
         }
         
         return result;
@@ -179,8 +279,9 @@ public class ProgressServiceImpl implements ProgressService{
         // 해당 컨테이너의 모든 문제 조회
         List<Question> questions = questionRepository.findByContainer_ContainerId(containerId);
         
-        System.out.println("Finding language for member: " + member.getMemberId() + " in container: " + containerId);
-        System.out.println("Found " + questions.size() + " questions in container");
+        // 언어 조회 로그는 필요시 SLF4J 로거 사용
+        // log.debug("Finding language for member: {} in container: {}", member.getMemberId(), containerId);
+        // log.debug("Found {} questions in container", questions.size());
         
         // 모든 Result를 수집하여 가장 최근 것 찾기
         Result mostRecentResult = null;
@@ -191,21 +292,23 @@ public class ProgressServiceImpl implements ProgressService{
             totalResults += results.size();
             
             for (Result result : results) {
-                System.out.println("Result ID: " + result.getResultId() + 
-                                 ", Language: " + result.getResultLang() + 
-                                 ", Answer: " + result.getResultAnswer());
+                // Result 로그는 필요시 SLF4J 로거 사용
+                // log.debug("Result ID: {}, Language: {}, Answer: {}",
+                //          result.getResultId(), result.getResultLang(), result.getResultAnswer());
                 if (mostRecentResult == null || result.getResultId() > mostRecentResult.getResultId()) {
                     mostRecentResult = result;
                 }
             }
         }
         
-        System.out.println("Total results found: " + totalResults);
+        // 결과 수 로그는 필요시 SLF4J 로거 사용
+        // log.debug("Total results found: {}", totalResults);
         
         // 가장 최근 결과의 언어 반환
         if (mostRecentResult != null && mostRecentResult.getResultLang() != null) {
             String lang = mostRecentResult.getResultLang();
-            System.out.println("Most recent language: " + lang);
+            // 최근 언어 로그는 필요시 SLF4J 로거 사용
+            // log.debug("Most recent language: {}", lang);
             
             // 언어명을 적절한 형식으로 변환
             switch (lang.toLowerCase()) {
@@ -220,8 +323,29 @@ public class ProgressServiceImpl implements ProgressService{
             }
         }
         
-        System.out.println("No results found, returning N/A");
+        // 결과 없음 로그는 필요시 SLF4J 로거 사용
+        // log.debug("No results found, returning N/A");
         return "N/A";
+    }
+    
+    /**
+     * 언어 이름을 적절한 형식으로 변환
+     */
+    private String formatLanguageName(String language) {
+        if (language == null || language.isEmpty() || "N/A".equals(language)) {
+            return "N/A";
+        }
+        
+        switch (language.toLowerCase()) {
+            case "javascript":
+                return "JavaScript";
+            case "java":
+                return "Java";
+            case "python":
+                return "Python";
+            default:
+                return language;
+        }
     }
     
     /**
@@ -253,7 +377,7 @@ public class ProgressServiceImpl implements ProgressService{
      * @return List<QuestionProgressDto>
      */
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<QuestionProgressDto> getQuestionProgressByMember(Integer containerId, String memberId) {
         // 1. 멤버 조회
         Member member = memberRepository.findById(memberId)
@@ -272,33 +396,32 @@ public class ProgressServiceImpl implements ProgressService{
             // 3. 각 문제의 테스트케이스 정보
             List<TestCase> testCases = question.getTestCases();
             int totalTestCases = testCases.size();
-            int passedTestCases = 0;
             
-            // 4. 해당 멤버가 통과한 테스트케이스 수 계산
-            for (TestCase testCase : testCases) {
-                // Result에서 해당 문제, 멤버, 테스트케이스의 성공 여부 확인
-                List<Result> results = resultRepository.findByQuestionAndMemberAndTestCase(
-                    question, member, testCase
-                );
+            // 4. Question에 연결된 Directory 찾기
+            Directory directory = question.getDirectory();
+            int progressPercentage = 0;
+            
+            if (directory != null) {
+                // 해당 멤버의 TeamUser 찾기
+                TeamUser teamUser = teamUserRepository.findByMember_MemberIdAndTeam_TeamId(
+                    memberId, directory.getTeam().getTeamId()
+                ).orElse(null);
                 
-                // 가장 최근 결과를 확인하여 통과 여부 판단
-                if (!results.isEmpty()) {
-                    Result latestResult = results.get(results.size() - 1);
-                    // "통과", "PASS", "AC" 등의 성공 결과인지 확인
-                    // Result 테이블에 데이터가 없어서 실제로는 작동하지 않음
-                    String answer = latestResult.getResultAnswer();
-                    if (answer != null && 
-                        (answer.contains("통과") || answer.contains("PASS") || 
-                         answer.contains("AC") || answer.contains("SUCCESS"))) {
-                        passedTestCases++;
+                if (teamUser != null) {
+                    // Progress에서 진행률 가져오기 (모든 언어 중 최고 진행률)
+                    List<Progress> progressList = progressRepository.findAllByDirectoryAndTeamUser(directory, teamUser);
+                    for (Progress progress : progressList) {
+                        if (progress.getProgressComplete() > progressPercentage) {
+                            progressPercentage = progress.getProgressComplete();
+                        }
                     }
                 }
             }
             
             // 5. 진행률 계산
+            int passedTestCases = (progressPercentage * totalTestCases) / 100;
             dto.setTotalTestCases(totalTestCases);
             dto.setPassedTestCases(passedTestCases);
-            int progressPercentage = totalTestCases > 0 ? (passedTestCases * 100 / totalTestCases) : 0;
             dto.setProgressPercentage(progressPercentage);
             
             result.add(dto);
@@ -307,28 +430,6 @@ public class ProgressServiceImpl implements ProgressService{
         return result;
     }
     
-    /**
-     * 문제 디렉터리인지 확인하는 메서드
-     */
-    private boolean isProblemDirectory(Directory directory) {
-        String directoryName = directory.getDirectoryName();
-        
-        // 제외 패턴에 매칭되면 문제 디렉터리가 아님
-        if (EXCLUDE_PATTERN.matcher(directoryName).matches()) {
-            System.out.println("Excluded directory: " + directoryName);
-            return false;
-        }
-        
-        // 문제 패턴에 매칭되거나, 특별한 패턴이 없어도 제외 패턴에 해당하지 않으면 문제로 간주
-        boolean isProblem = PROBLEM_PATTERN.matcher(directoryName).matches() || 
-               (!directoryName.contains(" ") && directoryName.length() < 20);
-        
-        if (!isProblem) {
-            System.out.println("Not a problem directory: " + directoryName);
-        }
-        
-        return isProblem;
-    }
     
     /**
      * 설명: 특정 디렉토리의 멤버 진행률 조회 (간단 버전)
@@ -337,7 +438,7 @@ public class ProgressServiceImpl implements ProgressService{
      * @return 진행률 퍼센트
      */
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Integer getMemberProgressInDirectory(Integer directoryId, String memberId) {
         Directory directory = directoryRepository.findById(directoryId)
                 .orElseThrow(() -> new RuntimeException("Directory not found"));
@@ -350,7 +451,17 @@ public class ProgressServiceImpl implements ProgressService{
             return 0;
         }
         
-        Optional<Progress> progress = progressRepository.findByDirectoryAndTeamUser(directory, teamUser);
-        return progress.map(Progress::getProgressComplete).orElse(0);
+        // 모든 언어별 진행률 조회
+        List<Progress> progressList = progressRepository.findAllByDirectoryAndTeamUser(directory, teamUser);
+        
+        // 가장 높은 진행률 반환
+        int maxProgress = 0;
+        for (Progress progress : progressList) {
+            if (progress.getProgressComplete() > maxProgress) {
+                maxProgress = progress.getProgressComplete();
+            }
+        }
+        
+        return maxProgress;
     }
 }

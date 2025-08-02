@@ -32,6 +32,8 @@ export type BoxItemType = {
   isProblem?: boolean;
   teamId?: number;
   directoryRoot: string;
+  questionId?: number;
+  hasQuestion?: boolean;
 };
 
 const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarProps) => {
@@ -47,6 +49,7 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
   } | null>(null);
   const loginId = getCurrentMemberId();
   const [containerOwner, setContainerOwner] = useState<string>("");
+  const selectedLanguage = useSelector((state: RootState) => state.language?.selectedLanguage || 'javascript');
 
   const normalizePath = (path: string) => path.replace(/\/+/g, "/");
   const dispatch = useDispatch();
@@ -64,11 +67,11 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
       /^[A-Za-z][\+\-\*\/][A-Za-z]$/,  // A+B, a+b 등
       /^[0-9]+[_\-\s].*/,               // 1_문제, 1-문제
       /^\[.*\].*/,                      // [태그]문제
+      /문제|problem|Problem/,           // "문제"라는 단어가 포함된 경우
     ];
     
-    // 패턴 매칭 또는 짧고 공백 없는 이름
-    return problemPatterns.some(pattern => pattern.test(directoryName)) || 
-           (!directoryName.includes(' ') && directoryName.length < 20);
+    // 패턴 매칭만으로 판단 (짧은 이름 조건 제거)
+    return problemPatterns.some(pattern => pattern.test(directoryName));
   };
 
   const [progressData, setProgressData] = useState<ProgressData[]>([]);
@@ -81,7 +84,7 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
   const [selectedDirectoryProgress, setSelectedDirectoryProgress] = useState<ProgressData[]>([]);
   const [questionProgress, setQuestionProgress] = useState<{[key: number]: number}>({});
   const [questionMap, setQuestionMap] = useState<{[key: string]: number}>({});
-  const [directoryQuestionMap, setDirectoryQuestionMap] = useState<{[key: string]: {[key: string]: number}}>({});
+  const [directoryQuestionMap, setDirectoryQuestionMap] = useState<{[key: number]: number}>({});
 
   useEffect(() => {
     // console.log(boxList);
@@ -116,11 +119,14 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
           // console.log('Directory team progress:', data);
           // data가 배열인지 확인하고 처리
           if (Array.isArray(data)) {
+            // 언어별 진행률을 그대로 사용 (백엔드에서 이미 언어별로 구분해서 보냄)
             const formattedData = data.map((item: any) => ({
               memberId: item.memberId,
               memberName: item.memberName,
-              averageProgress: item.progressComplete || 0
+              averageProgress: item.progressComplete || 0,
+              language: item.language || 'N/A'
             }));
+            
             setSelectedDirectoryProgress(formattedData);
           } else {
             console.error('Expected array but got:', data);
@@ -178,6 +184,7 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
           parentId: parent ? `folder-${parent.directoryId}` : null,
           teamId: item.teamId,
           directoryRoot: item.directoryRoot,
+          hasQuestion: item.hasQuestion || false,
         };
       });
 
@@ -186,7 +193,7 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
       // 문제 디렉토리의 진행률만 가져오기
       if (loginId) {
         mapped.forEach(async (item) => {
-          if (isProblemDirectory(item.title)) {
+          if (item.hasQuestion) {
             try {
               const data = await getDirectoryProgress(item.directoryId, loginId);
               setDirectoryProgress(prev => ({
@@ -241,52 +248,40 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
       if (!loginId || !containerId) return;
       
       try {
+        // 1. 문제별 진행률 가져오기
         const questionProgressData = await getQuestionProgressByMember(containerId, loginId);
+        
+        // 2. 컨테이너의 전체 문제 리스트 가져오기 (directoryId 포함)
+        const questionList = await getQuestionListByContainerId(containerId);
+        
         if (questionProgressData && Array.isArray(questionProgressData)) {
           const progressMap: {[key: number]: number} = {};
           const titleMap: {[key: string]: number} = {};
-          const dirQuestionMap: {[key: string]: {[key: string]: number}} = {};
+          const dirQuestionMap: {[key: number]: number} = {};
           
-          // 먼저 boxList를 순회하여 디렉토리 구조 파악
-          const questionToDirectory: {[key: string]: string} = {};
-          
-          const findParentDirectory = (itemId: string): string => {
-            const item = boxList.find(b => b.id === itemId);
-            if (!item) return '';
-            if (!item.isProblem && item.parentId === null) {
-              // 최상위 디렉토리
-              return item.directoryId.toString();
-            }
-            if (item.parentId) {
-              return findParentDirectory(item.parentId);
-            }
-            return item.directoryId.toString();
-          };
-          
-          // 각 문제가 속한 최상위 디렉토리 찾기
-          boxList.forEach(item => {
-            if (item.isProblem) {
-              const parentDirId = findParentDirectory(item.id);
-              questionToDirectory[item.title] = parentDirId;
-            }
-          });
-          
+          // 진행률 데이터 매핑
           questionProgressData.forEach(item => {
             progressMap[item.questionId] = item.progressPercentage;
             titleMap[item.questionTitle] = item.questionId;
-            
-            // 디렉토리별 문제 매핑
-            const dirId = questionToDirectory[item.questionTitle] || 'unknown';
-            if (!dirQuestionMap[dirId]) {
-              dirQuestionMap[dirId] = {};
+          });
+          
+          // Question과 Directory 매핑 (directoryId 사용)
+          questionList.forEach(question => {
+            if (question.directoryId) {
+              dirQuestionMap[question.directoryId] = question.questionId;
+              
+              // boxList에 questionId 추가
+              const boxItem = boxList.find(item => item.directoryId === question.directoryId);
+              if (boxItem) {
+                boxItem.questionId = question.questionId;
+              }
             }
-            dirQuestionMap[dirId][item.questionTitle] = item.questionId;
           });
           
           console.log('Container ID:', containerId);
           console.log('Question Progress Data:', questionProgressData);
+          console.log('Question List:', questionList);
           console.log('Directory Question Map:', dirQuestionMap);
-          console.log('Question To Directory:', questionToDirectory);
           
           setQuestionProgress(progressMap);
           setQuestionMap(titleMap);
@@ -298,7 +293,7 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
     };
 
     fetchQuestionProgress();
-  }, [containerId, loginId, shouldRefreshProgress]);
+  }, [containerId, loginId, shouldRefreshProgress, boxList]);
 
   // 진행률 업데이트 감지 및 재조회
   useEffect(() => {
@@ -336,12 +331,14 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
               const response = await fetch(`/progress/directory/${id}`);
               const teamData = await response.json();
               if (Array.isArray(teamData)) {
+                // 언어별 진행률을 그대로 사용 (백엔드에서 이미 언어별로 구분해서 보냄)
                 const formattedData = teamData.map((item: any) => ({
                   memberId: item.memberId,
                   memberName: item.memberName,
                   averageProgress: item.progressComplete || 0,
                   language: item.language || 'N/A'
                 }));
+                
                 setSelectedDirectoryProgress(formattedData);
               }
             } catch (err) {
@@ -352,7 +349,7 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
           // 각 디렉토리의 진행률도 재조회
           if (loginId) {
             boxList.forEach(async (item) => {
-              if (isProblemDirectory(item.title)) {
+              if (item.hasQuestion) {
                 try {
                   const data = await getDirectoryProgress(item.directoryId, loginId);
                   setDirectoryProgress(prev => ({
@@ -370,44 +367,24 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
           if (loginId) {
             try {
               const questionProgressData = await getQuestionProgressByMember(containerId, loginId);
+              const questionList = await getQuestionListByContainerId(containerId);
+              
               if (questionProgressData && Array.isArray(questionProgressData)) {
                 const progressMap: {[key: number]: number} = {};
                 const titleMap: {[key: string]: number} = {};
-                const dirQuestionMap: {[key: string]: {[key: string]: number}} = {};
+                const dirQuestionMap: {[key: number]: number} = {};
                 
-                // 먼저 boxList를 순회하여 디렉토리 구조 파악
-                const questionToDirectory: {[key: string]: string} = {};
-                
-                const findParentDirectory = (itemId: string): string => {
-                  const item = boxList.find(b => b.id === itemId);
-                  if (!item) return '';
-                  if (!item.isProblem && item.parentId === null) {
-                    return item.directoryId.toString();
-                  }
-                  if (item.parentId) {
-                    return findParentDirectory(item.parentId);
-                  }
-                  return item.directoryId.toString();
-                };
-                
-                // 각 문제가 속한 최상위 디렉토리 찾기
-                boxList.forEach(item => {
-                  if (item.isProblem) {
-                    const parentDirId = findParentDirectory(item.id);
-                    questionToDirectory[item.title] = parentDirId;
-                  }
-                });
-                
+                // 진행률 데이터 매핑
                 questionProgressData.forEach(item => {
                   progressMap[item.questionId] = item.progressPercentage;
                   titleMap[item.questionTitle] = item.questionId;
-                  
-                  // 디렉토리별 문제 매핑
-                  const dirId = questionToDirectory[item.questionTitle] || 'unknown';
-                  if (!dirQuestionMap[dirId]) {
-                    dirQuestionMap[dirId] = {};
+                });
+                
+                // Question과 Directory 매핑 (directoryId 사용)
+                questionList.forEach(question => {
+                  if (question.directoryId) {
+                    dirQuestionMap[question.directoryId] = question.questionId;
                   }
-                  dirQuestionMap[dirId][item.questionTitle] = item.questionId;
                 });
                 
                 setQuestionProgress(progressMap);
@@ -444,6 +421,7 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
         isProblem,
         teamId: selectTeamId,
         directoryRoot,
+        hasQuestion: isProblem, // 문제를 추가할 때 hasQuestion도 true로 설정
       },
     ]);
 
@@ -517,42 +495,6 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
               )}
               <span className={styles.treeTitle}>
                 {item.title}
-                {!item.isProblem && isProblemDirectory(item.title) && directoryProgress[item.directoryId] !== undefined && (
-                  <span style={{ marginLeft: '8px', fontSize: '12px', color: '#666' }}>
-                    ({directoryProgress[item.directoryId]}%)
-                  </span>
-                )}
-                {item.isProblem && (() => {
-                  // 문제가 속한 최상위 디렉토리 찾기
-                  const findParentDirectory = (itemId: string): string => {
-                    const currentItem = boxList.find(b => b.id === itemId);
-                    if (!currentItem) return '';
-                    if (!currentItem.isProblem && currentItem.parentId === null) {
-                      return currentItem.directoryId.toString();
-                    }
-                    if (currentItem.parentId) {
-                      return findParentDirectory(currentItem.parentId);
-                    }
-                    return currentItem.directoryId.toString();
-                  };
-                  
-                  const parentDirId = findParentDirectory(item.id);
-                  const dirMap = directoryQuestionMap[parentDirId] || {};
-                  const mappedQuestionId = dirMap[item.title];
-                  const progress = mappedQuestionId !== undefined ? questionProgress[mappedQuestionId] : undefined;
-                  
-                  console.log(`Problem: ${item.title}, Directory: ${parentDirId}, Mapped ID: ${mappedQuestionId}, Progress: ${progress}`);
-                  
-                  return progress !== undefined ? (
-                    <span style={{ marginLeft: '8px', fontSize: '12px', color: '#666' }}>
-                      ({progress}%)
-                    </span>
-                  ) : (
-                    <span style={{ marginLeft: '8px', fontSize: '12px', color: '#666' }}>
-                      (0%)
-                    </span>
-                  );
-                })()}
               </span>
             </span>
               </div>
@@ -657,30 +599,92 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
 
         <div className={`${styles.section} ${styles.bottomSection}`}>
           <div className={styles.teamStatus}>
-            <h3>팀원 현황({selectedId ? selectedDirectoryProgress.length : progressData.length} / 5)</h3>
+            <h3>팀원 현황</h3>
             {/* 디렉토리가 선택되었을 때는 해당 디렉토리의 진행률, 아니면 전체 진행률 */}
-            {(selectedId && selectedDirectoryProgress.length > 0 ? selectedDirectoryProgress : progressData).map((member, index) => {
-              console.log(`Team member progress - Name: ${member.memberName}, Progress: ${member.averageProgress}%, Language: ${member.language}`);
-              return (
-                <Bargraph
-                    key={member.memberId || index}
-                    name={member.memberName || member.memberId || ''}
-                    language={member.language || 'N/A'}
-                    success={member.averageProgress || 0}
+            {(() => {
+              const dataToShow = selectedId && selectedDirectoryProgress.length > 0 ? selectedDirectoryProgress : progressData;
+              
+              // 먼저 모든 멤버를 그룹화
+              const memberGroups = new Map<string, ProgressData[]>();
+              dataToShow.forEach(item => {
+                const memberId = item.memberId || '';
+                if (!memberGroups.has(memberId)) {
+                  memberGroups.set(memberId, []);
+                }
+                memberGroups.get(memberId)!.push(item);
+              });
+              
+              // 각 멤버에 대해 선택된 언어의 진행률 찾기
+              const allBars: JSX.Element[] = [];
+              memberGroups.forEach((memberDataList, memberId) => {
+                // 멤버의 이름은 첫 번째 데이터에서 가져옴
+                const memberName = memberDataList[0]?.memberName || memberDataList[0]?.memberId || '';
+                
+                // 현재 선택된 언어에 해당하는 데이터 찾기
+                const selectedLangData = memberDataList.find(item => {
+                  if (!item.language || item.language === 'N/A') return true;
+                  const normalizedItemLang = item.language.toLowerCase();
+                  const normalizedSelectedLang = selectedLanguage.toLowerCase();
+                  return normalizedItemLang === normalizedSelectedLang;
+                });
+                
+                // 100% 완료한 언어들 찾기
+                const completedLanguages = memberDataList
+                  .filter(item => item.averageProgress === 100)
+                  .map(item => {
+                    // 언어 이름을 짧게 표시
+                    const lang = item.language || '';
+                    switch (lang.toLowerCase()) {
+                      case 'javascript': return 'JS';
+                      case 'java': return 'Java';
+                      case 'python': return 'Python';
+                      default: return lang;
+                    }
+                  })
+                  .filter(lang => lang); // 빈 문자열 제거
+                
+                // 진행률과 언어 결정
+                // 디렉터리를 선택했을 때는 해당 디렉터리의 진행률, 아니면 전체 평균
+                const progress = selectedId ? 
+                  (selectedLangData?.averageProgress || 0) : 
+                  (selectedLangData?.averageProgress || 0);
+                const currentLanguage = selectedLangData?.language || 'N/A';
+                
+                // 완료한 언어들을 표시할 문자열 생성
+                // 디렉터리(문제)를 선택했을 때만 언어 표시
+                const languageDisplay = selectedId ? 
+                  (completedLanguages.length > 0 ? completedLanguages.join(', ') : currentLanguage) 
+                  : 'N/A';
+                
+                console.log(`Team member progress - Name: ${memberName}, Progress: ${progress}%, Completed: ${completedLanguages.join(', ')}`);
+                
+                allBars.push(
+                  <Bargraph
+                    key={`${memberId}-${selectedLanguage}`}
+                    name={memberName}
+                    language={languageDisplay}
+                    success={progress}
                     total={100}
-                />
-              )
-            })}
-            {/* 빈 슬롯 채우기 */}
-            {[...Array(Math.max(0, 5 - (selectedId && selectedDirectoryProgress.length > 0 ? selectedDirectoryProgress.length : progressData.length)))].map((_, index) => (
-                <Bargraph
-                    key={`empty-${index}`}
+                  />
+                );
+              });
+              
+              // 빈 슬롯 채우기
+              const emptySlots = Math.max(0, 5 - allBars.length);
+              for (let i = 0; i < emptySlots; i++) {
+                allBars.push(
+                  <Bargraph
+                    key={`empty-${i}`}
                     name=''
                     language=''
                     success={0}
                     total={100}
-                />
-            ))}
+                  />
+                );
+              }
+              
+              return allBars;
+            })()}
           </div>
           <div className={styles.currentContainer}>
             <FaUsers className={styles.containerIcon} />

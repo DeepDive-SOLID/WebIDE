@@ -11,6 +11,7 @@ public class QuestionListDto {
     private Integer questionId;
     private Integer containerId;
     private Integer teamId;
+    private Integer directoryId; // 추가
     private String questionTitle;
     private String questionDescription;
     private String question;
