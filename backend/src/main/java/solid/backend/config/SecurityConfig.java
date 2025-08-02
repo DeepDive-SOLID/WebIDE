@@ -21,6 +21,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 회원가입, 로그인 허용
                         .requestMatchers("/sign/**").permitAll()
+                        .requestMatchers("/token/refresh").permitAll()
 
                         // 컨테이너 접근
                         .requestMatchers("/api/containers/**").hasRole("USER")
