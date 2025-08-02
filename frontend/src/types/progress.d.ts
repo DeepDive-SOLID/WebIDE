@@ -3,6 +3,7 @@ export interface ProgressDto {
   directoryId: number;
   teamUserId: number;
   progressComplete: number;
+  language?: string;
 }
 
 // 진행률 데이터

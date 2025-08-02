@@ -55,6 +55,11 @@ public class Question {
     @JoinColumn(name = "team_id")
     private Team team;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "directory_id")
+    @Comment("연결된 디렉토리")
+    private Directory directory;
+
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<TestCase> testCases = new ArrayList<>();
