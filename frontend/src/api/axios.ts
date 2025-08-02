@@ -44,7 +44,7 @@ api.interceptors.response.use(
 
     // 404 에러가 발생하고, 로그인/회원가입 요청이 아니고, 재발급 요청이 아니고, 아직 재시도하지 않은 경우
     if (
-      error.response?.status === 404 &&
+      error.response?.status === 403 &&
       !isLoginRequest &&
       !isRefreshRequest &&
       !error.config._retry
