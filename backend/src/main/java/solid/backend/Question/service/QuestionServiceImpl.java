@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import solid.backend.CodeFile.dto.CodeFileListDto;
 import solid.backend.Question.dto.*;
 import solid.backend.Question.repository.QuestionQueryRepository;
+import solid.backend.entity.Container;
+import solid.backend.entity.Directory;
 import solid.backend.entity.Question;
 import solid.backend.entity.TestCase;
 import solid.backend.jpaRepository.ContainerRepository;
@@ -90,10 +92,34 @@ public class QuestionServiceImpl implements QuestionService{
     @Override
     @Transactional
     public void createQuestion(QuestionCreateDto questionCreateDto) {
+        // Container 조회
+        Container container = containerRepository.findById(questionCreateDto.getContainerId())
+                .orElseThrow(() -> new IllegalArgumentException("컨테이너를 찾을 수 없습니다."));
+        
+        // Directory 조회 (directoryId가 제공된 경우)
+        final Directory directory;
+        if (questionCreateDto.getDirectoryId() != null) {
+            directory = directoryRepository.findById(questionCreateDto.getDirectoryId()).orElse(null);
+        } else {
+            directory = null;
+        }
+        
+        // 같은 컨테이너 내에서 중복된 문제 제목 체크 (디렉토리 무관)
+        List<Question> existingQuestions = questionRepository.findAll().stream()
+                .filter(q -> q.getContainer().getContainerId().equals(questionCreateDto.getContainerId()))
+                .filter(q -> q.getQuestionTitle().equals(questionCreateDto.getQuestionTitle()))
+                .toList();
+        
+        if (!existingQuestions.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "이미 동일한 제목의 문제가 존재합니다: " + questionCreateDto.getQuestionTitle()
+            );
+        }
+        
         // Question 테이블 데이터 저장
         Question question = new Question();
 
-        question.setContainer(containerRepository.findById(questionCreateDto.getContainerId()).orElseThrow());
+        question.setContainer(container);
         question.setTeam(teamRepository.findById(questionCreateDto.getTeamId()).orElseThrow());
         question.setQuestionTitle(questionCreateDto.getQuestionTitle());
         question.setQuestionDescription(questionCreateDto.getQuestionDescription());
@@ -102,11 +128,7 @@ public class QuestionServiceImpl implements QuestionService{
         question.setQuestionOutput(questionCreateDto.getQuestionOutput());
         question.setQuestionTime(questionCreateDto.getQuestionTime());
         question.setQuestionMem(questionCreateDto.getQuestionMem());
-        
-        // Directory와 연결 (directoryId가 제공된 경우)
-        if (questionCreateDto.getDirectoryId() != null) {
-            question.setDirectory(directoryRepository.findById(questionCreateDto.getDirectoryId()).orElse(null));
-        }
+        question.setDirectory(directory);
 
         questionRepository.save(question);
 

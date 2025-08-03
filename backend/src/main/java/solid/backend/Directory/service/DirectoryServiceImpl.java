@@ -64,6 +64,20 @@ public class DirectoryServiceImpl implements DirectoryService {
         Container container = containerRepository.findById(directoryDto.getContainerId())
                 .orElseThrow(() -> new IllegalArgumentException("컨테이너를 찾을 수 없습니다."));
         
+        // 중복 디렉터리 체크
+        Optional<Directory> existing = directoryRepository
+                .findByDirectoryRootAndDirectoryNameAndContainer(
+                        rootPath,
+                        directoryDto.getDirectoryName(),
+                        container
+                );
+        
+        if (existing.isPresent()) {
+            throw new IllegalArgumentException(
+                    "이미 같은 이름의 디렉터리가 존재합니다: " + directoryDto.getDirectoryName()
+            );
+        }
+        
         if (!"/".equals(rootPath)) {
             validateParentDirectory(rootPath, container);
         }
