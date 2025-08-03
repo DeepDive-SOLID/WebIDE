@@ -11,7 +11,9 @@ import solid.backend.Question.dto.QuestionUpdDto;
 import solid.backend.Question.dto.TestCaseListDto;
 import solid.backend.Question.service.QuestionService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -58,13 +60,19 @@ public class QuestionController {
      */
     @ResponseBody
     @PostMapping("/create")
-    public ResponseEntity<String> createQuestion(@RequestBody QuestionCreateDto questionCreateDto) {
+    public ResponseEntity<?> createQuestion(@RequestBody QuestionCreateDto questionCreateDto) {
         try {
             questionService.createQuestion(questionCreateDto);
             return ResponseEntity.ok("SUCCESS");
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("FAIL");
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "문제 생성에 실패했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
 

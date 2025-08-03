@@ -12,6 +12,7 @@ import java.util.List;
 public class QuestionCreateDto {
     private Integer containerId;
     private Integer teamId;
+    private Integer directoryId;
     private String questionTitle; // 파일명?
     private String questionDescription;
     private String question;

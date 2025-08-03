@@ -5,6 +5,8 @@ import XtermComponent from "../terminal/XtermComponent";
 import styles from "../../../styles/IdeContainer.module.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { setRestart, setRunInput, setRunOutput, setSubmitOutput } from "../../../stores/terminalSlice";
+import { triggerProgressRefresh } from "../../../stores/progressSlice";
+import { setSelectedLanguage as setReduxLanguage } from "../../../stores/languageSlice";
 import type { codeFileList, ContainerProp, testApi } from "../../../types/ide";
 import type { RootState } from "../../../stores";
 import TestResult from "../terminal/TestResult";
@@ -46,6 +48,11 @@ const Container = ({ activeMember }: ContainerProp) => {
     }
     setTestCase({});
   }, [directoryId]); // directoryId가 변경될 때만 재실행
+  
+  // 컴포넌트 마운트 시 및 언어 변경 시 Redux store 업데이트
+  useEffect(() => {
+    dispatch(setReduxLanguage(selectedLanguage));
+  }, [selectedLanguage, dispatch]);
 
   useEffect(() => {
     // codeFile이 비어있지 않을 때만 실행하도록 조건 추가
@@ -99,6 +106,7 @@ const Container = ({ activeMember }: ContainerProp) => {
   // 선택 언어 변경 이벤트
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedLanguage(e.target.value);
+    dispatch(setReduxLanguage(e.target.value)); // Redux store에 언어 업데이트
     dispatch(setSubmitOutput(""));
     dispatch(setRunInput(""));
     dispatch(setRunOutput(""));
@@ -152,6 +160,8 @@ const Container = ({ activeMember }: ContainerProp) => {
     try {
       const result = await DockerTest({ memberId: activeMember, codeFileId: id, questionId: questionId });
       setTestCase(result);
+      // 테스트 후 진행률 업데이트 트리거
+      dispatch(triggerProgressRefresh());
     } catch (e) {
       console.error(e);
     }
@@ -162,6 +172,8 @@ const Container = ({ activeMember }: ContainerProp) => {
     try {
       const result = await DockerRun({ memberId: activeMember, codeFileId: id, questionId: questionId });
       dispatch(setSubmitOutput(result.isCorrect ? "성공" : "실패"));
+      // 제출 후 진행률 업데이트 트리거
+      dispatch(triggerProgressRefresh());
     } catch (e) {
       console.error(e);
     }

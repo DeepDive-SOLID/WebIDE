@@ -2,7 +2,7 @@ import styles from "../../styles/Chat.module.scss";
 
 export interface ChatBoxProps {
   user: string;
-  message: string;
+  message: React.ReactNode;
   isUserMessage: boolean;
 }
 
