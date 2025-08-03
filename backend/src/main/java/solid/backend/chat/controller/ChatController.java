@@ -26,7 +26,7 @@ public class ChatController {
      * @param accessor WebSocket 세션의 헤더 정보
      * @param chatRoomId 그룹 ID
      */
-    @MessageMapping("/api/chatRooms/{chatRoomId}")
+    @MessageMapping("/chatRooms/{chatRoomId}")
     public ResponseEntity<ApiResponse<Void>> sendChatMessage(String content, SimpMessageHeaderAccessor accessor, @DestinationVariable("chatRoomId") Integer chatRoomId) {
         if (accessor.getSessionAttributes() == null || !accessor.getSessionAttributes().containsKey("memberId")) {
             throw new IllegalStateException("No SessionAttributes or memberId. sessionId: " + accessor.getSessionId());
