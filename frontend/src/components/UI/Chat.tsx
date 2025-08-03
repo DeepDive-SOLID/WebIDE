@@ -23,6 +23,7 @@ const Chat = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState<string>("");
   const [toastUser, setToastUser] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   // 채팅방에 입장한 경우, 이전 메시지들 불러오기
   useEffect(() => {
@@ -105,8 +106,10 @@ const Chat = () => {
   const chatListRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = chatListRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [messages]);
+    if (el && !searchTerm) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [messages, searchTerm]);
 
   // 메시지 전송 핸들러
   const handleSendMessage = () => {
@@ -125,71 +128,122 @@ const Chat = () => {
     inputRef.current?.focus();
   };
 
-  return (
-    <div className={styles.chatContainer}>
-      {showToast && (
-        <ChatToast
-          user={toastUser}
-          message={toastMessage}
-          onClose={() => setShowToast(false)}
-        />
-      )}
-      <div
-        className={`${styles.toggleButton} ${
-          !isOpen ? styles.buttonClosed : ""
-        }`}
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {isOpen ? (
-          <IoChevronForward size={24} color="#fff" />
-        ) : (
-          <IoChevronBack size={24} color="#fff" />
-        )}
-      </div>
+  const filteredMessages = messages.filter((msg) =>
+      msg.chatText?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-      <div
-        className={`${styles.chatWrapper} ${
-          isOpen ? styles.chatOpen : styles.chatClosed
-        }`}
-      >
-        <div className={styles.chatList} ref={chatListRef}>
-          {messages.map((msg, idx) => {
-            if (!msg.chatText?.trim()) return null;
-            return msg.chatType === "SYSTEM" ? (
-              <p key={idx} className={styles.systemMessage}>
-                {msg.chatText}
-              </p>
-            ) : (
-              <ChatBox
-                key={idx}
-                user={msg.memberId!}
-                message={msg.chatText}
-                isUserMessage={msg.memberId === memberId}
-              />
-            );
-          })}
+  const highlightText = (text: string, keyword: string) => {
+    if (!keyword.trim()) return text;
+
+    const regex = new RegExp(`(${keyword})`, "gi");
+    const parts = text.split(regex);
+
+    return parts.map((part, i) =>
+        part.toLowerCase() === keyword.toLowerCase() ? (
+            <mark key={i} style={{ backgroundColor: "#ffe066", padding: "0 2px" }}>
+              {part}
+            </mark>
+        ) : (
+            part
+        )
+    );
+  };
+
+  return (
+      <div className={styles.chatContainer}>
+        {showToast && (
+            <ChatToast
+                user={toastUser}
+                message={toastMessage}
+                onClose={() => setShowToast(false)}
+            />
+        )}
+        <div
+            className={`${styles.toggleButton} ${
+                !isOpen ? styles.buttonClosed : ""
+            }`}
+            onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? (
+              <IoChevronForward size={24} color="#fff"/>
+          ) : (
+              <IoChevronBack size={24} color="#fff"/>
+          )}
         </div>
-        <div className={styles.inputWrapper}>
-          <input
-            type="text"
-            placeholder="메시지를 입력하세요"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleSendMessage();
-              }
-            }}
-          />
-          <img
-            src={inputBtn_dark}
-            alt="Send"
-            className={styles.inputBtn}
-            onClick={handleSendMessage}
-          />
+        <div
+            className={`${styles.chatWrapper} ${
+                isOpen ? styles.chatOpen : styles.chatClosed
+            }`}
+        >
+          <div className={styles.searchWrapper}>
+            <div className={styles.searchInputContainer}>
+              <input
+                  type="text"
+                  placeholder="검색"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className={styles.searchInput}
+              />
+              <svg
+                  className={styles.searchIcon}
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  viewBox="0 0 16 16"
+              >
+                <path
+                    d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/>
+              </svg>
+            </div>
+          </div>
+          <div className={styles.chatList} ref={chatListRef}>
+            {filteredMessages.length === 0 ? (
+                <p className={styles.noResult}>검색 결과가 없습니다.</p>
+            ) : (
+                filteredMessages.map((msg, idx) => {
+                  if (!msg.chatText?.trim()) return null;
+
+                  const content = msg.chatType === "SYSTEM"
+                      ? msg.chatText
+                      : highlightText(msg.chatText, searchTerm);
+
+                  return msg.chatType === "SYSTEM" ? (
+                      <p key={idx} className={styles.systemMessage}>
+                        {content}
+                      </p>
+                  ) : (
+                      <ChatBox
+                          key={idx}
+                          user={msg.memberId!}
+                          message={content}
+                          isUserMessage={msg.memberId === memberId}
+                      />
+                  );
+                })
+            )}
+          </div>
+          <div className={styles.inputWrapper}>
+            <input
+                type="text"
+                placeholder="메시지를 입력하세요"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSendMessage();
+                  }
+                }}
+            />
+            <img
+                src={inputBtn_dark}
+                alt="Send"
+                className={styles.inputBtn}
+                onClick={handleSendMessage}
+            />
+          </div>
         </div>
       </div>
-    </div>
   );
 };
 
