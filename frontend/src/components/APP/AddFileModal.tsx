@@ -79,6 +79,16 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
   });
 
   const onSubmit = async (data: FormValues) => {
+    // 컨테이너 전체에서 문제명 중복 검사
+    const hasDuplicateProblem = boxList.some(item => 
+      item.title === data.questionTitle && item.isProblem
+    );
+    
+    if (hasDuplicateProblem) {
+      alert(`"${data.questionTitle}"라는 이름의 문제가 이미 존재합니다. 다른 이름을 사용해주세요.`);
+      return;
+    }
+    
     // 같은 부모 디렉토리 내에서 디렉토리명 중복 검사
     const siblingItems = boxList.filter(item => 
       item.id.startsWith('folder-') && // 디렉토리만 필터링
@@ -113,10 +123,10 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
       console.log('Directory created:', res);
 
       // 2. 생성된 directoryId를 사용하여 Question 생성
-      await createQuestion({
-        containerId: containerId,
+      const resQuestion = await createQuestion({
+        containerId: containerId, // 실제 값으로 교체
         teamId: teamId,
-        directoryId: res?.directoryId, // Directory ID 전달
+        directoryId: res?.directoryId,
         questionTitle: data.questionTitle,
         questionDescription: "",
         question: data.problem,
@@ -130,6 +140,10 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
           caseCheck: tc.checked,
         })),
       });
+      if (resQuestion === "FAIL") {
+        alert("문제 생성에 실패했습니다.");
+        return;
+      }
 
       alert("문제 생성 성공!");
       
@@ -137,9 +151,16 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
       create(data.questionTitle, res?.directoryId, select, true, directoryRoot);
 
       onClose();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert("문제 생성 실패");
+      // 백엔드에서 온 에러 메시지 확인
+      if (e.response?.data?.message) {
+        alert(e.response.data.message);
+      } else if (e.message?.includes("동일한 제목의 문제가 존재")) {
+        alert("이미 같은 디렉토리에 동일한 제목의 문제가 존재합니다.");
+      } else {
+        alert("문제 생성에 실패했습니다.");
+      }
     }
   };
 

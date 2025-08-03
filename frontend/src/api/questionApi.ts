@@ -27,8 +27,15 @@ export const getQuestionListByContainerId = async (
 export const createQuestion = async (
   dto: QuestionCreateDto
 ): Promise<string> => {
-  const response = await axios.post<string>("/question/create", dto);
-  return response.data;
+  try {
+    const response = await axios.post<string>("/question/create", dto);
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw error;
+  }
 };
 
 // 문제 및 테스트 케이스 수정
