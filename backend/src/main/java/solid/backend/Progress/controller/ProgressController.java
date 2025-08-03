@@ -26,7 +26,7 @@ public class ProgressController {
      * @return List<ProgressListDto>
      */
     @GetMapping("/directory/{directoryId}")
-    public ResponseEntity<List<ProgressListDto>> getProgressList(@PathVariable Integer directoryId) {
+    public ResponseEntity<List<ProgressListDto>> getProgressList(@PathVariable("directoryId") Integer directoryId) {
         List<ProgressListDto> progressList = progressService.getProgressList(directoryId);
         return ResponseEntity.ok(progressList);
     }
@@ -48,7 +48,7 @@ public class ProgressController {
      * @return List<ProgressListDto>
      */
     @GetMapping("/container/{containerId}")
-    public ResponseEntity<List<ProgressListDto>> getContainerProgress(@PathVariable Integer containerId) {
+    public ResponseEntity<List<ProgressListDto>> getContainerProgress(@PathVariable("containerId") Integer containerId) {
         List<ProgressListDto> progressList = progressService.getAllMembersProgressInContainer(containerId);
         return ResponseEntity.ok(progressList);
     }
@@ -61,8 +61,8 @@ public class ProgressController {
      */
     @GetMapping("/container/{containerId}/member/{memberId}/questions")
     public ResponseEntity<?> getQuestionProgressByMember(
-            @PathVariable Integer containerId,
-            @PathVariable String memberId) {
+            @PathVariable("containerId") Integer containerId,
+            @PathVariable("memberId") String memberId) {
         try {
             List<QuestionProgressDto> progressList = progressService.getQuestionProgressByMember(containerId, memberId);
             return ResponseEntity.ok(progressList);
@@ -79,8 +79,8 @@ public class ProgressController {
      */
     @GetMapping("/directory/{directoryId}/member/{memberId}")
     public ResponseEntity<?> getMemberProgressInDirectory(
-            @PathVariable Integer directoryId,
-            @PathVariable String memberId) {
+            @PathVariable("directoryId") Integer directoryId,
+            @PathVariable("memberId") String memberId) {
         try {
             Integer progressPercentage = progressService.getMemberProgressInDirectory(directoryId, memberId);
             // 프론트엔드가 기대하는 형식으로 반환
