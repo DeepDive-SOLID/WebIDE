@@ -1,14 +1,14 @@
-import axios from "axios";
 import type {
   CodeFileListDto,
   CodeFileSaveDto,
   CodeFileUpdDto,
   CodeFileDelDto,
 } from "../types/codefile";
+import api from "./axios";
 
 // 전체 코드 파일 목록 조회
 export const getCodeFileList = async (): Promise<CodeFileListDto[]> => {
-  const response = await axios.get<CodeFileListDto[]>("/CodeFile/list");
+  const response = await api.get<CodeFileListDto[]>("/CodeFile/list");
   return response.data;
 };
 
@@ -16,7 +16,7 @@ export const getCodeFileList = async (): Promise<CodeFileListDto[]> => {
 export const getCodeFileContent = async (
   codeFileId: number
 ): Promise<string> => {
-  const response = await axios.post<string>("/CodeFile/content", codeFileId, {
+  const response = await api.post<string>("/CodeFile/content", codeFileId, {
     headers: { "Content-Type": "application/json" },
   });
   return response.data;
@@ -24,15 +24,15 @@ export const getCodeFileContent = async (
 
 // 코드 파일 생성
 export const createCodeFile = async (data: CodeFileSaveDto): Promise<void> => {
-  await axios.post("/CodeFile/create", data);
+  await api.post("/CodeFile/create", data);
 };
 
 // 코드 파일 수정
 export const updateCodeFile = async (data: CodeFileUpdDto): Promise<void> => {
-  await axios.put("/CodeFile/update", data);
+  await api.put("/CodeFile/update", data);
 };
 
 // 코드 파일 삭제
 export const deleteCodeFile = async (data: CodeFileDelDto): Promise<void> => {
-  await axios.delete("/CodeFile/delete", { data });
+  await api.delete("/CodeFile/delete", { data });
 };
