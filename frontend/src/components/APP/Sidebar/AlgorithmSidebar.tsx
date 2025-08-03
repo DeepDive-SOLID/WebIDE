@@ -265,14 +265,15 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
             titleMap[item.questionTitle] = item.questionId;
           });
           
-          // Question과 Directory 매핑 (directoryId 사용)
+          // Question과 Directory 매핑 (directoryId 사용하되, hasQuestion이 true인 경우만)
           questionList.forEach(question => {
             if (question.directoryId) {
-              dirQuestionMap[question.directoryId] = question.questionId;
-              
-              // boxList에 questionId 추가
-              const boxItem = boxList.find(item => item.directoryId === question.directoryId);
+              // hasQuestion이 true인 디렉토리에만 questionId 매핑
+              const boxItem = boxList.find(item => 
+                item.directoryId === question.directoryId && item.hasQuestion === true
+              );
               if (boxItem) {
+                dirQuestionMap[question.directoryId] = question.questionId;
                 boxItem.questionId = question.questionId;
               }
             }
@@ -380,10 +381,16 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
                   titleMap[item.questionTitle] = item.questionId;
                 });
                 
-                // Question과 Directory 매핑 (directoryId 사용)
+                // Question과 Directory 매핑 (directoryId 사용하되, hasQuestion이 true인 경우만)
                 questionList.forEach(question => {
                   if (question.directoryId) {
-                    dirQuestionMap[question.directoryId] = question.questionId;
+                    // hasQuestion이 true인 디렉토리에만 questionId 매핑
+                    const boxItem = boxList.find(item => 
+                      item.directoryId === question.directoryId && item.hasQuestion === true
+                    );
+                    if (boxItem) {
+                      dirQuestionMap[question.directoryId] = question.questionId;
+                    }
                   }
                 });
                 
@@ -523,6 +530,20 @@ const AlgorithmSidebar = ({ containerId, onSelectQuestionId }: AlgorithmSidebarP
                       if (type === "folder") {
                         const title = prompt("폴더 이름을 입력하세요");
                         if (!title) return;
+
+                        // 같은 부모 디렉토리 내에서 문제명 중복 검사
+                        const siblingItems = boxList.filter(item => 
+                          item.parentId === (parent?.id ?? null)
+                        );
+                        
+                        const hasDuplicateProblem = siblingItems.some(item => 
+                          item.title === title && item.isProblem
+                        );
+                        
+                        if (hasDuplicateProblem) {
+                          alert(`"${title}"라는 이름의 문제가 이미 존재합니다. 다른 이름을 사용해주세요.`);
+                          return;
+                        }
 
                         try {
                           const res = await createDirectory({

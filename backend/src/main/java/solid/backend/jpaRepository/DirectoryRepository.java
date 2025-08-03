@@ -1,6 +1,8 @@
 package solid.backend.jpaRepository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import solid.backend.entity.Directory;
 import solid.backend.entity.Container;
@@ -14,9 +16,24 @@ public interface DirectoryRepository extends JpaRepository<Directory, Integer> {
     Optional<Directory> findByDirectoryNameAndContainer_ContainerIdAndTeam_TeamId(String directoryName, Integer containerId, Integer teamId);
     List<Directory> findByContainer(Container container);
     
-    // 부모 디렉터리의 하위 디렉터리 조회
-    List<Directory> findByParentDirectory(Directory parentDirectory);
+    // 경로와 이름으로 정확한 디렉터리 조회
+    Optional<Directory> findByDirectoryRootAndDirectoryNameAndContainer(String directoryRoot, String directoryName, Container container);
     
-    // 최상위 디렉터리(부모가 없는) 조회
-    List<Directory> findByContainerAndParentDirectoryIsNull(Container container);
+    // 특정 경로의 하위 디렉터리들 조회
+    @Query("SELECT d FROM Directory d WHERE d.container.containerId = :containerId " +
+           "AND d.directoryRoot LIKE :parentPath% ORDER BY d.directoryRoot, d.directoryName")
+    List<Directory> findChildrenByPath(@Param("containerId") Integer containerId, 
+                                      @Param("parentPath") String parentPath);
+    
+    // 특정 깊이의 디렉터리만 조회
+    @Query("SELECT d FROM Directory d WHERE d.container.containerId = :containerId " +
+           "AND LENGTH(d.directoryRoot) - LENGTH(REPLACE(d.directoryRoot, '/', '')) = :depth " +
+           "ORDER BY d.directoryRoot, d.directoryName")
+    List<Directory> findByDepth(@Param("containerId") Integer containerId, 
+                               @Param("depth") Integer depth);
+    
+    // 루트 디렉터리들만 조회
+    @Query("SELECT d FROM Directory d WHERE d.container.containerId = :containerId " +
+           "AND d.directoryRoot = '/' ORDER BY d.directoryName")
+    List<Directory> findRootDirectories(@Param("containerId") Integer containerId);
 }

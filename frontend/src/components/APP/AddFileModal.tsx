@@ -79,6 +79,21 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
   });
 
   const onSubmit = async (data: FormValues) => {
+    // 같은 부모 디렉토리 내에서 디렉토리명 중복 검사
+    const siblingItems = boxList.filter(item => 
+      item.id.startsWith('folder-') && // 디렉토리만 필터링
+      (parent ? item.directoryRoot === directoryRoot : item.directoryRoot === '/') // 같은 부모 경로
+    );
+    
+    const hasDuplicateDirectory = siblingItems.some(item => 
+      item.title === data.questionTitle && !item.isProblem
+    );
+    
+    if (hasDuplicateDirectory) {
+      alert(`"${data.questionTitle}"라는 이름의 디렉토리가 이미 존재합니다. 다른 이름을 사용해주세요.`);
+      return;
+    }
+
     const validChecked = data.testcases.filter((tc) => tc.checked && tc.input.trim() && tc.output.trim());
 
     if (validChecked.length < 3) {
