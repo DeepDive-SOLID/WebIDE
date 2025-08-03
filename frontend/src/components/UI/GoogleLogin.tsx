@@ -39,6 +39,7 @@ const GoogleLogin = () => {
             response_type: "code",
             scope: "profile email",
             access_type: "offline",
+            prompt: "consent select_account",
         });
 
         window.location.href = `${baseUrl}?${params.toString()}`;

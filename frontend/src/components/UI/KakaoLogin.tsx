@@ -31,7 +31,7 @@ const KakaoLogin = () => {
     }, [navigate]);
 
     const handleLogin = () => {
-        const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code&prompt=consent`;
+        const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code&prompt=login&force_signup=true`;
         window.location.href = KAKAO_AUTH_URL;
     };
 
