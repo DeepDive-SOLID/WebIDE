@@ -104,7 +104,9 @@ public class FileManager {
      */
     public String getFileUrl(String fileImgUrl) {
         if (fileImgUrl == null || fileImgUrl.isEmpty()) return null;
-        String processedUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/solid").toUriString();
+        String processedUrl = ServletUriComponentsBuilder.fromHttpUrl("http://15.164.250.218")
+                .path("/solid")
+                .toUriString();
         return processedUrl + fileImgUrl;
     }
 

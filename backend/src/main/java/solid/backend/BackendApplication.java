@@ -16,8 +16,11 @@ public class BackendApplication implements WebMvcConfigurer {
 
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
-		registry.addMapping("/**")  										// 모든 경로 허용
-				.allowedOrigins("http://localhost:5173", "http://localhost:5174")   // 허용할 프론트엔드 주소
+		registry.addMapping("/**")  	   // 모든 경로 허용
+				.allowedOrigins(
+						"http://15.164.250.218",
+						"http://localhost:5173",
+						"http://localhost:5174")   // 허용할 프론트엔드 주소
 				.allowedMethods("*")
 				.allowedHeaders("*")
 				.allowCredentials(true);

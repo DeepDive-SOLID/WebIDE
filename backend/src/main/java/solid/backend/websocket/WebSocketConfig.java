@@ -28,7 +28,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")                                            // 연결 주소
-                .setAllowedOrigins("http://localhost:5173", "http://localhost:5174")  // CORS 허용 출처
+                .setAllowedOrigins(
+                        "http://15.164.250.218",
+                        "http://localhost:5173",
+                        "http://localhost:5174")                                        // CORS 허용 출처
                 .withSockJS();                                                        // SockJS 지원
     }
 

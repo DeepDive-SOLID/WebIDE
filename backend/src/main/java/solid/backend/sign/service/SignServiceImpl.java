@@ -180,7 +180,7 @@ public class SignServiceImpl implements SignService {
         MultiValueMap<String, String> tokenParams = new LinkedMultiValueMap<>();
         tokenParams.add("grant_type", "authorization_code");
         tokenParams.add("client_id", signApiDto.getKakao().getClientId());
-        tokenParams.add("redirect_uri", "http://localhost:5173/login/kakao/callback");
+        tokenParams.add("redirect_uri", "http://15.164.250.218/login/kakao/callback");
         tokenParams.add("code", code);
 
         HttpEntity<MultiValueMap<String, String>> tokenRequest = new HttpEntity<>(tokenParams, tokenHeaders);
@@ -261,7 +261,7 @@ public class SignServiceImpl implements SignService {
         params.add("code", code);
         params.add("client_id", signApiDto.getGoogle().getClientId());
         params.add("client_secret", signApiDto.getGoogle().getClientSecret());
-        params.add("redirect_uri", "http://localhost:5173/login/google/callback");
+        params.add("redirect_uri", "http://15.164.250.218/login/google/callback");
         params.add("grant_type", "authorization_code");
 
         HttpEntity<MultiValueMap<String, String>> tokenRequest = new HttpEntity<>(params, headers);
