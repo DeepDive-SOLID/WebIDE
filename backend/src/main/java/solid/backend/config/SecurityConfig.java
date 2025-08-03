@@ -22,6 +22,9 @@ public class SecurityConfig {
                         // 회원가입, 로그인 허용
                         .requestMatchers("/sign/**").permitAll()
                         .requestMatchers("/token/refresh").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/topic/**").permitAll()
+                        .requestMatchers("/app/**").permitAll()
 
                         // 컨테이너 접근
                         .requestMatchers("/api/containers/**").hasRole("USER")
@@ -34,9 +37,7 @@ public class SecurityConfig {
                         // 채팅창 접근
                         .requestMatchers("/chatRooms/**").hasRole("USER")
                         .requestMatchers("/api/chatRooms/**").hasRole("USER")
-                        .requestMatchers("/topic").hasRole("USER")
-                        .requestMatchers("/app").hasRole("USER")
-                        .requestMatchers("/ws").hasRole("USER")
+
 
                         // 마이페이지 접근
                         .requestMatchers("/mypage/member/**").hasRole("USER")

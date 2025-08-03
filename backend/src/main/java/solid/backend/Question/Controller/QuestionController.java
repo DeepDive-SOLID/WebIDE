@@ -17,7 +17,7 @@ import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/question")
+@RequestMapping("/api/question")
 public class QuestionController {
     private final QuestionService questionService;
 

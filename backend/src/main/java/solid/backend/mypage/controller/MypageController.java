@@ -12,7 +12,7 @@ import solid.backend.mypage.service.MypageService;
 
 @Controller
 @AllArgsConstructor
-@RequestMapping("/mypage/member")
+@RequestMapping("/api/mypage/member")
 public class MypageController {
     
     private final MypageService mypageService;
