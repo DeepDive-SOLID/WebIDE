@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import solid.backend.entity.Directory;
 import solid.backend.entity.Progress;
 import solid.backend.entity.TeamUser;
@@ -11,6 +12,7 @@ import solid.backend.entity.TeamUser;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface ProgressRepository extends JpaRepository<Progress, Integer> {
     Optional<Progress> findByDirectoryAndTeamUser(Directory directory, TeamUser teamUser);
     
