@@ -4,7 +4,7 @@ import folderImg from "../assets/icons/folder.svg";
 import folderDarkImg from "../assets/icons/folder_darkmode.svg";
 import CreateContainer from "../components/Modal/CreateContainer";
 import OwnerSetting from "../components/Modal/OwnerSetting";
-import { getContainers, getContainerMembers, leaveContainer } from "../api/homeApi";
+import { getContainers, getContainerMembers, leaveContainer, joinContainer } from "../api/homeApi";
 import type { ContainerResponseDto, GroupMemberResponseDto } from "../types/home";
 
 import ContainerCard from "../components/Container/ContainerCard";
@@ -81,6 +81,17 @@ const AllContainer: React.FC = () => {
     }
   };
 
+  // 참가하기 버튼 핸들러
+  const handleJoin = async (containerId: number) => {
+    try {
+      await joinContainer(containerId);
+      // 참가 성공 시 컨테이너 목록 새로고침
+      fetchContainers();
+    } catch (error) {
+      console.error("컨테이너 참가 실패:", error);
+    }
+  };
+
   React.useEffect(() => {
     fetchContainers();
   }, []);
@@ -93,73 +104,74 @@ const AllContainer: React.FC = () => {
   }, [containers]);
 
   return (
-    <div className={styles.allContainerWrap}>
-      <div className={styles.header}>
-        <h2>
-          <img
-            src={isDark ? folderDarkImg : folderImg}
-            alt='folder'
-            style={{
-              width: 28,
-              height: 22,
-              verticalAlign: "middle",
-              marginRight: 8,
-              marginBottom: 3,
-            }}
-          />
-          모든 컨테이너
-        </h2>
-        <button className={styles.createBtn} onClick={() => setIsModalOpen(true)}>
-          컨테이너 생성
-        </button>
-      </div>
-      <div className={styles.containerList}>
-        {loading ? (
-          <div>로딩 중...</div>
-        ) : error ? (
-          <div style={{ color: "red" }}>{error}</div>
-        ) : containers.length === 0 ? (
-          <div className={styles.emptyContainer}>
-            <img src={emptyImg} alt='빈 컨테이너' style={{ width: 135, marginBottom: 10 }} />
-            <p>컨테이너가 없습니다!</p>
-          </div>
-        ) : (
-          containers.map((container) => {
-            const token = localStorage.getItem("accessToken");
-            const decodedToken = token ? JSON.parse(atob(token.split(".")[1])) : null;
-
-            const isSettingBtnVisible = membersMap[container.containerId]?.some((member) => member.authority === "ROOT" && member.memberId === decodedToken?.memberId);
-
-            const isLeaveBtnVisible = membersMap[container.containerId]?.some((member) => member.memberId === decodedToken?.memberId && member.authority !== "ROOT");
-
-            return (
-              <ContainerCard
-                key={container.containerId}
-                container={container}
-                members={membersMap[container.containerId]}
-                membersLoading={membersLoading[container.containerId]}
-                membersError={membersError[container.containerId]}
-                showSettingBtn={isSettingBtnVisible}
-                onSettingClick={() => {
-                  setSelectedContainerName(container.containerName);
-                  setSelectedContainerId(container.containerId);
-                  setIsSettingOpen(true);
+      <div className={styles.allContainerWrap}>
+        <div className={styles.header}>
+          <h2>
+            <img
+                src={isDark ? folderDarkImg : folderImg}
+                alt='folder'
+                style={{
+                  width: 28,
+                  height: 22,
+                  verticalAlign: "middle",
+                  marginRight: 8,
+                  marginBottom: 3,
                 }}
-                showLeaveBtn={isLeaveBtnVisible}
-                onLeaveClick={() => handleLeave(container.containerId)}
-                leaveLoading={leaveLoading === container.containerId}
-                leaveError={leaveError}
-                showJoinBtn={true}
-              />
-            );
-          })
+            />
+            모든 컨테이너
+          </h2>
+          <button className={styles.createBtn} onClick={() => setIsModalOpen(true)}>
+            컨테이너 생성
+          </button>
+        </div>
+        <div className={styles.containerList}>
+          {loading ? (
+              <div>로딩 중...</div>
+          ) : error ? (
+              <div style={{ color: "red" }}>{error}</div>
+          ) : containers.length === 0 ? (
+              <div className={styles.emptyContainer}>
+                <img src={emptyImg} alt='빈 컨테이너' style={{ width: 135, marginBottom: 10 }} />
+                <p>컨테이너가 없습니다!</p>
+              </div>
+          ) : (
+              containers.map((container) => {
+                const token = localStorage.getItem("accessToken");
+                const decodedToken = token ? JSON.parse(atob(token.split(".")[1])) : null;
+
+                const isSettingBtnVisible = membersMap[container.containerId]?.some((member) => member.authority === "ROOT" && member.memberId === decodedToken?.memberId);
+
+                const isLeaveBtnVisible = membersMap[container.containerId]?.some((member) => member.memberId === decodedToken?.memberId && member.authority !== "ROOT");
+
+                return (
+                    <ContainerCard
+                        key={container.containerId}
+                        container={container}
+                        members={membersMap[container.containerId]}
+                        membersLoading={membersLoading[container.containerId]}
+                        membersError={membersError[container.containerId]}
+                        showSettingBtn={isSettingBtnVisible}
+                        onSettingClick={() => {
+                          setSelectedContainerName(container.containerName);
+                          setSelectedContainerId(container.containerId);
+                          setIsSettingOpen(true);
+                        }}
+                        showLeaveBtn={isLeaveBtnVisible}
+                        onLeaveClick={() => handleLeave(container.containerId)}
+                        leaveLoading={leaveLoading === container.containerId}
+                        leaveError={leaveError}
+                        showJoinBtn={true}
+                        onJoinClick={() => handleJoin(container.containerId)}
+                    />
+                );
+              })
+          )}
+        </div>
+        {isModalOpen && <CreateContainer onClose={() => setIsModalOpen(false)} onSuccess={fetchContainers} />}
+        {isSettingOpen && selectedContainerId && (
+            <OwnerSetting onClose={() => setIsSettingOpen(false)} containerId={selectedContainerId} containerName={selectedContainerName} onSuccess={fetchContainers} />
         )}
       </div>
-      {isModalOpen && <CreateContainer onClose={() => setIsModalOpen(false)} onSuccess={fetchContainers} />}
-      {isSettingOpen && selectedContainerId && (
-        <OwnerSetting onClose={() => setIsSettingOpen(false)} containerId={selectedContainerId} containerName={selectedContainerName} onSuccess={fetchContainers} />
-      )}
-    </div>
   );
 };
 

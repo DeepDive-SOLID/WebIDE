@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import styles from "../../../styles/test.module.scss";
 import type { testApi } from "../../../types/ide";
 
-const TestResult = ({ isCorrect, testcaseResults }: testApi) => {
+const TestResult = ({ testcaseResults }: testApi) => {
   const [count, setCount] = useState<number>(0);
   // 테스트 버튼 클릭 전 보여줄 컴포넌트 구성
 

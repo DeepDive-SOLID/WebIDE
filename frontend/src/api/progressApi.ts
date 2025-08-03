@@ -1,5 +1,5 @@
 
-import type { ProgressDto, ProgressResponse, QuestionProgressResponse } from "../types/progress";
+import type {ProgressData, ProgressDto, ProgressResponse, QuestionProgressResponse} from "../types/progress";
 import api from "./axios";
 
 // 문제 진행률 계산
@@ -42,9 +42,11 @@ export const getQuestionProgressByMember = async (containerId: number, memberId:
 
 export const getDirectoryProgressFromMember = async (id: number) => {
   try {
-    const res = await api.get(`/progress/directory/${id}`);
+    const res = await api.get<ProgressData[]>(`/progress/directory/${id}`);
     return res.data
   } catch(e) {
+
     console.error(e)
+    throw e
   }
 }

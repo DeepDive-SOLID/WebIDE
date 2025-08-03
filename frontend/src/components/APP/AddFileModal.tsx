@@ -3,10 +3,11 @@ import Modal from "../UI/Modal";
 import styles from "../../styles/AddFileModal.module.scss";
 import { spacebar, enter, tab } from "../../assets";
 import { createQuestion } from "../../api/questionApi";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createDirectory } from "../../api/directoryApi";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import type { RootState } from "../../stores";
+import type {QuestionCreateDto} from "../../types/question.ts";
 // import { setProblemEntries } from "../../stores/problemSlice";
 
 interface AddFileModalProps {
@@ -22,7 +23,7 @@ interface AddFileModalProps {
     teamId?: number;
     directoryRoot: string;
   }[];
-  create: (...args: any[]) => void;
+  create: (dto: QuestionCreateDto) => Promise<string>;
   normalizePath: (path: string) => string;
   containerId: number;
 }
@@ -41,8 +42,7 @@ interface FormValues {
   }[];
 }
 
-const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxList, create, normalizePath, containerId }: AddFileModalProps) => {
-  const dispatch = useDispatch();
+const AddFileModal = ({ onClose, selectedId, boxList, create, normalizePath, containerId }: AddFileModalProps) => {
   const selectTeamId = useSelector((state: RootState) => state.problems.teamId);
 
   const {
@@ -67,7 +67,7 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
     },
   });
 
-  const [select, setSelet] = useState(selectedId);
+  const [select] = useState(selectedId);
 
   const parent = boxList?.find((b) => b?.id === select);
   const directoryRoot = parent ? normalizePath(`${parent?.directoryRoot}/${parent?.title}`) : "/";
@@ -148,19 +148,29 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
       alert("문제 생성 성공!");
       
       // 3. UI 업데이트
-      create(data.questionTitle, res?.directoryId, select, true, directoryRoot);
+      create({
+        containerId: containerId,
+        teamId: selectTeamId,
+        directoryId: res?.directoryId,
+        questionTitle: data.questionTitle,
+        questionDescription: data.problem,
+        question: data.problem,
+        questionInput: data.inputDesc,
+        questionOutput: data.outputDesc,
+        questionTime: parseFloat(data.timeLimit),
+        questionMem: parseInt(data.memoryLimit),
+        testcases: data.testcases.map((tc) => ({
+          caseEx: tc.input,
+          caseAnswer: tc.output,
+          caseCheck: tc.checked
+        }))
+      });
 
       onClose();
-    } catch (e: any) {
+    } catch (e) {
       console.error(e);
       // 백엔드에서 온 에러 메시지 확인
-      if (e.response?.data?.message) {
-        alert(e.response.data.message);
-      } else if (e.message?.includes("동일한 제목의 문제가 존재")) {
-        alert("이미 같은 디렉토리에 동일한 제목의 문제가 존재합니다.");
-      } else {
-        alert("문제 생성에 실패했습니다.");
-      }
+      alert(e);
     }
   };
 
@@ -175,7 +185,7 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
               문제 제목
             </label>
             <input id='questionTitle' {...register("questionTitle", { required: true })} placeholder='예: A + B 문제' />
-            {errors.problem && <p className={styles.warning}>⚠ 문제 제목을 작성해주세요.</p>}
+            {errors.questionTitle && <p className={styles.warning}>⚠ 문제 제목을 작성해주세요.</p>}
           </div>
 
           <div className={styles.formControl}>

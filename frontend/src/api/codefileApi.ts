@@ -2,7 +2,6 @@ import type {
   CodeFileListDto,
   CodeFileSaveDto,
   CodeFileUpdDto,
-  CodeFileDelDto,
 } from "../types/codefile";
 import api from "./axios";
 
@@ -33,6 +32,6 @@ export const updateCodeFile = async (data: CodeFileUpdDto): Promise<void> => {
 };
 
 // 코드 파일 삭제
-export const deleteCodeFile = async (data: CodeFileDelDto): Promise<void> => {
-  await api.delete("/CodeFile/delete", { data });
-};
+// export const deleteCodeFile = async (data: CodeFileDelDto): Promise<void> => {
+//   await api.delete("/CodeFile/delete", { data });
+// };

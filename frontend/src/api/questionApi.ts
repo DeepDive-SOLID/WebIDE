@@ -48,7 +48,7 @@ export const updateQuestion = async (dto: QuestionUpdDto): Promise<string> => {
 export const deleteQuestion = async (questionId: number): Promise<string> => {
   console.log("api : " + questionId)
   const response = await api.delete<string>("/question/delete", {
-    data: questionId,
+    params: questionId,
     headers: { "Content-Type": "application/json" },
   });
   return response.data;

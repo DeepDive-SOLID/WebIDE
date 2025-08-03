@@ -9,7 +9,6 @@ import {
   checkEmail,
 } from "../api/mypageApi";
 import type { MypageDto } from "../types/mypage";
-import { AxiosError } from "axios";
 import { AuthContext } from "../contexts/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import AppNav from "../components/APP/Nav/MypageNav";
@@ -160,7 +159,7 @@ const Mypage = () => {
       );
       if (result === "SUCCESS") window.location.reload();
     } catch (err) {
-      const error = err as AxiosError;
+      const error = err as { response: { data: string } };
       alert(
         typeof error.response?.data === "string"
           ? error.response.data

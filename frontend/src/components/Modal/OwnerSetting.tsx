@@ -6,7 +6,6 @@ import { deleteMember } from "../../api/homeApi";
 import { updateContainer } from "../../api/homeApi";
 import styles from "../../styles/Modal.module.scss";
 import { profile } from "../../assets";
-import { useDispatch } from "react-redux";
 
 interface OwnerSettingProps {
   onClose: () => void;

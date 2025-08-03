@@ -6,11 +6,12 @@ import { getCurrentMemberId } from "../../utils/auth";
 
 interface IdeProps {
   containerId: number;
+  modal: boolean;
 }
 const Ide = ({ containerId, modal }: IdeProps) => {
   console.log(containerId);
   // 로그인한 유저의 id 가져오기
-  const [loginId, setLoginId] = useState<string>(getCurrentMemberId());
+  const [loginId, setLoginId] = useState<string>(() => getCurrentMemberId() || "");
   const [activeButtonId, setActiveButtonId] = useState<string>("");
   // 클릭된 버튼의 ID를 인자로 받습니다.
   const handleOnClick = (id: string) => {

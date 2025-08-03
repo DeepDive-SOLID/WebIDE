@@ -15,7 +15,13 @@ const AppSidebar = ({ isOpen, type, containerId }: AppSidebarProps) => {
     <div className={styles.appSidebar}>
       {type === "container" && <ContainerSidebar />}
       {type === "algorithm" && containerId !== undefined && (
-        <AlgorithmSidebar containerId={containerId} />
+          <AlgorithmSidebar
+              containerId={containerId}
+              onSelectQuestionId={(id) => {
+                // Add your question selection logic here
+                console.log('Selected question ID:', id);
+              }}
+          />
       )}
     </div>
   );

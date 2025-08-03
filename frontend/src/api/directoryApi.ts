@@ -28,7 +28,7 @@ export const renameDirectory = async (dto: DirectoryUpdDto) => {
 // 디렉터리 삭제
 export const deleteDirectory = async (dto: DirectoryDelDto) => {
   const response = await api.delete("/directory/delete", {
-    data: dto,
+    params: dto,
   });
   return response.data;
 };

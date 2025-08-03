@@ -8,7 +8,7 @@ import { setToken } from "../../utils/auth";
 
 const GoogleLogin = () => {
     const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    const REDIRECT_URI = "http://localhost:5173/login/google/callback";
+    const REDIRECT_URI = "http://15.164.250.218/login/google/callback";
     const { login } = useContext(AuthContext)!;
     const navigate = useNavigate();
 

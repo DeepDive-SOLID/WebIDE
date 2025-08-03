@@ -7,7 +7,7 @@ import styles from "../../styles/KakaoLogin.module.scss";
 
 const KakaoLogin = () => {
     const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
-    const REDIRECT_URI = "http://localhost:5173/login/kakao/callback";
+    const REDIRECT_URI = "http://15.164.250.218/login/kakao/callback";
     const { login } = useContext(AuthContext)!;
     const navigate = useNavigate();
 

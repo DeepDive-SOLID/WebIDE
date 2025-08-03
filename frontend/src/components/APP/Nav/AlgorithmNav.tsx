@@ -12,6 +12,8 @@ import styles from "../../../styles/AppNav.module.scss";
 
 interface AlgorithmNavProps {
   containerId: number;
+  modal: boolean;
+  setModal: (modal: boolean) => void;
 }
 
 const AlgorithmNav = ({ containerId, modal, setModal }: AlgorithmNavProps) => {
@@ -47,7 +49,7 @@ const AlgorithmNav = ({ containerId, modal, setModal }: AlgorithmNavProps) => {
         setModal(false);
         break;
       case "algorithm":
-        setModal((prev) => !prev);
+        setModal(!modal);
         break;
       case "mypage":
         navigate("/info");

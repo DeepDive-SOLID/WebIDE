@@ -37,7 +37,7 @@ export function useStomp() {
             }
 
             // SockJS 소켓 생성
-            const socket = new SockJS("http://localhost:8080/ws");
+            const socket = new SockJS("http://15.164.250.218:8080/ws");
             // STOMP 클라이언트 생성 및 설정
             const stompClient = new Client({
                 // SockJS 소켓을 WebSocket 팩토리로 지정

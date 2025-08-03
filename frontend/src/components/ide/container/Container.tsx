@@ -250,7 +250,7 @@ const Container = ({ activeMember }: ContainerProp) => {
         {terminalToggle === "test" ? (
           testCase && <TestResult isCorrect={testCase.isCorrect} testcaseResults={testCase.testcaseResults} />
         ) : (
-          <XtermComponent isInputDisabled={isInputDisabled} setIsInputDisabled={setIsInputDisabled} codeId={codeId} height={300} terminalToggle={terminalToggle} />
+            <XtermComponent isInputDisabled={isInputDisabled} setIsInputDisabled={setIsInputDisabled} codeId={codeId || 0} height={300} terminalToggle={terminalToggle} />
         )}
       </div>
       <div className={`${styles.resetModal} ${toggle ? styles.action : ""}`}>

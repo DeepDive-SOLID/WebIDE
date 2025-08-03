@@ -2,9 +2,9 @@ import ContextMenu from "../ContextMenu";
 import Bargraph from "../../UI/Bargraph";
 import { FaUsers } from "react-icons/fa";
 import styles from "../../../styles/AppSidebar.module.scss";
-import { useState, useEffect } from "react";
+import React, {useState, useEffect} from "react";
 import { getDirectoryList, createDirectory, renameDirectory, deleteDirectory } from "../../../api/directoryApi";
-import { getContainerProgress, getDirectoryProgress, getDirectoryProgressFromMember, getQuestionProgressByMember } from "../../../api/progressApi";
+import { getContainerProgress, getDirectoryProgressFromMember, getQuestionProgressByMember } from "../../../api/progressApi";
 import { getQuestionListByContainerId } from "../../../api/questionApi";
 import { getContainerDetail } from "../../../api/homeApi";
 import type { ProgressData } from "../../../types/progress";
@@ -60,11 +60,7 @@ const AlgorithmSidebar = ({ containerId }: AlgorithmSidebarProps) => {
   const selectTeamId = useSelector((state: RootState) => state.problems.teamId);
   const questionId = useSelector((state: RootState) => state.problems.questionId);
   const shouldRefreshProgress = useSelector((state: RootState) => state.progress.shouldRefresh);
-  const [directoryProgress, setDirectoryProgress] = useState<{ [key: string]: number }>({});
   const [selectedDirectoryProgress, setSelectedDirectoryProgress] = useState<ProgressData[]>([]);
-  const [questionProgress, setQuestionProgress] = useState<{ [key: number]: number }>({});
-  const [questionMap, setQuestionMap] = useState<{ [key: string]: number }>({});
-  const [directoryQuestionMap, setDirectoryQuestionMap] = useState<{ [key: number]: number }>({});
 
   useEffect(() => {
     // console.log(boxList);
@@ -78,24 +74,12 @@ const AlgorithmSidebar = ({ containerId }: AlgorithmSidebarProps) => {
 
     // 폴더가 선택되었을 때 해당 디렉토리의 문제별 진행률 조회 (root 제외)
     if (id && problems[0] && problems[0].title !== "root") {
-      // 현재 사용자의 진행률
-      if (loginId) {
-        getDirectoryProgress(parseInt(id), loginId)
-          .then((data: any) => {
-            // console.log('Directory progress:', data);
-            // 디렉토리별 진행률 저장
-            setDirectoryProgress((prev) => ({
-              ...prev,
-              [id]: data.progressPercentage || 0,
-            }));
-          })
-          .catch((err) => console.error("Failed to fetch directory progress:", err));
-      }
+      // 현재 사용자의 진행률 조회
       const fetch = async () => {
         try {
           const res = await getDirectoryProgressFromMember(Number(id));
           console.log(res);
-          const formattedData = res.map((item: any) => ({
+          const formattedData = res.map((item: ProgressData) => ({
             memberId: item.memberId,
             memberName: item.memberName,
             averageProgress: item.progressComplete || 0,
@@ -152,22 +136,6 @@ const AlgorithmSidebar = ({ containerId }: AlgorithmSidebarProps) => {
 
       setBoxList(mapped);
 
-      // 문제 디렉토리의 진행률만 가져오기
-      if (loginId) {
-        mapped.forEach(async (item) => {
-          if (item.hasQuestion) {
-            try {
-              const data = await getDirectoryProgress(item.directoryId, loginId);
-              setDirectoryProgress((prev) => ({
-                ...prev,
-                [item.directoryId]: data.progressPercentage || 0,
-              }));
-            } catch (err) {
-              console.error("Failed to fetch progress for directory:", item.directoryId, err);
-            }
-          }
-        });
-      }
     };
 
     if (containerTeamId !== null) {
@@ -243,10 +211,6 @@ const AlgorithmSidebar = ({ containerId }: AlgorithmSidebarProps) => {
           console.log("Question Progress Data:", questionProgressData);
           console.log("Question List:", questionList);
           console.log("Directory Question Map:", dirQuestionMap);
-
-          setQuestionProgress(progressMap);
-          setQuestionMap(titleMap);
-          setDirectoryQuestionMap(dirQuestionMap);
         }
       } catch (error) {
         console.error("Failed to fetch question progress:", error);
@@ -278,20 +242,11 @@ const AlgorithmSidebar = ({ containerId }: AlgorithmSidebarProps) => {
           if (selectedId) {
             const id = selectedId.split("-")[1];
 
-            // 현재 사용자의 진행률
-            if (loginId) {
-              const data = await getDirectoryProgress(parseInt(id), loginId);
-              setDirectoryProgress((prev) => ({
-                ...prev,
-                [id]: data.progressPercentage || 0,
-              }));
-            }
-
             // 선택된 디렉토리의 모든 팀원 진행률 재조회
             try {
               try {
                 const res = await getDirectoryProgressFromMember(Number(id));
-                const formattedData = res.map((item: any) => ({
+                const formattedData = res.map((item: ProgressData) => ({
                   memberId: item.memberId,
                   memberName: item.memberName,
                   averageProgress: item.progressComplete || 0,
@@ -304,23 +259,6 @@ const AlgorithmSidebar = ({ containerId }: AlgorithmSidebarProps) => {
             } catch (err) {
               console.error("Failed to fetch directory team progress:", err);
             }
-          }
-
-          // 각 디렉토리의 진행률도 재조회
-          if (loginId) {
-            boxList.forEach(async (item) => {
-              if (item.hasQuestion) {
-                try {
-                  const data = await getDirectoryProgress(item.directoryId, loginId);
-                  setDirectoryProgress((prev) => ({
-                    ...prev,
-                    [item.directoryId]: data.progressPercentage || 0,
-                  }));
-                } catch (err) {
-                  console.error("Failed to fetch progress for directory:", item.directoryId, err);
-                }
-              }
-            });
           }
 
           // 문제별 진행률도 재조회
@@ -350,10 +288,6 @@ const AlgorithmSidebar = ({ containerId }: AlgorithmSidebarProps) => {
                     }
                   }
                 });
-
-                setQuestionProgress(progressMap);
-                setQuestionMap(titleMap);
-                setDirectoryQuestionMap(dirQuestionMap);
               }
             } catch (error) {
               console.error("Failed to fetch question progress:", error);
@@ -435,7 +369,7 @@ const AlgorithmSidebar = ({ containerId }: AlgorithmSidebarProps) => {
     return () => document.removeEventListener("click", close);
   }, [menuPos]);
 
-  const renderTree = (parentId: string | null): JSX.Element[] => {
+  const renderTree = (parentId: string | null): React.JSX.Element[] => {
     return boxList
       .filter((item) => item.parentId === parentId)
       .map((item) => (
@@ -587,7 +521,7 @@ const AlgorithmSidebar = ({ containerId }: AlgorithmSidebarProps) => {
             });
 
             // 각 멤버에 대해 선택된 언어의 진행률 찾기
-            const allBars: JSX.Element[] = [];
+            const allBars: React.JSX.Element[] = [];
             memberGroups.forEach((memberDataList, memberId) => {
               // 멤버의 이름은 첫 번째 데이터에서 가져옴
               const memberName = memberDataList[0]?.memberName || memberDataList[0]?.memberId || "";
@@ -663,9 +597,9 @@ const AlgorithmSidebar = ({ containerId }: AlgorithmSidebarProps) => {
             const directoryRoot = parent ? normalizePath(`${parent.directoryRoot}/${parent.title}`) : "/";
             create(newFile.title, newFile.directoryId, selectedId, true, directoryRoot);
           }}
-          selectedId={selectedId}
+          selectedId={selectedId || ""}
           boxList={boxList}
-          create={(t, d, s, b, root) => create(t, d, s, b, root)}
+          create={async () => Promise.resolve('')}
           normalizePath={normalizePath}
           containerId={containerId}
         />
