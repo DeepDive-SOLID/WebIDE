@@ -17,6 +17,8 @@ import SharedContainer from "./pages/SharedContainer";
 import PublicContainer from "./pages/PublicContainer";
 import Mypage from "./pages/Mypage";
 import Info from "./pages/Info";
+import KakaoLogin from "./components/UI/KakaoLogin.tsx";
+import GoogleLogin from "./components/UI/GoogleLogin.tsx";
 
 const router = createBrowserRouter([
   {
@@ -60,6 +62,14 @@ const router = createBrowserRouter([
       {
         path: "/container/:chatRoomId",
         element: <WebIde />,
+      },
+      {
+        path: "login/kakao/callback",
+        element: <KakaoLogin />,
+      },
+      {
+        path: "login/google/callback",
+        element: <GoogleLogin />,
       },
     ],
   },
