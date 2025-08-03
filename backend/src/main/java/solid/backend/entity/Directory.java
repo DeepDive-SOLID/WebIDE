@@ -34,6 +34,11 @@ public class Directory {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private Team team;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_directory_id")
+    @Comment("부모 디렉토리")
+    private Directory parentDirectory;
 
     @OneToMany(mappedBy = "directory", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JsonIgnore
@@ -51,4 +56,9 @@ public class Directory {
     @JsonIgnore
     @Comment("연결된 문제들")
     private List<Question> questions = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "parentDirectory", cascade = CascadeType.ALL)
+    @JsonIgnore
+    @Comment("하위 디렉토리들")
+    private List<Directory> subDirectories = new ArrayList<>();
 }
