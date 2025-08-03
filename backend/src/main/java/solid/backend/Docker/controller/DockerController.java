@@ -12,7 +12,7 @@ import solid.backend.Docker.service.DockerServiceImpl;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/docker")
+@RequestMapping("/api/docker")
 public class DockerController {
     private final DockerServiceImpl dockerService;
 

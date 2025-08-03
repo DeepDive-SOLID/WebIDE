@@ -22,24 +22,25 @@ public class SecurityConfig {
                         // 회원가입, 로그인 허용
                         .requestMatchers("/sign/**").permitAll()
                         .requestMatchers("/token/refresh").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/topic/**").permitAll()
+                        .requestMatchers("/app/**").permitAll()
 
                         // 컨테이너 접근
                         .requestMatchers("/api/containers/**").hasRole("USER")
-                        .requestMatchers("/directory/**").hasRole("USER")
-                        .requestMatchers("/docker/**").hasRole("USER")
+                        .requestMatchers("/api/directory/**").hasRole("USER")
+                        .requestMatchers("/api/docker/**").hasRole("USER")
                         .requestMatchers("/api/progress/**").hasRole("USER")
-                        .requestMatchers("/question/**").hasRole("USER")
-                        .requestMatchers("/CodeFile/**").hasRole("USER")
+                        .requestMatchers("/api/question/**").hasRole("USER")
+                        .requestMatchers("/api/CodeFile/**").hasRole("USER")
 
                         // 채팅창 접근
-                        .requestMatchers("/chatRooms/**").hasRole("USER")
                         .requestMatchers("/api/chatRooms/**").hasRole("USER")
-                        .requestMatchers("/topic").hasRole("USER")
-                        .requestMatchers("/app").hasRole("USER")
-                        .requestMatchers("/ws").hasRole("USER")
+                        .requestMatchers("/api/chatRooms/**").hasRole("USER")
+
 
                         // 마이페이지 접근
-                        .requestMatchers("/mypage/member/**").hasRole("USER")
+                        .requestMatchers("/api/mypage/member/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFiler, UsernamePasswordAuthenticationFilter.class)
