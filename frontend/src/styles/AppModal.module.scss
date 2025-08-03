@@ -1,3 +1,365 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  width: 700px;
+  max-width: 90vw;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #888;
+  transition: color 0.2s;
+}
+.closeBtn:hover {
+  color: #2196f3;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.containerNameInput {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 16px;
+  height: 44px;
+  font-family: inherit;
+  transition: border 0.2s;
+}
+.containerNameInput:focus {
+  border-color: #2196f3;
+  outline: none;
+}
+
+.textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  min-height: 80px;
+  resize: none;
+  font-family: inherit;
+}
+
+.containerNameInput::placeholder,
+.inviteInput::placeholder,
+.textarea::placeholder {
+  color: #adaebc;
+  font-size: 16px;
+  font-family: inherit;
+  opacity: 1;
+}
+
+.buttonRow {
+  display: flex;
+  gap: 8px;
+}
+
+.primaryBtn {
+  flex: 1;
+  background: #0085ff;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 0;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.primaryBtn:hover {
+  background: #0074d9;
+}
+
+.secondaryBtn {
+  flex: 1;
+  background: #d1d5db;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 0;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.secondaryBtn:hover {
+  background: #bfc4ce;
+}
+
+.inviteInput {
+  flex: 1 1 0;
+  width: auto;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 16px;
+  height: 44px;
+  font-family: inherit;
+  transition: border 0.2s;
+}
+.inviteInput:focus {
+  border-color: #2196f3;
+  outline: none;
+}
+.inviteInput::placeholder {
+  color: #adaebc;
+  font-size: 16px;
+  font-family: inherit;
+  opacity: 1;
+}
+
+.inviteBtn {
+  flex: 0 0 80px;
+  width: 80px;
+  background: #0085ff;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 0;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.inviteBtn:hover {
+  background: #0074d9;
+}
+
+.memberBadge {
+  display: inline-block;
+  background: #0085ff;
+  color: #fff;
+  border-radius: 20px;
+  padding: 2px 14px;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  text-align: center;
+  min-width: 80px;
+  box-sizing: border-box;
+}
+
+.memberList {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+.memberItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+.memberItem:last-child {
+  margin-bottom: 0;
+}
+.memberAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+.roleBadge {
+  margin-left: 8px;
+  border-radius: 20px;
+  padding: 2px 14px;
+  font-size: 12px;
+  color: #fff;
+  text-align: center;
+  min-width: 80px;
+}
+.owner {
+  background: #d13131;
+}
+.member {
+  background: #34c759;
+}
+
+.memberActivity {
+  margin-left: 8px;
+}
+
+.addBtn {
+  width: 100%;
+  background: #0085ff;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 16px 0;
+  font-size: 18px;
+  margin-top: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.addBtn:hover {
+  background: #0074d9;
+}
+
+.removeBtn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 50%;
+  transition: background 0.2s, color 0.2s;
+}
+.removeBtn:hover {
+  background: #f5f5f5;
+  color: #f44336;
+}
+
+.memberActions {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 8px;
+}
+
+.roleBtn {
+  background: #d1d5db;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 4px 16px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.roleBtn:hover {
+  background: #bfc4ce;
+}
+
+/* 다크모드 스타일 */
+:global(body.dark-mode) {
+  .modalContent {
+    background: #1e1e1e;
+    box-shadow: 0 2px 16px rgba(255, 255, 255, 0.1);
+  }
+
+  .closeBtn {
+    color: #aaaaaa;
+    &:hover {
+      color: #2196f3;
+    }
+  }
+
+  .containerNameInput,
+  .inviteInput,
+  .textarea {
+    background: #2c2c2c;
+    border-color: #444444;
+    color: #ffffff;
+    &:focus {
+      border-color: #2196f3;
+    }
+    &::placeholder {
+      color: #888888;
+    }
+  }
+
+  .primaryBtn {
+    background: #0085ff;
+    &:hover {
+      background: #0074d9;
+    }
+  }
+
+  .secondaryBtn {
+    background: #444444;
+    color: #ffffff;
+    &:hover {
+      background: #555555;
+    }
+  }
+
+  .inviteBtn {
+    background: #0085ff;
+    &:hover {
+      background: #0074d9;
+    }
+  }
+
+  .memberBadge {
+    background: #0085ff;
+  }
+
+  .memberList {
+    background: #2c2c2c;
+  }
+
+  .memberItem {
+    color: #ffffff;
+  }
+
+  .roleBadge {
+    &.owner {
+      background: #d13131;
+    }
+    &.member {
+      background: #34c759;
+    }
+  }
+
+  .memberActivity {
+    color: #cccccc;
+  }
+
+  .addBtn {
+    background: #0085ff;
+    &:hover {
+      background: #0074d9;
+    }
+  }
+
+  .removeBtn {
+    color: #aaaaaa;
+    &:hover {
+      background: #444444;
+      color: #f44336;
+    }
+  }
+
+  .roleBtn {
+    background: #444444;
+    color: #ffffff;
+    &:hover {
+      background: #555555;
+    }
+  }
+}
 .overlay {
   position: fixed;
   inset: 0;
@@ -27,3 +389,4 @@
   border: none;
   cursor: pointer;
 }
+

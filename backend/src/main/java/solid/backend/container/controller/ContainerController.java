@@ -310,5 +310,23 @@ public class ContainerController {
         
         return ResponseEntity.ok(ApiResponse.success(response, "배치 업데이트가 완료되었습니다"));
     }
+    
+    /**
+     * 컨테이너의 팀 ID 조회
+     * @param containerId 컨테이너 ID
+     * @return 팀 ID 정보
+     */
+    @GetMapping("/{containerId}/team")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getContainerTeamId(
+            @PathVariable("containerId") Integer containerId) {
+        String memberId = getCurrentMemberId();
+        Integer teamId = containerService.getContainerTeamId(containerId, memberId);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("teamId", teamId);
+        response.put("containerId", containerId);
+        
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 
 }

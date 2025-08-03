@@ -9,6 +9,28 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      "/directory": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        rewrite: (path) => path,
+      },
+      "/CodeFile": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        rewrite: (path) => path,
+      },
+      "/question": {
+        target: "http://localhost:8080/",
+        changeOrigin: true,
+      },
+      "/progress": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
+      "/docker": {
+        target: "http://localhost:8080",
+        changeOrigin: true
+      }, 
       "/sign": {
         target: "http://localhost:8080",
         changeOrigin: true,
@@ -25,6 +47,5 @@ export default defineConfig({
         target: "http://localhost:8080",
         changeOrigin: true,
       },
-    },
-  },
+    }}
 });

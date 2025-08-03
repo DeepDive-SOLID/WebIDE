@@ -7,8 +7,19 @@
     font-size: 14px;
     font-weight: 600;
     color: #333;
-    display: block;
-    margin-bottom: 4px;
+  }
+
+  .formControl {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 0px;
+  }
+
+  .title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
   }
 
   input,
@@ -30,6 +41,35 @@
     &:focus {
       border-color: #0085ff;
       outline: none;
+    }
+  }
+}
+
+.warning {
+  color: #d93025;
+  font-size: 13px;
+  margin-top: 0px;
+  margin-left: 2px;
+}
+
+.labeledInput {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .inlineInput {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    input {
+      flex: none;
+      width: 120px;
+    }
+
+    .unit {
+      font-size: 14px;
+      color: #555;
     }
   }
 }
@@ -58,10 +98,16 @@
   }
 }
 
-.testcaseList {
+.testcaseRow {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 8px;
+
+  input[type="checkbox"] {
+    transform: scale(1.2);
+    accent-color: #0085ff;
+    cursor: pointer;
+  }
 }
 
 .testcaseInput {
@@ -84,36 +130,14 @@
   }
 }
 
-.testcaseRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  input[type="checkbox"] {
-    transform: scale(1.2);
-    accent-color: #0085ff;
-    cursor: pointer;
-  }
-
-  input[type="text"] {
-    flex: 1;
-    font-size: 14px;
-    font-family: inherit;
-    padding: 10px 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background-color: #fff;
-    color: #000;
-
-    &::placeholder {
-      color: #bbb;
-    }
-
-    &:focus {
-      border-color: #0085ff;
-      outline: none;
-    }
-  }
+.testcaseWarning {
+  font-size: 13px;
+  margin-top: 8px;
+  color: #ff4d4f;
+  background-color: #fff2f0;
+  padding: 8px 12px;
+  border: 1px solid #ffa39e;
+  border-radius: 6px;
 }
 
 .addBtn,
@@ -140,4 +164,11 @@
   margin-top: 32px;
   padding: 14px 0;
   border: none;
+}
+
+/* number input 화살표 제거 (크롬) */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }

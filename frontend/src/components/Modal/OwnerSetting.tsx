@@ -5,7 +5,8 @@ import { getContainerDetail } from "../../api/homeApi";
 import { deleteMember } from "../../api/homeApi";
 import { updateContainer } from "../../api/homeApi";
 import styles from "../../styles/Modal.module.scss";
-import profileImg from "../../assets/images/profile_img.png";
+import { profile } from "../../assets";
+import { useDispatch } from "react-redux";
 
 interface OwnerSettingProps {
   onClose: () => void;
@@ -71,6 +72,7 @@ const OwnerSetting: React.FC<OwnerSettingProps> = ({
     const fetchContainerDetail = async () => {
       try {
         const detail = await getContainerDetail(containerId);
+
         setIsPublic(detail.isPublic ?? null);
       } catch {
         setIsPublic(null);
@@ -237,7 +239,7 @@ const OwnerSetting: React.FC<OwnerSettingProps> = ({
               members.map((member) => (
                 <div className={styles.memberItem} key={member.teamUserId}>
                   <img
-                    src={profileImg}
+                    src={profile}
                     alt="user"
                     className={styles.memberAvatar}
                   />

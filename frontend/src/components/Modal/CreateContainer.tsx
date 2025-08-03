@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import styles from "../../styles/Modal.module.scss";
-import profileImg from "../../assets/images/profile_img.png";
+import { profile } from "../../assets";
 import { createContainer } from "../../api/homeApi";
 import type { CreateContainerDto } from "../../types/home";
 
@@ -170,11 +170,7 @@ const CreateContainer: React.FC<CreateContainerProps> = ({
             {/* Owner (로그인한 사용자) 표시 */}
             {userInfo?.memberId && (
               <div className={styles.memberItem}>
-                <img
-                  src={profileImg}
-                  alt="user"
-                  className={styles.memberAvatar}
-                />
+                <img src={profile} alt="user" className={styles.memberAvatar} />
                 {userInfo.memberId}
                 <span className={`${styles.roleBadge} ${styles.owner}`}>
                   Owner
@@ -184,11 +180,7 @@ const CreateContainer: React.FC<CreateContainerProps> = ({
             {/* 초대된 멤버들 표시 */}
             {invitedMemberIds.map((id) => (
               <div className={styles.memberItem} key={id}>
-                <img
-                  src={profileImg}
-                  alt="user"
-                  className={styles.memberAvatar}
-                />
+                <img src={profile} alt="user" className={styles.memberAvatar} />
                 {id}
                 <span className={`${styles.roleBadge} ${styles.member}`}>
                   Member

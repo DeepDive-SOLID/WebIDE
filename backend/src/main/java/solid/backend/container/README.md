@@ -12,7 +12,7 @@
     - GroupMemberResponseDto.java
     - MemberInviteDto.java
 - repository(jpa)
-    - ContainerJpaRepository.java
+    - ContainerRepository.java
     - ContainerQueryRepository.java
 - service(비즈니스 로직)
     - ContainerService.java
@@ -51,6 +51,7 @@
 - HTTP method : DELETE
 - HTTP request URL : /api/containers/{containerId}
 - return : ApiResponse<Void>
+- 설명 : 컨테이너 및 관련된 모든 데이터(Directory, Question, Progress, Result, CodeFile, TestCase) 삭제
 
 [내 컨테이너 목록 조회]
 - HTTP method : GET
@@ -113,6 +114,7 @@
 - 내 컨테이너 목록 조회
 - 비활성 멤버 자동 제거 : 6개월 이상 미활동 시 자동 탈퇴 (스케줄러)
 - 활동 시간 추적 : 컨테이너 접근 시 자동으로 lastActivityDate 업데이트
+- **컨테이너 삭제 시 관련 데이터 자동 삭제** : Directory, Question, Progress, Result, CodeFile, TestCase 등 모든 관련 데이터 cascade 삭제
 
 #### 추가 구현 기능
 - **공개 컨테이너 참여** : 공개 컨테이너에 초대 없이 자유롭게 참여 가능

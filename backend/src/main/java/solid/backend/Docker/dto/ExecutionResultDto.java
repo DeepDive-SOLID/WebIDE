@@ -1,0 +1,19 @@
+package solid.backend.Docker.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ExecutionResultDto {
+    private String language;
+    private float time;
+    private String mem;
+    private Boolean isCorrect;
+    private Integer progress;
+    private List<TestcaseResultDto> testcaseResults;
+}

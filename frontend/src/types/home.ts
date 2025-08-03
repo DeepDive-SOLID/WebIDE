@@ -16,6 +16,7 @@ export interface ContainerResponseDto {
   authority: "ROOT" | "USER";
   memberCount: number;
   createdDate: string;
+  teamId:number
 }
 
 // 컨테이너 멤버 응답 DTO
@@ -27,6 +28,7 @@ export interface GroupMemberResponseDto {
   authority: "ROOT" | "USER";
   joinedDate: string;
   lastActivityDate: string;
+  isOnline: boolean;
 }
 
 // API 응답 공통 타입
