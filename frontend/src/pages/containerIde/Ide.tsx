@@ -8,6 +8,7 @@ interface IdeProps {
   containerId: number;
 }
 const Ide = ({ containerId, modal }: IdeProps) => {
+  console.log(containerId);
   // 로그인한 유저의 id 가져오기
   const [loginId, setLoginId] = useState<string>(getCurrentMemberId());
   const [activeButtonId, setActiveButtonId] = useState<string>("");
@@ -22,11 +23,7 @@ const Ide = ({ containerId, modal }: IdeProps) => {
 
   return (
     <div style={{ flex: 1, minWidth: 0, marginLeft: modal ? 320 : 80 }}>
-      <Header
-        activeMember={activeButtonId}
-        handleOnClick={handleOnClick}
-        containerId={containerId}
-      />
+      <Header activeMember={activeButtonId} handleOnClick={handleOnClick} containerId={containerId} />
       <div
         style={{
           display: "flex",
