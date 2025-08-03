@@ -1,6 +1,7 @@
 export interface QuestionCreateDto {
   containerId: number;
   teamId: number;
+  directoryId?: number; // 추가
   questionTitle: string;
   questionDescription: string;
   question: string;
@@ -15,6 +16,7 @@ export interface QuestionListDto {
   questionId: number;
   containerId: number;
   teamId: number;
+  directoryId?: number;
   questionTitle: string;
   questionDescription: string;
   question: string;

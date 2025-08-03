@@ -76,4 +76,38 @@ public class DirectoryController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("FAIL");
         }
     }
+    
+    /**
+     * 설명: 특정 디렉터리의 하위 디렉터리 조회
+     * @param directoryId
+     * @return List<DirectoryDto>
+     */
+    @ResponseBody
+    @GetMapping("/children/{directoryId}")
+    public ResponseEntity<List<DirectoryDto>> getChildDirectories(@PathVariable("directoryId") Integer directoryId) {
+        try {
+            List<DirectoryDto> children = directoryService.getChildDirectories(directoryId);
+            return ResponseEntity.ok(children);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+    
+    /**
+     * 설명: 루트 디렉터리만 조회
+     * @param containerId
+     * @return List<DirectoryDto>
+     */
+    @ResponseBody
+    @GetMapping("/roots/{containerId}")
+    public ResponseEntity<List<DirectoryDto>> getRootDirectories(@PathVariable("containerId") Integer containerId) {
+        try {
+            List<DirectoryDto> roots = directoryService.getRootDirectories(containerId);
+            return ResponseEntity.ok(roots);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 }

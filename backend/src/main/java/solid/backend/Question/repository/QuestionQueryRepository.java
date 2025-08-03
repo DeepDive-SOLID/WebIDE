@@ -25,6 +25,7 @@ public class QuestionQueryRepository {
                         question.questionId,
                         question.container.containerId,
                         question.team.teamId,
+                        question.directory.directoryId,
                         question.questionTitle,
                         question.questionDescription,
                         question.question,

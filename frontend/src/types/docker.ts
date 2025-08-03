@@ -16,6 +16,7 @@ export interface ExecutionResultDto {
     time: number,
     mem: string,
     isCorrect: boolean,
+    progress: number,
     testcaseResults: TestcaseResultDto[]
 }
 

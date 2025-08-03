@@ -79,6 +79,31 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
   });
 
   const onSubmit = async (data: FormValues) => {
+    // 컨테이너 전체에서 문제명 중복 검사
+    const hasDuplicateProblem = boxList.some(item => 
+      item.title === data.questionTitle && item.isProblem
+    );
+    
+    if (hasDuplicateProblem) {
+      alert(`"${data.questionTitle}"라는 이름의 문제가 이미 존재합니다. 다른 이름을 사용해주세요.`);
+      return;
+    }
+    
+    // 같은 부모 디렉토리 내에서 디렉토리명 중복 검사
+    const siblingItems = boxList.filter(item => 
+      item.id.startsWith('folder-') && // 디렉토리만 필터링
+      (parent ? item.directoryRoot === directoryRoot : item.directoryRoot === '/') // 같은 부모 경로
+    );
+    
+    const hasDuplicateDirectory = siblingItems.some(item => 
+      item.title === data.questionTitle && !item.isProblem
+    );
+    
+    if (hasDuplicateDirectory) {
+      alert(`"${data.questionTitle}"라는 이름의 디렉토리가 이미 존재합니다. 다른 이름을 사용해주세요.`);
+      return;
+    }
+
     const validChecked = data.testcases.filter((tc) => tc.checked && tc.input.trim() && tc.output.trim());
 
     if (validChecked.length < 3) {
@@ -87,10 +112,21 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
     }
 
     try {
-      // 문제 생성 API 호출
-      await createQuestion({
+      // 1. 먼저 Directory 생성
+      const res = await createDirectory({
+        containerId: containerId,
+        teamId: teamId,
+        directoryName: data.questionTitle,
+        directoryRoot,
+        directoryId: 0,
+      });
+      console.log('Directory created:', res);
+
+      // 2. 생성된 directoryId를 사용하여 Question 생성
+      const resQuestion = await createQuestion({
         containerId: containerId, // 실제 값으로 교체
         teamId: teamId,
+        directoryId: res?.directoryId,
         questionTitle: data.questionTitle,
         questionDescription: "",
         question: data.problem,
@@ -104,23 +140,27 @@ const AddFileModal = ({ onClose, directoryId, onCreateComplete, selectedId, boxL
           caseCheck: tc.checked,
         })),
       });
+      if (resQuestion === "FAIL") {
+        alert("문제 생성에 실패했습니다.");
+        return;
+      }
 
       alert("문제 생성 성공!");
-
-      const res = await createDirectory({
-        containerId: containerId,
-        teamId: teamId,
-        directoryName: data.questionTitle,
-        directoryRoot,
-        directoryId: 0,
-      });
-      console.log(res);
+      
+      // 3. UI 업데이트
       create(data.questionTitle, res?.directoryId, select, true, directoryRoot);
 
       onClose();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert("문제 생성 실패");
+      // 백엔드에서 온 에러 메시지 확인
+      if (e.response?.data?.message) {
+        alert(e.response.data.message);
+      } else if (e.message?.includes("동일한 제목의 문제가 존재")) {
+        alert("이미 같은 디렉토리에 동일한 제목의 문제가 존재합니다.");
+      } else {
+        alert("문제 생성에 실패했습니다.");
+      }
     }
   };
 

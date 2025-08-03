@@ -27,4 +27,18 @@ public interface DirectoryService {
      * @param directoryDelDto
      */
     void deleteDirectory(DirectoryDelDto directoryDelDto);
+    
+    /**
+     * 설명: 특정 디렉터리의 하위 디렉터리 조회
+     * @param directoryId
+     * @return List<DirectoryDto>
+     */
+    List<DirectoryDto> getChildDirectories(Integer directoryId);
+    
+    /**
+     * 설명: 루트 디렉터리만 조회
+     * @param containerId
+     * @return List<DirectoryDto>
+     */
+    List<DirectoryDto> getRootDirectories(Integer containerId);
 }
