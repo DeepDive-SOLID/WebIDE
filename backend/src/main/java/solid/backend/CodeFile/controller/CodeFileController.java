@@ -15,7 +15,7 @@ import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/CodeFile")
+@RequestMapping("/api/CodeFile")
 public class CodeFileController {
     private final CodeFileService codeFileService;
 

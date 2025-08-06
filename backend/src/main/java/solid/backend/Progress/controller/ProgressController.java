@@ -15,7 +15,7 @@ import java.util.HashMap;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/progress")
+@RequestMapping("/api/progress")
 public class ProgressController {
 
     private final ProgressService progressService;

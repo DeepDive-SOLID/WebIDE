@@ -1,18 +1,12 @@
-import axios from "axios";
 import type { MypageDto, MypageProfileDto } from "../types/mypage";
+import api from "./axios";
 
-// mypageApi용 axios 인스턴스 (baseURL 없이 프록시 사용)
-const mypageAxios = axios.create({
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
 
 // 회원 정보 조회 (프로필)
 export const getProfileDto = async (
   memberId: string
 ): Promise<MypageProfileDto> => {
-  const response = await mypageAxios.post<MypageProfileDto>(
+  const response = await api.post<MypageProfileDto>(
     "/mypage/member/getProfileDto",
     memberId,
     {
@@ -24,7 +18,7 @@ export const getProfileDto = async (
 
 // 회원 정보 조회
 export const getMemberDto = async (memberId: string): Promise<MypageDto> => {
-  const response = await mypageAxios.post<MypageDto>(
+  const response = await api.post<MypageDto>(
     "/mypage/member/getMemberDto",
     memberId,
     {
@@ -36,7 +30,7 @@ export const getMemberDto = async (memberId: string): Promise<MypageDto> => {
 
 // 회원 정보 수정
 export const updateMemberDto = async (formData: FormData): Promise<string> => {
-  const response = await mypageAxios.put<string>(
+  const response = await api.put<string>(
     "/mypage/member/updateMemberDto",
     formData,
     {
@@ -48,7 +42,7 @@ export const updateMemberDto = async (formData: FormData): Promise<string> => {
 
 // 이메일 중복 확인
 export const checkEmail = async (email: string): Promise<boolean> => {
-  const response = await mypageAxios.post<boolean>(
+  const response = await api.post<boolean>(
     "/mypage/member/checkEmail",
     email,
     {
@@ -60,7 +54,7 @@ export const checkEmail = async (email: string): Promise<boolean> => {
 
 // 회원 정보 삭제
 export const deleteMemberDto = async (memberId: string): Promise<string> => {
-  const response = await mypageAxios.delete<string>(
+  const response = await api.delete<string>(
     "/mypage/member/deleteMemberDto",
     {
       data: memberId,
