@@ -31,7 +31,7 @@
       <td>고유림<br>@koyulim</td>
       <td>정지연<br>@dyoni2</td>
       <td>신용선<br>@shinyyseon</td>
-      <td>가상엽<br>@shinyyseon</td>
+      <td>가상엽<br>@Shelfey</td>
   </table>
 </div>
 
